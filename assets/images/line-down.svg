@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <!-- Larger Down arrow (outline only), centered -->
+  <g stroke="#000" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <!-- arrow head pointing downward -->
+    <path d="M180 360 L120 300" />
+    <path d="M180 360 L240 300" />
+    <!-- shaft -->
+    <path d="M180 152 L180 356" />
+  </g>
+
+  <!-- Document/list icon with normal aspect ratio (3:4), bottom aligned with arrow -->
+  <defs>
+    <mask id="listCutDown">
+      <rect x="300" y="232" width="96" height="128" rx="12" fill="#fff"/>
+      <rect x="312" y="256" width="72" height="12" rx="6" fill="#000"/>
+      <rect x="312" y="288" width="72" height="12" rx="6" fill="#000"/>
+      <rect x="312" y="320" width="72" height="12" rx="6" fill="#000"/>
+    </mask>
+  </defs>
+  <rect x="300" y="232" width="96" height="128" rx="12" fill="#000" mask="url(#listCutDown)"/>
+</svg>
