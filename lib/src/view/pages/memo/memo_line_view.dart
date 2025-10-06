@@ -40,17 +40,7 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
     super.initState();
     controller = TextEditingController(text: widget.memoLineState.text);
     widget.focusNode.addListener(_handleFocusChange);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final key =
-          ref.read(dividerHeightkeyProvider(widget.memoLineState.index));
-      final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
-      if (renderBox != null) {
-        setState(() {
-          textFieldHeight = renderBox.size.height;
-        });
-      }
-    });
+    setTextFieldHeight();
   }
 
   @override
@@ -59,6 +49,10 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
     if (controller.text != widget.memoLineState.text) {
       controller.text = widget.memoLineState.text;
     }
+    setTextFieldHeight();
+  }
+
+  void setTextFieldHeight() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final key =

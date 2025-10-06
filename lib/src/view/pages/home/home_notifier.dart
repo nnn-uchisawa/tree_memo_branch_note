@@ -94,7 +94,6 @@ class HomeNotifier extends _$HomeNotifier {
             indent: baseIndent + 1,
             fontSize: fontSize,
             isReadOnly: true,
-            displayDropDownMenu: false,
           ));
           codeStart++;
         }
@@ -113,7 +112,6 @@ class HomeNotifier extends _$HomeNotifier {
             indent: baseIndent + 1,
             fontSize: fontSize,
             isReadOnly: true,
-            displayDropDownMenu: false,
           ));
         }
         isReadOnly = true;
@@ -160,7 +158,6 @@ class HomeNotifier extends _$HomeNotifier {
         indent: indent,
         fontSize: fontSize,
         isReadOnly: isReadOnly,
-        displayDropDownMenu: false,
       ));
     }
 
@@ -177,7 +174,6 @@ class HomeNotifier extends _$HomeNotifier {
                 indent: entry.value.indent,
                 fontSize: entry.value.fontSize,
                 isReadOnly: entry.value.isReadOnly,
-                displayDropDownMenu: entry.value.displayDropDownMenu,
               ))
           .toList(),
       fileName: fileName,

@@ -235,25 +235,6 @@ class MemoNotifier extends _$MemoNotifier {
     state = state.copyWith(list: list, visibleList: visibleList);
   }
 
-  Function(TapDownDetails tapDownDetails) onTapDown() {
-    return (tapDownDetails) {
-      bool isChangeExist = false;
-      List<MemoLineState> list = List.from(state.list);
-      for (int i = 0; i < list.length; i++) {
-        if (list[i].displayDropDownMenu) {
-          isChangeExist = true;
-        }
-        list[i] = list[i].copyWith(displayDropDownMenu: false);
-      }
-      if (isChangeExist) {
-        List<MemoLineState> newList = List.from(list);
-        List<MemoLineState> visibleList =
-            getFoldingLineList(List.from(newList), 0);
-        state = state.copyWith(list: list, visibleList: visibleList);
-      }
-    };
-  }
-
   Function(DragEndDetails dragEndDetails) onHorizontalSwiped(int index) {
     return (dragEndDetails) {
       List<MemoLineState> list = List.from(state.list);
@@ -333,19 +314,7 @@ class MemoNotifier extends _$MemoNotifier {
   }
 
   void resetStateWithoutFIndex() {
-    List<MemoLineState> list = List.from(state.list);
-    for (int i = 0; i < list.length; i++) {
-      list[i] = list[i].copyWith(
-        displayDropDownMenu: false,
-      );
-    }
-
-    List<MemoLineState> newList = List.from(list);
-    List<MemoLineState> visibleList = getFoldingLineList(List.from(newList), 0);
-
     state = state.copyWith(
-      list: list,
-      visibleList: visibleList,
       isEditing: false,
       isTapIndentChange: false,
       isTapClear: false,
@@ -353,19 +322,7 @@ class MemoNotifier extends _$MemoNotifier {
   }
 
   void resetState() {
-    List<MemoLineState> list = List.from(state.list);
-    for (int i = 0; i < list.length; i++) {
-      list[i] = list[i].copyWith(
-        displayDropDownMenu: false,
-      );
-    }
-
-    List<MemoLineState> newList = List.from(list);
-    List<MemoLineState> visibleList = getFoldingLineList(List.from(newList), 0);
-
     state = state.copyWith(
-      list: list,
-      visibleList: visibleList,
       isEditing: false,
       isTapIndentChange: false,
       isTapClear: false,
@@ -431,8 +388,7 @@ class MemoNotifier extends _$MemoNotifier {
   Function() toggleFoldingStatus(int index) {
     return () {
       List<MemoLineState> list = List.from(state.list);
-      list[index] = list[index].copyWith(
-          displayDropDownMenu: false, isFolding: !list[index].isFolding);
+      list[index] = list[index].copyWith(isFolding: !list[index].isFolding);
 
       setTrueNeedFocusChangeStatus();
       List<MemoLineState> newList = List.from(list);

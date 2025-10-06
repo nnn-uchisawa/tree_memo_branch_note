@@ -17,7 +17,6 @@ abstract class MemoLineState with _$MemoLineState {
     @Default(false) bool isEditing,
     @Default(false) bool isFolding,
     @Default(false) bool isReadOnly,
-    @Default(false) bool displayDropDownMenu,
   }) = _MemoLineState;
 
   factory MemoLineState.fromJson(Map<String, dynamic> json) =>
