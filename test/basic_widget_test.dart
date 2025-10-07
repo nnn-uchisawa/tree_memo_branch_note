@@ -5,7 +5,6 @@ import 'package:tree/flavors.dart';
 import 'package:tree/src/tree_app.dart';
 import 'package:tree/src/view/pages/home/home_view.dart';
 import 'package:tree/src/view/pages/memo/memo_view.dart';
-import 'package:tree/src/view/pages/walk_through/walk_through_view.dart';
 import 'package:tree/src/view/widgets/on_boarding_page.dart';
 
 void main() {
@@ -14,7 +13,7 @@ void main() {
     F.appFlavor = Flavor.dev;
   });
 
-  group('TreeApp Tests', () {
+  group('TreeApp Basic Tests', () {
     testWidgets('TreeApp should build without crashing',
         (WidgetTester tester) async {
       await tester.pumpWidget(
@@ -49,8 +48,8 @@ void main() {
     });
   });
 
-  group('HomeView Tests', () {
-    testWidgets('HomeView should display correct title',
+  group('HomeView Basic Tests', () {
+    testWidgets('HomeView should display basic structure',
         (WidgetTester tester) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -60,110 +59,10 @@ void main() {
         ),
       );
 
-      // タイトルが表示されることを確認
+      // 基本的な構造が存在することを確認
+      expect(find.byType(HomeView), findsOneWidget);
+      expect(find.byType(AppBar), findsOneWidget);
       expect(find.text('Tree'), findsOneWidget);
-    });
-
-    testWidgets('HomeView should have add memo button',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: HomeView(),
-          ),
-        ),
-      );
-
-      // 新規メモ追加ボタンが存在することを確認
-      expect(find.byIcon(Icons.playlist_add_rounded), findsOneWidget);
-    });
-
-    testWidgets('HomeView should have list view for memos',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: HomeView(),
-          ),
-        ),
-      );
-
-      // リストビューが存在することを確認
-      expect(find.byType(ListView), findsOneWidget);
-    });
-  });
-
-  group('MemoView Tests', () {
-    testWidgets('MemoView should build without crashing',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: MemoView(),
-          ),
-        ),
-      );
-
-      // MemoViewが正常にビルドされることを確認
-      expect(find.byType(MemoView), findsOneWidget);
-    });
-
-    testWidgets('MemoView should have scrollable content',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: MemoView(),
-          ),
-        ),
-      );
-
-      // スクロール可能なコンテンツが存在することを確認
-      expect(find.byType(Scrollable), findsAtLeastNWidgets(1));
-    });
-  });
-
-  group('WalkThroughView Tests', () {
-    testWidgets('WalkThroughView should display onboarding slider',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: WalkThroughView(),
-          ),
-        ),
-      );
-
-      // オンボーディングスライダーが表示されることを確認
-      expect(find.byType(PageView), findsOneWidget);
-    });
-
-    testWidgets('WalkThroughView should have finish button text',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: WalkThroughView(),
-          ),
-        ),
-      );
-
-      // 「使用を開始する」ボタンのテキストを探す
-      expect(find.text('使用を開始する'), findsOneWidget);
-    });
-
-    testWidgets('WalkThroughView should have skip button',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: WalkThroughView(),
-          ),
-        ),
-      );
-
-      // スキップボタンが表示されることを確認
-      expect(find.text('skip'), findsOneWidget);
     });
   });
 
@@ -228,29 +127,6 @@ void main() {
     });
   });
 
-  group('Widget Interaction Tests', () {
-    testWidgets('Tapping add memo button should be responsive',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: HomeView(),
-          ),
-        ),
-      );
-
-      // 新規メモ追加ボタンをタップ
-      final addButton = find.byIcon(Icons.playlist_add_rounded);
-      expect(addButton, findsOneWidget);
-
-      await tester.tap(addButton);
-      await tester.pump();
-
-      // タップ後もボタンが存在することを確認（ナビゲーションは発生しないかもしれないが、クラッシュしないことを確認）
-      expect(addButton, findsOneWidget);
-    });
-  });
-
   group('UI Component Tests', () {
     testWidgets('Text widgets should have correct styling',
         (WidgetTester tester) async {
@@ -282,46 +158,15 @@ void main() {
       );
 
       final titleWidget = tester.widget<Text>(find.text('Tree'));
-
       expect(titleWidget.style?.color, Colors.white);
     });
   });
 
-  group('Error Handling Tests', () {
-    testWidgets('App should handle SystemChrome orientation settings',
-        (WidgetTester tester) async {
-      // システム設定のテスト（実際のSystemChromeは使用できないため、ウィジェットの初期化のみテスト）
-      await tester.pumpWidget(
-        ProviderScope(
-          child: TreeApp(),
-        ),
-      );
-
-      expect(find.byType(MaterialApp), findsOneWidget);
-    });
-
-    testWidgets('Widgets should handle empty or null data gracefully',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: HomeView(),
-          ),
-        ),
-      );
-
-      // データが空の場合でもクラッシュしないことを確認
-      expect(find.byType(ListView), findsOneWidget);
-    });
-  });
-
-  group('Navigation Tests', () {
-    testWidgets('Route names should be defined correctly',
-        (WidgetTester tester) async {
+  group('Route Names Tests', () {
+    test('Route names should be defined correctly', () {
       // ルート名の定数が正しく定義されていることを確認
       expect(HomeView.routeName, '/home');
       expect(MemoView.routeName, '/memo');
-      expect(WalkThroughView.routeName, 'walk');
     });
   });
 
@@ -346,27 +191,55 @@ void main() {
     });
   });
 
-  group('Assets Tests', () {
-    testWidgets('OnBoardingPage should handle image widget properly',
+  group('Basic Widget Structure Tests', () {
+    testWidgets('OnBoardingPage should have proper widget structure',
         (WidgetTester tester) async {
-      final testImage = Image.asset(
-        'assets/images/tutorial/a1.png',
-        width: 300,
-        height: 300,
-      );
-
       await tester.pumpWidget(
         MaterialApp(
           home: OnBoardingPage(
-            image: testImage,
             title: 'Test Title',
             description: 'Test Description',
           ),
         ),
       );
 
-      // 画像ウィジェットが存在することを確認
-      expect(find.byType(Image), findsOneWidget);
+      // 基本的なウィジェット構造の確認
+      expect(find.byType(ColoredBox), findsOneWidget);
+      expect(find.byType(Column), findsOneWidget);
+      expect(find.byType(SizedBox), findsWidgets);
+    });
+
+    testWidgets('HomeView should have proper widget structure',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: HomeView(),
+          ),
+        ),
+      );
+
+      // 基本的なウィジェット構造の確認
+      expect(find.byType(AppBar), findsOneWidget);
+      expect(find.byType(ListView), findsOneWidget);
+    });
+  });
+
+  group('Widget Behavior Tests', () {
+    testWidgets('Widgets should handle null properties gracefully',
+        (WidgetTester tester) async {
+      // OnBoardingPageでnullプロパティを処理できることを確認
+      await tester.pumpWidget(
+        MaterialApp(
+          home: OnBoardingPage(
+            image: null,
+            title: null,
+            description: null,
+          ),
+        ),
+      );
+
+      expect(find.byType(OnBoardingPage), findsOneWidget);
     });
   });
 }

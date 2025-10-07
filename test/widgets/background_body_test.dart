@@ -1,0 +1,138 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:tree/src/libraries/on_boarding_slider/background_body.dart';
+
+void main() {
+  group('BackgroundBody Widget Tests', () {
+    late PageController pageController;
+
+    setUp(() {
+      pageController = PageController();
+    });
+
+    tearDown(() {
+      pageController.dispose();
+    });
+
+    testWidgets('should display PageView with correct number of pages',
+        (WidgetTester tester) async {
+      final testBodies = [
+        Container(child: Text('Page 1')),
+        Container(child: Text('Page 2')),
+        Container(child: Text('Page 3')),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: BackgroundBody(
+              controller: pageController,
+              function: (int page) {},
+              totalPage: 3,
+              bodies: testBodies,
+            ),
+          ),
+        ),
+      );
+
+      // PageViewが存在することを確認
+      expect(find.byType(PageView), findsOneWidget);
+
+      // 最初のページが表示されることを確認
+      expect(find.text('Page 1'), findsOneWidget);
+    });
+
+    testWidgets('should call function when page changes',
+        (WidgetTester tester) async {
+      int? calledWithPage;
+
+      final testBodies = [
+        Container(key: Key('page1'), child: Text('Page 1')),
+        Container(key: Key('page2'), child: Text('Page 2')),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: BackgroundBody(
+              controller: pageController,
+              function: (int page) {
+                calledWithPage = page;
+              },
+              totalPage: 2,
+              bodies: testBodies,
+            ),
+          ),
+        ),
+      );
+
+      // ページを変更
+      final pageView = tester.widget<PageView>(find.byType(PageView));
+      pageView.onPageChanged!(1);
+
+      expect(calledWithPage, 1);
+    });
+
+    testWidgets('should have ClampingScrollPhysics',
+        (WidgetTester tester) async {
+      final testBodies = [
+        Container(child: Text('Page 1')),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: BackgroundBody(
+              controller: pageController,
+              function: (int page) {},
+              totalPage: 1,
+              bodies: testBodies,
+            ),
+          ),
+        ),
+      );
+
+      final pageView = tester.widget<PageView>(find.byType(PageView));
+      expect(pageView.physics, isA<ClampingScrollPhysics>());
+    });
+
+    testWidgets('should use provided controller', (WidgetTester tester) async {
+      final testBodies = [
+        Container(child: Text('Page 1')),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: BackgroundBody(
+              controller: pageController,
+              function: (int page) {},
+              totalPage: 1,
+              bodies: testBodies,
+            ),
+          ),
+        ),
+      );
+
+      final pageView = tester.widget<PageView>(find.byType(PageView));
+      expect(pageView.controller, pageController);
+    });
+
+    testWidgets('should assert bodies length equals totalPage',
+        (WidgetTester tester) async {
+      final testBodies = [
+        Container(child: Text('Page 1')),
+      ];
+
+      // アサーションエラーが発生することを確認
+      expect(() {
+        BackgroundBody(
+          controller: pageController,
+          function: (int page) {},
+          totalPage: 2, // bodiesの長さと異なる
+          bodies: testBodies,
+        );
+      }, throwsA(isA<AssertionError>()));
+    });
+  });
+}
