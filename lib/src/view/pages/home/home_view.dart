@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:tree/app_router.dart';
 import 'package:tree/gen/assets.gen.dart';
-import 'package:tree/router.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/home/home_notifier.dart';
 import 'package:tree/src/view/pages/memo/memo_view.dart';
@@ -60,7 +60,7 @@ class HomeView extends ConsumerWidget {
           TextButton(
             onPressed: () {
               ref.read(homeProvider.notifier).setMemoState(null);
-              context.push(MemoView.routeName, extra: null);
+              const MemoRoute().go(context);
             },
             child: Icon(
               Icons.playlist_add_rounded,

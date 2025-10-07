@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:tree/app_router.dart';
 import 'package:tree/gen/fonts.gen.dart';
-import 'package:tree/router.dart';
 
 class TreeApp extends StatelessWidget {
   TreeApp({

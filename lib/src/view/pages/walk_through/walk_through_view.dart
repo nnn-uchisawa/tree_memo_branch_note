@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:tree/app_router.dart';
 import 'package:tree/gen/assets.gen.dart';
 import 'package:tree/src/libraries/on_boarding_slider/flutter_onboarding_slider.dart';
-import 'package:tree/src/view/pages/home/home_view.dart';
 import 'package:tree/src/view/widgets/on_boarding_page.dart';
 
 class WalkThroughView extends StatelessWidget {
@@ -53,7 +52,8 @@ class WalkThroughView extends StatelessWidget {
         background: [...list.map((e) => const OnBoardingPageBackground())],
         pageBodies: [...list],
         onFinish: () {
-          context.replace(HomeView.routeName);
+          const HomeRoute().replace(context);
+          // context.go(HomeView.routeName);
         },
         finishButtonText: "使用を開始する",
         finishButtonStyle: const FinishButtonStyle(

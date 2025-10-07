@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:tree/router.dart';
+import 'package:tree/app_router.dart';
 
 class AppUtils {
   static double sWidth() {
