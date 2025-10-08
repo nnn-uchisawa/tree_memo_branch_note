@@ -15,17 +15,14 @@ flavors:
 
     ios:
       bundleId: "com.nnn.tree.local"
-      icon: "assets/icon512dev.png"
 
   dev:
     app:
       name: "Tree(dev)"
-
     android:
       applicationId: "com.nnn.tree.debug"
     ios:
       bundleId: "com.nnn.tree.dev"
-      icon: "assets/icon512dev.png"
 
   prod:
     app:
@@ -35,4 +32,3 @@ flavors:
       applicationId: "com.nnn.tree"
     ios:
       bundleId: "com.nnn.tree"
-      icon: "assets/icon512dev.png"
