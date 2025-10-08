@@ -166,7 +166,7 @@ class OnBoardingSlider extends StatefulWidget {
 class OnBoardingSliderState extends State<OnBoardingSlider> {
   final PageController _pageController = PageController(initialPage: 0);
 
-  int _currentPage = 0;
+  int currentPage = 0;
 
   @override
   void initState() {
@@ -184,7 +184,7 @@ class OnBoardingSliderState extends State<OnBoardingSlider> {
                 buttonTextStyle: widget.finishButtonTextStyle,
                 skipIcon: widget.skipIcon,
                 addButton: widget.addButton,
-                currentPage: _currentPage,
+                currentPage: currentPage,
                 pageController: _pageController,
                 totalPage: widget.totalPage,
                 onPageFinish: widget.onFinish,
@@ -199,7 +199,7 @@ class OnBoardingSliderState extends State<OnBoardingSlider> {
             leading: widget.leading,
             middle: widget.middle,
             totalPage: widget.totalPage,
-            currentPage: _currentPage,
+            currentPage: currentPage,
             onSkip: _onSkip,
             headerBackgroundColor: widget.headerBackgroundColor,
             onFinish: widget.trailingFunction,
@@ -238,7 +238,7 @@ class OnBoardingSliderState extends State<OnBoardingSlider> {
                               hasFloatingButton: widget.hasFloatingButton,
                               indicatorPosition: widget.indicatorPosition,
                               indicatorAbove: widget.indicatorAbove,
-                              currentPage: _currentPage,
+                              currentPage: currentPage,
                               totalPage: widget.totalPage,
                               controllerColor: widget.controllerColor,
                             )
@@ -255,7 +255,7 @@ class OnBoardingSliderState extends State<OnBoardingSlider> {
   /// Slide to Next Page.
   void slide(int page) {
     setState(() {
-      _currentPage = page;
+      currentPage = page;
     });
   }
 
@@ -263,7 +263,7 @@ class OnBoardingSliderState extends State<OnBoardingSlider> {
   void _onSkip() {
     _pageController.jumpToPage(widget.totalPage - 1);
     setState(() {
-      _currentPage = widget.totalPage - 1;
+      currentPage = widget.totalPage - 1;
     });
   }
 }

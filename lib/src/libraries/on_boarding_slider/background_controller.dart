@@ -24,7 +24,7 @@ class BackgroundController extends StatelessWidget {
   Widget build(BuildContext context) {
     return indicatorAbove
         ? Container(
-            color: Colors.blue,
+            color: backgroundColor,
             padding: EdgeInsets.only(bottom: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -34,7 +34,7 @@ class BackgroundController extends StatelessWidget {
         : (currentPage == totalPage - 1) && hasFloatingButton
             ? SizedBox.shrink()
             : Container(
-                color: Colors.blue,
+                color: backgroundColor,
                 padding: EdgeInsets.only(bottom: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
