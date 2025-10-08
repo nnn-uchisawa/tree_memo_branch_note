@@ -29,7 +29,7 @@ class OnBoardingNavigationBar extends StatelessWidget
   });
 
   @override
-  Size get preferredSize => Size.fromHeight(40);
+  Size get preferredSize => Size.fromHeight(44);
 
   @override
   bool shouldFullyObstruct(BuildContext context) {
@@ -41,7 +41,7 @@ class OnBoardingNavigationBar extends StatelessWidget
     if (hideNavigationBar) {
       return Container(
         width: double.infinity,
-        height: 40.0,
+        height: 44.0,
         color: headerBackgroundColor,
       );
     }
@@ -54,7 +54,7 @@ class OnBoardingNavigationBar extends StatelessWidget
           ? finishButton == null
               ? Container(
                   width: double.infinity,
-                  height: 40.0,
+                  height: 44.0,
                   color: headerBackgroundColor,
                 )
               : Container(
@@ -67,7 +67,7 @@ class OnBoardingNavigationBar extends StatelessWidget
           : skipTextButton == null
               ? Container(
                   width: double.infinity,
-                  height: 40.0,
+                  height: 44.0,
                   color: headerBackgroundColor,
                 )
               : Container(

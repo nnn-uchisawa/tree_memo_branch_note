@@ -488,89 +488,87 @@ class MemoNotifier extends _$MemoNotifier {
   Future<void> showSliderIndentChangeDialog() async {
     resetFocusIfFocus();
     resetState();
-    await Future.delayed(Duration(milliseconds: 10), () {
-      var context = AppRouter.navigatorKey.currentContext;
-      if (context == null) return;
-      showDialog(
-        context: context,
-        builder: (context) => Dialog(
-          backgroundColor: const Color.fromARGB(127, 0, 0, 0),
+    await Future.delayed(Duration(milliseconds: 10));
+    var context = AppRouter.navigatorKey.currentContext;
+    if (context == null) return;
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: const Color.fromARGB(127, 0, 0, 0),
+        child: SizedBox(
+          width: 200,
           child: SizedBox(
-            width: 200,
-            child: SizedBox(
-              height: AppUtils.sHeight() / 4,
-              child: Stack(
-                children: [
-                  Consumer(
+            height: AppUtils.sHeight() / 4,
+            child: Stack(
+              children: [
+                Consumer(
+                  builder: (c, r, w) {
+                    return Slider(
+                        activeColor: Colors.blue,
+                        thumbColor: Colors.blueAccent,
+                        divisions: AppConst.maxIndentWidth.toInt() -
+                            AppConst.minIndentWidth.toInt(),
+                        max: AppConst.maxIndentWidth,
+                        min: AppConst.minIndentWidth,
+                        value: r.watch(memoProvider).oneIndent,
+                        onChanged: (v) {
+                          onChangeOneIndent(v);
+                        });
+                  },
+                ),
+                // ステップ数表示
+                Positioned(
+                  top: 10,
+                  left: 0,
+                  right: 0,
+                  child: Consumer(
                     builder: (c, r, w) {
-                      return Slider(
-                          activeColor: Colors.blue,
-                          thumbColor: Colors.blueAccent,
-                          divisions: AppConst.maxIndentWidth.toInt() -
-                              AppConst.minIndentWidth.toInt(),
-                          max: AppConst.maxIndentWidth,
-                          min: AppConst.minIndentWidth,
-                          value: r.watch(memoProvider).oneIndent,
-                          onChanged: (v) {
-                            onChangeOneIndent(v);
-                          });
+                      final currentValue = r.watch(memoProvider).oneIndent;
+                      final stepCount =
+                          (currentValue - AppConst.minIndentWidth + 1).toInt();
+                      return Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.blueAccent.withValues(alpha: .1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: .3)),
+                          ),
+                          child: Text(
+                            stepCount.toString(),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      );
                     },
                   ),
-                  // ステップ数表示
-                  Positioned(
-                    top: 10,
-                    left: 0,
-                    right: 0,
-                    child: Consumer(
-                      builder: (c, r, w) {
-                        final currentValue = r.watch(memoProvider).oneIndent;
-                        final stepCount =
-                            (currentValue - AppConst.minIndentWidth + 1)
-                                .toInt();
-                        return Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.blueAccent.withValues(alpha: .1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: Colors.white.withValues(alpha: .3)),
-                            ),
-                            child: Text(
-                              stepCount.toString(),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                ),
+                Positioned(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  child: Consumer(
+                    builder: (c, r, w) {
+                      return TextButton(
+                        onPressed: r.read(memoProvider.notifier).resetIndent,
+                        child: Text(
+                          "reset",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      );
+                    },
                   ),
-                  Positioned(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
-                    child: Consumer(
-                      builder: (c, r, w) {
-                        return TextButton(
-                          onPressed: r.read(memoProvider.notifier).resetIndent,
-                          child: Text(
-                            "reset",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        );
-                      },
-                    ),
-                  )
-                ],
-              ),
+                )
+              ],
             ),
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 
   void resetIndent() {
