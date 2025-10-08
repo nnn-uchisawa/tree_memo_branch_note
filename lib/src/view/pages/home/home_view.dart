@@ -3,18 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tree/app_router.dart';
 import 'package:tree/gen/assets.gen.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/home/home_notifier.dart';
-import 'package:tree/src/view/pages/memo/memo_view.dart';
 import 'package:tree/src/view/widgets/safe_appbar_view.dart';
 
 class HomeView extends ConsumerWidget {
-  static const routeName = '/home';
-
   const HomeView({super.key});
 
   @override
@@ -86,8 +82,9 @@ class HomeView extends ConsumerWidget {
                             ref
                                 .read(homeProvider.notifier)
                                 .setMemoState(memoState);
-                            AppRouter.navigatorKey.currentContext!
-                                .push(MemoView.routeName, extra: memoState);
+                            var context = AppRouter.navigatorKey.currentContext;
+                            if (context == null) return;
+                            MemoRoute().push(context);
                           });
                         },
                         child: Row(

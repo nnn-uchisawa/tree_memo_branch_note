@@ -24,8 +24,8 @@ class HomeNotifier extends _$HomeNotifier {
   @override
   HomeState build() => HomeState();
 
-  /// txtファイルの内容をMemoStateに変換する
-  MemoState parseTextFileToMemoState(String content, String fileName) {
+  /// txtファイルの内容をMemoStateに変換する（プライベート）
+  MemoState _parseTextFileToMemoState(String content, String fileName) {
     final lines = content.split('\n');
     final List<MemoLineState> memoLines = [];
 
@@ -233,7 +233,7 @@ class HomeNotifier extends _$HomeNotifier {
       if (fileExtension == 'txt') {
         // txtファイルの場合、パースしてMemoStateに変換
         final memoState =
-            parseTextFileToMemoState(fileContent, fileNameWithoutExt);
+            _parseTextFileToMemoState(fileContent, fileNameWithoutExt);
         contentToSave = json.encode(memoState.toJson());
         targetFileName = '$fileNameWithoutExt.tmson';
       } else if (fileExtension == 'tmson') {
@@ -282,7 +282,7 @@ class HomeNotifier extends _$HomeNotifier {
       }
 
       // 新しいファイル名を生成（重複チェック付き）
-      String newFileName = await generateUniqueFileName(fileName);
+      String newFileName = await _generateUniqueFileName(fileName);
       var newPath = '${dir.path}/$newFileName.tmson';
       var newFile = File(newPath);
 
@@ -301,7 +301,8 @@ class HomeNotifier extends _$HomeNotifier {
     }
   }
 
-  Future<String> generateUniqueFileName(String originalFileName) async {
+  /// ユニークなファイル名を生成する（プライベート）
+  Future<String> _generateUniqueFileName(String originalFileName) async {
     String baseFileName = originalFileName;
     String newFileName = baseFileName;
     int counter = 1;
@@ -326,38 +327,59 @@ class HomeNotifier extends _$HomeNotifier {
     return newFileName;
   }
 
+  /// ファイル名からMemoStateを読み込む共通処理
+  Future<MemoState> _loadMemoStateFromFile(String fileName) async {
+    var dir = await getApplicationDocumentsDirectory();
+    var filePath = '${dir.path}/$fileName.tmson';
+    var file = File(filePath);
+
+    if (!await file.exists()) {
+      throw Exception('ファイルが存在しません');
+    }
+
+    String jsonString = await file.readAsString();
+    Map<String, dynamic> j = json.decode(jsonString);
+    return MemoState.fromJson(j);
+  }
+
+  /// MemoStateをテキスト形式に変換する共通処理
+  /// インデントはスペースで表現、改行ごとにインデント付与、各MemoLineStateごとに空行を追加
+  String _convertMemoStateToText(MemoState memoState) {
+    StringBuffer buffer = StringBuffer();
+    for (final line in memoState.list) {
+      if (line.text.trim().isEmpty) continue;
+      final indentStr = '  ' * (line.indent);
+      final splitLines = line.text.split('\n');
+      for (final l in splitLines) {
+        buffer.writeln('$indentStr$l');
+      }
+      buffer.writeln(); // ここで空行を追加
+    }
+    return buffer.toString();
+  }
+
+  /// ファイル名からテキスト形式に変換する共通処理
+  Future<String> _convertFileToText(String fileName) async {
+    final memoState = await _loadMemoStateFromFile(fileName);
+    return _convertMemoStateToText(memoState);
+  }
+
   Future<void> exportFileAsTxt(String fileName) async {
     try {
-      var dir = await getApplicationDocumentsDirectory();
-      var originalPath = '${dir.path}/$fileName.tmson';
-      var originalFile = File(originalPath);
-      if (!await originalFile.exists()) {
-        AppUtils.showSnackBar('エクスポート元のファイルが存在しません');
-        return;
-      }
-      // tmsonをパース
-      String jsonString = await originalFile.readAsString();
-      Map<String, dynamic> j = json.decode(jsonString);
-      MemoState memoState = MemoState.fromJson(j);
-      // 本文テキスト生成（インデントはスペースで表現、改行ごとにインデント付与、各MemoLineStateごとに空行）
-      StringBuffer buffer = StringBuffer();
-      for (final line in memoState.list) {
-        if (line.text.trim().isEmpty) continue;
-        final indentStr = '  ' * (line.indent);
-        final splitLines = line.text.split('\n');
-        for (final l in splitLines) {
-          buffer.writeln('$indentStr$l');
-        }
-        buffer.writeln(); // ここで空行を追加
-      }
-      String txtContent = buffer.toString();
+      // ファイルをテキストに変換
+      String txtContent = await _convertFileToText(fileName);
+
       // tmpディレクトリにtxtファイル作成
       final tmpDir = await getTemporaryDirectory();
       final txtPath = '${tmpDir.path}/$fileName.txt';
       final txtFile = File(txtPath);
       await txtFile.writeAsString(txtContent);
+
       // Share起動
       await AppUtils.shareFile(txtFile.path, fileName: '$fileName.txt');
+    } on Exception catch (e) {
+      log('exportFileAsTxt エラー: $e');
+      AppUtils.showSnackBar('エクスポート元のファイルが存在しません');
     } catch (e) {
       log('exportFileAsTxt エラー: $e');
       AppUtils.showSnackBar('エクスポートに失敗しました');
@@ -366,32 +388,15 @@ class HomeNotifier extends _$HomeNotifier {
 
   Future<void> copyToClipboard(String fileName) async {
     try {
-      var dir = await getApplicationDocumentsDirectory();
-      var originalPath = '${dir.path}/$fileName.tmson';
-      var originalFile = File(originalPath);
-      if (!await originalFile.exists()) {
-        AppUtils.showSnackBar('ファイルが存在しません');
-        return;
-      }
-      // tmsonをパース
-      String jsonString = await originalFile.readAsString();
-      Map<String, dynamic> j = json.decode(jsonString);
-      MemoState memoState = MemoState.fromJson(j);
-      // 本文テキスト生成（インデントはスペースで表現、改行ごとにインデント付与、各MemoLineStateごとに空行）
-      StringBuffer buffer = StringBuffer();
-      for (final line in memoState.list) {
-        if (line.text.trim().isEmpty) continue;
-        final indentStr = '  ' * (line.indent);
-        final splitLines = line.text.split('\n');
-        for (final l in splitLines) {
-          buffer.writeln('$indentStr$l');
-        }
-        buffer.writeln(); // ここで空行を追加
-      }
-      String txtContent = buffer.toString();
+      // ファイルをテキストに変換
+      String txtContent = await _convertFileToText(fileName);
+
       // クリップボードにコピー
       await AppUtils.copyToClipboard(txtContent);
       AppUtils.showSnackBar('クリップボードにコピーしました');
+    } on Exception catch (e) {
+      log('copyToClipboard エラー: $e');
+      AppUtils.showSnackBar('ファイルが存在しません');
     } catch (e) {
       log('copyToClipboard エラー: $e');
       AppUtils.showSnackBar('クリップボードへのコピーに失敗しました');

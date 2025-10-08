@@ -315,15 +315,15 @@ void main() {
     });
   });
 
-  group('Navigation Tests', () {
-    testWidgets('Route names should be defined correctly',
-        (WidgetTester tester) async {
-      // ルート名の定数が正しく定義されていることを確認
-      expect(HomeView.routeName, '/home');
-      expect(MemoView.routeName, '/memo');
-      expect(WalkThroughView.routeName, 'walk');
-    });
-  });
+  // group('Navigation Tests', () {
+  //   testWidgets('Route names should be defined correctly',
+  //       (WidgetTester tester) async {
+  //     // ルート名の定数が正しく定義されていることを確認
+  //     expect(HomeView.routeName, '/home');
+  //     expect(MemoView.routeName, '/memo');
+  //     expect(WalkThroughView.routeName, 'walk');
+  //   });
+  // });
 
   group('Provider Tests', () {
     testWidgets('ProviderScope should be properly configured',

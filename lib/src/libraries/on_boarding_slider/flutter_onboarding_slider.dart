@@ -160,10 +160,10 @@ class OnBoardingSlider extends StatefulWidget {
   });
 
   @override
-  _OnBoardingSliderState createState() => _OnBoardingSliderState();
+  OnBoardingSliderState createState() => OnBoardingSliderState();
 }
 
-class _OnBoardingSliderState extends State<OnBoardingSlider> {
+class OnBoardingSliderState extends State<OnBoardingSlider> {
   final PageController _pageController = PageController(initialPage: 0);
 
   int _currentPage = 0;

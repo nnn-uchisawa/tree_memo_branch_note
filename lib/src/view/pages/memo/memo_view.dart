@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tree/gen/assets.gen.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
@@ -20,8 +21,6 @@ final memoListscrollControllerProvider =
 });
 
 class MemoView extends ConsumerWidget {
-  static const routeName = "/memo";
-
   const MemoView({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,10 +37,10 @@ class MemoView extends ConsumerWidget {
         ref.read(memoProvider.notifier).resetState();
         AppUtils.showYesNoDialogAlternative(
             const Text("確認"), const Text("編集中ですが、終了してもよろしいですか？"), () {
-          Navigator.of(context, rootNavigator: false).pop();
+          GoRouter.of(context).pop();
         }, null);
       } else {
-        Navigator.of(context, rootNavigator: false).pop();
+        GoRouter.of(context).pop();
       }
     }
 

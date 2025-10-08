@@ -6,7 +6,6 @@ import 'package:tree/src/libraries/on_boarding_slider/flutter_onboarding_slider.
 import 'package:tree/src/view/widgets/on_boarding_page.dart';
 
 class WalkThroughView extends StatelessWidget {
-  static const routeName = 'walk';
   final List<OnBoardingPage> list = [
     OnBoardingPage(
       image: Assets.images.tutorial.a1.image(width: 300, height: 300),

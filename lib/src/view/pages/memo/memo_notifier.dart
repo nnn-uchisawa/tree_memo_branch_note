@@ -51,8 +51,8 @@ class MemoNotifier extends _$MemoNotifier {
     }
   }
 
-  /// メモの行の値が含まれたStateObjectの配列から閉じている行を再帰的に探して不可視な行を削除し返却する
-  List<MemoLineState> getFoldingLineList(
+  /// メモの行の値が含まれたStateObjectの配列から閉じている行を再帰的に探して不可視な行を削除し返却する（プライベート）
+  List<MemoLineState> _getFoldingLineList(
       List<MemoLineState> list, int parentIndex) {
     if (list.isEmpty) {
       return [];
@@ -79,12 +79,12 @@ class MemoNotifier extends _$MemoNotifier {
     }
 
     if (nextParent < list.length) {
-      list = getFoldingLineList(list, nextParent);
+      list = _getFoldingLineList(list, nextParent);
     }
     return list;
   }
 
-  int getFoldingEnd(int start) {
+  int _getFoldingEnd(int start) {
     List<MemoLineState> list = List.from(state.list);
     if (list.isEmpty) {
       return -1;
@@ -125,7 +125,7 @@ class MemoNotifier extends _$MemoNotifier {
     var destination = fromIndex;
     var count = 0;
     final foldingEnd =
-        list[fromIndex].isFolding ? getFoldingEnd(fromIndex) : fromIndex + 1;
+        list[fromIndex].isFolding ? _getFoldingEnd(fromIndex) : fromIndex + 1;
     if (foldingEnd == list.length && visibleDistance > 0) return fromIndex;
     var subList = list.sublist(fromIndex, foldingEnd);
     if (0 > visibleDistance && fromIndex + visibleDistance >= 0) {
@@ -151,13 +151,13 @@ class MemoNotifier extends _$MemoNotifier {
       for (var i = 0; i < list.length; i++) {
         list[i] = list[i].copyWith(index: i);
       }
-      final newVisibleList = getFoldingLineList(List.from(list), 0);
+      final newVisibleList = _getFoldingLineList(List.from(list), 0);
       state = state.copyWith(list: list, visibleList: newVisibleList);
       return destIndex;
     } else if (0 < visibleDistance &&
         fromIndex + visibleDistance < list.length) {
       final nextfoldingEnd = list[foldingEnd].isFolding
-          ? getFoldingEnd(foldingEnd)
+          ? _getFoldingEnd(foldingEnd)
           : foldingEnd + 1;
       destination = nextfoldingEnd - 1;
 
@@ -167,7 +167,7 @@ class MemoNotifier extends _$MemoNotifier {
       for (var i = 0; i < list.length; i++) {
         list[i] = list[i].copyWith(index: i);
       }
-      final newVisibleList = getFoldingLineList(List.from(list), 0);
+      final newVisibleList = _getFoldingLineList(List.from(list), 0);
       state = state.copyWith(list: list, visibleList: newVisibleList);
       return destIndex;
     } else {
@@ -183,7 +183,8 @@ class MemoNotifier extends _$MemoNotifier {
     ];
     var newNode = FocusNode();
     addFocusNode(newNode);
-    List<MemoLineState> visibleList = getFoldingLineList(List.from(newList), 0);
+    List<MemoLineState> visibleList =
+        _getFoldingLineList(List.from(newList), 0);
     state = state.copyWith(
         list: newList,
         visibleList: visibleList,
@@ -211,7 +212,8 @@ class MemoNotifier extends _$MemoNotifier {
     var newNode = FocusNode();
     insertFocusNode(next, newNode);
     List<MemoLineState> newList = [...front, newLine, ...back];
-    List<MemoLineState> visibleList = getFoldingLineList(List.from(newList), 0);
+    List<MemoLineState> visibleList =
+        _getFoldingLineList(List.from(newList), 0);
     state = state.copyWith(
       list: newList,
       visibleList: visibleList,
@@ -231,7 +233,8 @@ class MemoNotifier extends _$MemoNotifier {
     list[index] = mlState;
 
     List<MemoLineState> newList = List.from(list);
-    List<MemoLineState> visibleList = getFoldingLineList(List.from(newList), 0);
+    List<MemoLineState> visibleList =
+        _getFoldingLineList(List.from(newList), 0);
     state = state.copyWith(list: list, visibleList: visibleList);
   }
 
@@ -253,7 +256,7 @@ class MemoNotifier extends _$MemoNotifier {
 
       List<MemoLineState> newList = List.from(list);
       List<MemoLineState> visibleList =
-          getFoldingLineList(List.from(newList), 0);
+          _getFoldingLineList(List.from(newList), 0);
       state = state.copyWith(list: list, visibleList: visibleList);
     };
   }
@@ -270,7 +273,7 @@ class MemoNotifier extends _$MemoNotifier {
 
       List<MemoLineState> newList = List.from(list);
       List<MemoLineState> visibleList =
-          getFoldingLineList(List.from(newList), 0);
+          _getFoldingLineList(List.from(newList), 0);
       state = state.copyWith(list: list, visibleList: visibleList);
     };
   }
@@ -289,7 +292,7 @@ class MemoNotifier extends _$MemoNotifier {
 
       List<MemoLineState> newList = List.from(list);
       List<MemoLineState> visibleList =
-          getFoldingLineList(List.from(newList), 0);
+          _getFoldingLineList(List.from(newList), 0);
       state = state.copyWith(
         list: list,
         visibleList: visibleList,
@@ -354,7 +357,7 @@ class MemoNotifier extends _$MemoNotifier {
     } else if (list.isNotEmpty) {
       _focusNodes[index].requestFocus();
     }
-    List<MemoLineState> visibleList = getFoldingLineList(List.from(list), 0);
+    List<MemoLineState> visibleList = _getFoldingLineList(List.from(list), 0);
     if (index != 0) {
       state = state.copyWith(
           list: list, visibleList: visibleList, focusedIndex: index);
@@ -393,7 +396,7 @@ class MemoNotifier extends _$MemoNotifier {
       setTrueNeedFocusChangeStatus();
       List<MemoLineState> newList = List.from(list);
       List<MemoLineState> visibleList =
-          getFoldingLineList(List.from(newList), 0);
+          _getFoldingLineList(List.from(newList), 0);
       state = state.copyWith(
           list: list, visibleList: visibleList, isEditing: false);
     };
@@ -405,7 +408,7 @@ class MemoNotifier extends _$MemoNotifier {
       list[index] = list[index].copyWith(isReadOnly: !list[index].isReadOnly);
 
       List<MemoLineState> newList = List.from(list);
-      List<MemoLineState> visibleList = getFoldingLineList(newList, 0);
+      List<MemoLineState> visibleList = _getFoldingLineList(newList, 0);
 
       state = state.copyWith(list: list, visibleList: visibleList);
     };
@@ -470,7 +473,7 @@ class MemoNotifier extends _$MemoNotifier {
         await renameFile(fileName, newFileName);
       } else {
         // 新規作成または同じファイル名での保存
-        await saveJsonToFile(tec);
+        await _saveJsonToFile(tec);
       }
 
       handler();
@@ -690,7 +693,7 @@ class MemoNotifier extends _$MemoNotifier {
     state = state.copyWith(oneIndent: indent);
   }
 
-  Future<void> saveJsonToFile(TextEditingController controller) async {
+  Future<void> _saveJsonToFile(TextEditingController controller) async {
     try {
       final fileName = controller.text.trim();
       if (fileName.isEmpty) {
@@ -721,7 +724,7 @@ class MemoNotifier extends _$MemoNotifier {
       ref.invalidate(fileNamesFutureProvider);
       log('ファイル保存成功: $path');
     } catch (e) {
-      log('saveJsonToFile エラー: $e');
+      log('_saveJsonToFile エラー: $e');
       throw Exception("ファイル保存エラー: $e");
     }
   }
@@ -766,7 +769,7 @@ class MemoNotifier extends _$MemoNotifier {
       if (!await oldFile.exists()) {
         // 古いファイルが存在しない場合は新規作成として処理
         log('古いファイルが存在しないため、新規作成として処理: $oldPath');
-        await saveJsonToFileWithName(newFileName);
+        await _saveJsonToFileWithName(newFileName);
         return;
       }
 
@@ -780,7 +783,7 @@ class MemoNotifier extends _$MemoNotifier {
       await oldFile.rename(newPath);
 
       // リネーム後にデータを更新して保存
-      await saveJsonToFileWithName(newFileName);
+      await _saveJsonToFileWithName(newFileName);
 
       ref.invalidate(fileNamesFutureProvider);
       log('ファイルリネーム成功: $oldPath -> $newPath');
@@ -790,7 +793,7 @@ class MemoNotifier extends _$MemoNotifier {
     }
   }
 
-  Future<void> saveJsonToFileWithName(String fileName) async {
+  Future<void> _saveJsonToFileWithName(String fileName) async {
     try {
       if (fileName.trim().isEmpty) {
         throw Exception("ファイル名が空です");
@@ -819,7 +822,7 @@ class MemoNotifier extends _$MemoNotifier {
 
       log('ファイル保存成功: $path');
     } catch (e) {
-      log('saveJsonToFileWithName エラー: $e');
+      log('_saveJsonToFileWithName エラー: $e');
       throw Exception("ファイル保存エラー: $e");
     }
   }
