@@ -4,6 +4,17 @@ A treememo mobile app satisfiable for me
 
 ## ビルド手順
 
+### ソースのDL
+
+terminalでソースを置きたいディレクトリに移動し以下を実行、又はクライアントでクローン
+```
+<span style="background:black,color:white">$ git clone https://github.com/nnn-uchisawa/tree_memo_branch_note.git</span>
+```
+/assets/fonts
+に「Noto-SansJP-Regular.ttf」を配置
+DLはコチラ💁
+https://fonts.google.com/noto/specimen/Noto+Sans+JP
+
 ### 環境構築
 
 vscodeのflutter設定手順はコチラ💁(英語 公式)
@@ -42,7 +53,7 @@ iOS
 
 ### 実行
 
-1. インストールする端末をUSB接続（vscodeが認識すると右下の🔔マークの左に端末名が表示される　※トラブルが起き易いところなので認識されない場合各自検索するなどしてください）
+1. インストールする端末をUSB接続（vscodeが認識すると右下の🔔マークの左に端末名が表示される　※1トラブルが起き易いところなので認識されない場合各自検索するなどしてください ※2接続モードやadbパスなど）
 2. vscodeでPJルートを開く
 3. vscode内terminalで以下のコマンドを実行
 

@@ -74,7 +74,7 @@ class HomeView extends ConsumerWidget {
                 : Column(
                     children: [
                       InkWell(
-                        onTap: () async {
+                        onTap: () {
                           ref
                               .read(homeProvider.notifier)
                               .getMemoState(fileNamesState?[index] ?? "")
@@ -84,6 +84,8 @@ class HomeView extends ConsumerWidget {
                                 .setMemoState(memoState);
                             var context = AppRouter.navigatorKey.currentContext;
                             if (context == null) return;
+                            // 特定のページの読み込みのみなので非同期処理を許可
+                            // ignore: use_build_context_synchronously
                             MemoRoute().push(context);
                           });
                         },

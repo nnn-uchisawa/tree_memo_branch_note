@@ -485,10 +485,9 @@ class MemoNotifier extends _$MemoNotifier {
     }
   }
 
-  Future<void> showSliderIndentChangeDialog() async {
+  void showSliderIndentChangeDialog() {
     resetFocusIfFocus();
     resetState();
-    await Future.delayed(Duration(milliseconds: 10));
     var context = AppRouter.navigatorKey.currentContext;
     if (context == null) return;
     showDialog(
