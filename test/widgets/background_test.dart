@@ -4,6 +4,16 @@ import 'package:tree/src/view/widgets/libraries/on_boarding_slider/background.da
 
 void main() {
   group('Background Widget Tests', () {
+    late PageController pageController;
+
+    setUp(() {
+      pageController = PageController();
+    });
+
+    tearDown(() {
+      pageController.dispose();
+    });
+
     testWidgets('should display child widget', (WidgetTester tester) async {
       // Backgroundウィジェットは内部でConsumer<PageOffsetNotifier>を使用するため、
       // テスト環境では完全なProviderセットアップが必要
@@ -22,6 +32,7 @@ void main() {
         background: backgrounds,
         speed: 1.0,
         imageHorizontalOffset: 0.0,
+        pageController: pageController,
         child: testChild,
       );
 
@@ -45,6 +56,7 @@ void main() {
         background: backgrounds,
         speed: 1.0,
         imageHorizontalOffset: 0.0,
+        pageController: pageController,
         child: testChild,
       );
 
@@ -67,6 +79,7 @@ void main() {
         background: backgrounds,
         speed: 1.0,
         imageHorizontalOffset: 0.0,
+        pageController: pageController,
         child: testChild,
       );
 
@@ -87,6 +100,7 @@ void main() {
         background: backgrounds,
         speed: 2.0,
         imageHorizontalOffset: 5.0,
+        pageController: pageController,
         child: testChild,
       );
 

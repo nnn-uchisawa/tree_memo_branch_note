@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:tree/src/view/widgets/libraries/on_boarding_slider/page_offset_provider.dart';
+// Riverpod/Provider未使用のため削除
 
 /// テスト用のPageControllerのモック
 class MockPageController extends PageController {
@@ -22,35 +21,11 @@ class MockPageController extends PageController {
   }
 }
 
-/// テスト用のPageOffsetNotifierラッパー
-class TestPageOffsetNotifier extends PageOffsetNotifier {
-  TestPageOffsetNotifier(super.pageController);
-
-  void setOffset(double value) {
-    // PageOffsetNotifierの内部状態を直接変更するためのヘルパー
-    notifyListeners();
-  }
-}
-
-/// PageOffsetNotifierを提供するテストヘルパーWidget
-Widget wrapWithPageOffsetProvider(Widget child,
-    {PageController? pageController}) {
-  final controller = pageController ?? MockPageController();
-  return ChangeNotifierProvider<PageOffsetNotifier>(
-    create: (_) => PageOffsetNotifier(controller),
-    child: child,
-  );
-}
-
 /// MaterialAppでラップするテストヘルパー
 Widget wrapWithMaterialApp(Widget child, {PageController? pageController}) {
-  final controller = pageController ?? MockPageController();
-  return ChangeNotifierProvider<PageOffsetNotifier>(
-    create: (_) => PageOffsetNotifier(controller),
-    child: MaterialApp(
-      home: Scaffold(
-        body: child,
-      ),
+  return MaterialApp(
+    home: Scaffold(
+      body: child,
     ),
   );
 }

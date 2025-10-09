@@ -258,11 +258,11 @@ class MemoNotifier extends _$MemoNotifier {
 
   void onChangeFontSize(int index, double fontSize) {
     List<MemoLineState> list = List.from(state.list);
-    MemoLineState mlState = list[index];
-    mlState = mlState.copyWith(fontSize: fontSize);
+    MemoLineState memoLineState = list[index];
+    memoLineState = memoLineState.copyWith(fontSize: fontSize);
 
     // 更新されたメモラインをリスト内の正しい位置に配置
-    list[index] = mlState;
+    list[index] = memoLineState;
 
     List<MemoLineState> newList = List.from(list);
     List<MemoLineState> visibleList =
@@ -273,18 +273,20 @@ class MemoNotifier extends _$MemoNotifier {
   Function(DragEndDetails dragEndDetails) onHorizontalSwiped(int index) {
     return (dragEndDetails) {
       List<MemoLineState> list = List.from(state.list);
-      MemoLineState mlState = list[index];
+      MemoLineState memoLineState = list[index];
 
       if (dragEndDetails.velocity.pixelsPerSecond.dx > 20 &&
-          mlState.indent < 10) {
-        mlState = mlState.copyWith(indent: mlState.indent + 1);
+          memoLineState.indent < 10) {
+        memoLineState =
+            memoLineState.copyWith(indent: memoLineState.indent + 1);
       } else if (dragEndDetails.velocity.pixelsPerSecond.dx < -20 &&
-          mlState.indent > 0) {
-        mlState = mlState.copyWith(indent: mlState.indent - 1);
+          memoLineState.indent > 0) {
+        memoLineState =
+            memoLineState.copyWith(indent: memoLineState.indent - 1);
       }
 
       // 更新されたメモラインをリスト内の正しい位置に配置
-      list[index] = mlState;
+      list[index] = memoLineState;
 
       List<MemoLineState> newList = List.from(list);
       List<MemoLineState> visibleList =
@@ -296,12 +298,14 @@ class MemoNotifier extends _$MemoNotifier {
   Function() onChangeIndent(int index, int quantity) {
     return () {
       List<MemoLineState> list = state.list.toList();
-      MemoLineState mlState = list[index];
-      if (mlState.indent + quantity < 0 || mlState.indent + quantity > 10) {
+      MemoLineState memoLineState = list[index];
+      if (memoLineState.indent + quantity < 0 ||
+          memoLineState.indent + quantity > 10) {
         return;
       }
-      mlState = mlState.copyWith(indent: mlState.indent + quantity);
-      list[index] = mlState;
+      memoLineState =
+          memoLineState.copyWith(indent: memoLineState.indent + quantity);
+      list[index] = memoLineState;
 
       List<MemoLineState> newList = List.from(list);
       List<MemoLineState> visibleList =
@@ -313,14 +317,14 @@ class MemoNotifier extends _$MemoNotifier {
   Function(String text) onTextChange(int index) {
     return (text) {
       List<MemoLineState> list = List.from(state.list);
-      MemoLineState mlState = list[index];
+      MemoLineState memoLineState = list[index];
 
-      mlState = mlState.copyWith(
+      memoLineState = memoLineState.copyWith(
         text: text,
       );
 
       // 更新されたメモラインをリスト内の正しい位置に配置
-      list[index] = mlState;
+      list[index] = memoLineState;
 
       List<MemoLineState> newList = List.from(list);
       List<MemoLineState> visibleList =
@@ -696,9 +700,9 @@ class MemoNotifier extends _$MemoNotifier {
     if (state.focusedIndex == -1) return;
     List<MemoLineState> list = List.from(state.list);
     var index = state.focusedIndex;
-    var mlstate = list[index];
-    mlstate = mlstate.copyWith(fontSize: 14);
-    list.replaceRange(index, index + 1, [mlstate]);
+    var memoLineState = list[index];
+    memoLineState = memoLineState.copyWith(fontSize: 14);
+    list.replaceRange(index, index + 1, [memoLineState]);
     state = state.copyWith(list: list);
     resetStateWithoutFIndex();
   }

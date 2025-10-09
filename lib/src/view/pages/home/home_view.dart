@@ -55,7 +55,7 @@ class HomeView extends ConsumerWidget {
           TextButton(
             onPressed: () {
               ref.read(homeProvider.notifier).setMemoState(null);
-              const MemoRoute().go(context);
+              const MemoRoute().push(context);
             },
             child: Icon(
               Icons.playlist_add_rounded,

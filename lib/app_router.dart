@@ -40,12 +40,12 @@ class InitRoute extends GoRouteData with $InitRoute {
     if (!isNI) {
       // 特定のファイルの読み込みのみなので非同期処理を許可
       // ignore: use_build_context_synchronously
-      final jsonstringJp = await DefaultAssetBundle.of(context)
+      final jsonStringJp = await DefaultAssetBundle.of(context)
           .loadString("assets/Treeの使い方.tmson");
       final dir = await getApplicationDocumentsDirectory();
       final pathJp = '${dir.path}/Treeの使い方.tmson';
       final newFileJp = File(pathJp);
-      await newFileJp.writeAsString(jsonstringJp);
+      await newFileJp.writeAsString(jsonStringJp);
       await SharedPreference.setIsNotInitial();
       return const WalkThroughRoute().location;
     }

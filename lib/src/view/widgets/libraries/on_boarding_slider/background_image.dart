@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:tree/src/view/widgets/libraries/on_boarding_slider/page_offset_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tree/src/view/widgets/libraries/on_boarding_slider/page_offset_notifier.dart';
 
-class BackgroundImage extends StatelessWidget {
+class BackgroundImage extends ConsumerWidget {
   final int id;
   final Widget background;
   final double imageVerticalOffset;
   final double speed;
   final double imageHorizontalOffset;
   final bool centerBackground;
+  final PageController pageController;
 
   const BackgroundImage({
     super.key,
@@ -18,30 +19,25 @@ class BackgroundImage extends StatelessWidget {
     required this.imageVerticalOffset,
     required this.centerBackground,
     required this.imageHorizontalOffset,
+    required this.pageController,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<PageOffsetNotifier>(
-      builder: (context, notifier, child) {
-        return Stack(children: [
-          Positioned(
-            top: imageVerticalOffset,
-            left: MediaQuery.of(context).size.width * ((id - 1) * speed) -
-                speed * notifier.offset +
-                (centerBackground ? 0 : imageHorizontalOffset),
-            child: centerBackground
-                ? SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: child!,
-                  )
-                : child!,
-          ),
-        ]);
-      },
-      child: Container(
-        child: background,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(pageOffsetProvider(pageController));
+    return Stack(children: [
+      Positioned(
+        top: imageVerticalOffset,
+        left: MediaQuery.of(context).size.width * ((id - 1) * speed) -
+            speed * state.offset +
+            (centerBackground ? 0 : imageHorizontalOffset),
+        child: centerBackground
+            ? SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: background,
+              )
+            : background,
       ),
-    );
+    ]);
   }
 }
