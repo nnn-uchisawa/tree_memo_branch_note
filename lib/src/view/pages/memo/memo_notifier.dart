@@ -22,8 +22,40 @@ part 'memo_notifier.g.dart';
 class MemoNotifier extends _$MemoNotifier {
   MemoState baseState = MemoState();
   final List<FocusNode> _focusNodes = [];
+  final Map<int, TextEditingController> _textControllers = {};
+  final Map<int, GlobalKey> _dividerKeys = {};
 
   List<FocusNode> get focusNodes => _focusNodes;
+
+  /// TextEditingControllerを取得または作成
+  TextEditingController getTextController(int index) {
+    if (!_textControllers.containsKey(index)) {
+      final controller = TextEditingController(
+        text: index < state.list.length ? state.list[index].text : '',
+      );
+      _textControllers[index] = controller;
+    }
+    return _textControllers[index]!;
+  }
+
+  /// GlobalKeyを取得または作成
+  GlobalKey getDividerKey(int index) {
+    if (!_dividerKeys.containsKey(index)) {
+      final key = GlobalKey(debugLabel: "memolinekey:$index");
+      _dividerKeys[index] = key;
+    }
+    return _dividerKeys[index]!;
+  }
+
+  /// コントローラーとキーをクリーンアップ
+  void cleanupControllersAndKeys() {
+    // 不要になったコントローラーを破棄
+    for (final controller in _textControllers.values) {
+      controller.dispose();
+    }
+    _textControllers.clear();
+    _dividerKeys.clear();
+  }
 
   @override
   MemoState build() {

@@ -6,15 +6,9 @@ import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
 import 'package:tree/src/view/pages/memo/memo_notifier.dart';
 
-final memoTextEditcontrollerProvider =
-    Provider.family<TextEditingController, int>((ref, index) {
-  final state = ref.read(memoProvider);
-  return TextEditingController(text: state.list[index].text);
-});
-
-final dividerHeightkeyProvider = Provider.family<GlobalKey, int>((ref, index) {
-  return GlobalKey(debugLabel: "memolinekey:${index.toString()}");
-});
+// これらのProviderはMemoNotifierに統合されました
+// final memoTextEditcontrollerProvider = ...
+// final dividerHeightkeyProvider = ...
 
 class MemoLineView extends ConsumerStatefulWidget {
   const MemoLineView({
@@ -38,7 +32,9 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
   @override
   void initState() {
     super.initState();
-    controller = TextEditingController(text: widget.memoLineState.text);
+    controller = ref
+        .read(memoProvider.notifier)
+        .getTextController(widget.memoLineState.index);
     widget.focusNode.addListener(_handleFocusChange);
     setTextFieldHeight();
   }
@@ -55,8 +51,9 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
   void setTextFieldHeight() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final key =
-          ref.read(dividerHeightkeyProvider(widget.memoLineState.index));
+      final key = ref
+          .read(memoProvider.notifier)
+          .getDividerKey(widget.memoLineState.index);
       final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
       if (renderBox != null) {
         setState(() {
@@ -83,7 +80,9 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
         dividerWidth -
         leadingMarginEditText;
 
-    final key = ref.watch(dividerHeightkeyProvider(widget.memoLineState.index));
+    final key = ref
+        .read(memoProvider.notifier)
+        .getDividerKey(widget.memoLineState.index);
     final dividerMarginHeight = 40.0;
     return Visibility(
       visible: state.visibleList

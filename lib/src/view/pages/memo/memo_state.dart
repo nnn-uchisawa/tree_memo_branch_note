@@ -9,9 +9,7 @@ part 'memo_state.g.dart';
 abstract class MemoState with _$MemoState {
   const MemoState._();
 
-  // ignore: invalid_annotation_target
-  @JsonSerializable(explicitToJson: true)
-  factory MemoState({
+  const factory MemoState({
     @Default("") String fileName,
     @Default([]) List<MemoLineState> list,
     @Default([]) List<MemoLineState> visibleList,
