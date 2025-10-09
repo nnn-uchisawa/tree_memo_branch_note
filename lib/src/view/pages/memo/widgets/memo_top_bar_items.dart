@@ -16,8 +16,8 @@ class MemoTopBarItem extends ConsumerWidget {
     var index = ref.read(memoProvider).focusedIndex;
     return Material(
       child: Container(
-        width: AppUtils.sWidth(),
-        height: AppUtils.sHeight() / AppConst.topBarHeightRatio,
+        width: AppUtils.sWidth,
+        height: AppUtils.sHeight / AppConst.topBarHeightRatio,
         color: Color.fromARGB(127, 0, 0, 0),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,

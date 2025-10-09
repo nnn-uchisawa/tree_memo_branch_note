@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tree/src/libraries/on_boarding_slider/background_controller.dart';
+import 'package:tree/src/view/widgets/libraries/on_boarding_slider/background_controller.dart';
 
 void main() {
   group('BackgroundController Widget Tests', () {

@@ -8,11 +8,11 @@ import 'package:path_provider/path_provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/app_router.dart';
-import 'package:tree/src/ex/adaptive_text_field.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/home/home_notifier.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
+import 'package:tree/src/view/widgets/adaptive_text_field.dart';
 
 import 'memo_state.dart';
 
@@ -497,7 +497,7 @@ class MemoNotifier extends _$MemoNotifier {
         child: SizedBox(
           width: 200,
           child: SizedBox(
-            height: AppUtils.sHeight() / 4,
+            height: AppUtils.sHeight / 4,
             child: Stack(
               children: [
                 Consumer(
@@ -587,7 +587,7 @@ class MemoNotifier extends _$MemoNotifier {
           width: 200,
           child: Stack(children: [
             SizedBox(
-              height: AppUtils.sHeight() / 4,
+              height: AppUtils.sHeight / 4,
               child: Consumer(
                 builder: (c, r, w) {
                   var index = state.focusedIndex;
@@ -718,7 +718,7 @@ class MemoNotifier extends _$MemoNotifier {
         throw Exception("ファイルの作成に失敗しました");
       }
 
-      ref.invalidate(fileNamesFutureProvider);
+      await ref.read(homeProvider.notifier).updateFileNames();
       log('ファイル保存成功: $path');
     } catch (e) {
       log('_saveJsonToFile エラー: $e');
@@ -782,7 +782,7 @@ class MemoNotifier extends _$MemoNotifier {
       // リネーム後にデータを更新して保存
       await _saveJsonToFileWithName(newFileName);
 
-      ref.invalidate(fileNamesFutureProvider);
+      await ref.read(homeProvider.notifier).updateFileNames();
       log('ファイルリネーム成功: $oldPath -> $newPath');
     } catch (e) {
       log('renameFile エラー: $e');

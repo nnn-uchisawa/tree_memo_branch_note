@@ -22,7 +22,7 @@ class AppRouter {
     errorPageBuilder: (context, state) => MaterialPage(
       key: state.pageKey,
       child: Scaffold(
-        body: Center(
+        body: SingleChildScrollView(
           child: Text(state.error.toString()),
         ),
       ),

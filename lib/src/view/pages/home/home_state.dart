@@ -9,6 +9,9 @@ part 'home_state.freezed.dart';
 abstract class HomeState with _$HomeState {
   const HomeState._();
 
-  factory HomeState({@Default([]) List<File> list, MemoState? memoState}) =
-      _HomeState;
+  factory HomeState({
+    @Default([]) List<File> list,
+    MemoState? memoState,
+    @Default([]) List<String> fileNames,
+  }) = _HomeState;
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tree/src/libraries/on_boarding_slider/page_offset_provider.dart';
+import 'package:tree/src/view/widgets/libraries/on_boarding_slider/page_offset_provider.dart';
 
 void main() {
   group('PageOffsetNotifier Tests', () {

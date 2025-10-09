@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -14,15 +13,19 @@ import 'package:tree/src/view/pages/memo/memo_state.dart';
 
 part 'home_notifier.g.dart';
 
-final fileNamesFutureProvider = FutureProvider<List<String>>((ref) {
-  final notifier = ref.watch(homeProvider.notifier);
-  return notifier.getFileNameList();
-});
-
 @riverpod
 class HomeNotifier extends _$HomeNotifier {
   @override
-  HomeState build() => HomeState();
+  HomeState build() {
+    updateFileNames();
+    return HomeState();
+  }
+
+  /// ファイル名リストを更新する
+  Future<void> updateFileNames() async {
+    final fileNames = await getFileNameList();
+    state = state.copyWith(fileNames: fileNames);
+  }
 
   /// txtファイルの内容をMemoStateに変換する（プライベート）
   MemoState _parseTextFileToMemoState(String content, String fileName) {
@@ -248,7 +251,7 @@ class HomeNotifier extends _$HomeNotifier {
       var targetPath = '${dir.path}/$targetFileName';
       var newFile = File(targetPath);
       await newFile.writeAsString(contentToSave);
-      ref.invalidate(fileNamesFutureProvider);
+      await updateFileNames();
 
       // 成功時にファイルサイズも表示
       final finalFileSizeKB = (fileSize / 1024).toStringAsFixed(1);
@@ -268,6 +271,8 @@ class HomeNotifier extends _$HomeNotifier {
     var path = '${dir.path}/$fileName.tmson';
     var file = File(path);
     await file.delete();
+    // ファイルリストを更新
+    await updateFileNames();
   }
 
   Future<void> copyFile(String fileName) async {
@@ -291,7 +296,7 @@ class HomeNotifier extends _$HomeNotifier {
       await newFile.writeAsString(content);
 
       // ファイルリストを更新
-      ref.invalidate(fileNamesFutureProvider);
+      await updateFileNames();
 
       AppUtils.showSnackBar('ファイルをコピーしました: $newFileName');
       log('ファイルコピー成功: $fileName -> $newFileName');

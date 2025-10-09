@@ -24,10 +24,10 @@ SOFTWARE.
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tree/src/libraries/on_boarding_slider/background_controller.dart';
-import 'package:tree/src/libraries/on_boarding_slider/flutter_onboarding_slider.dart';
-import 'package:tree/src/libraries/on_boarding_slider/onboarding_navigation_bar.dart';
-import 'package:tree/src/libraries/on_boarding_slider/page_offset_provider.dart';
+import 'package:tree/src/view/widgets/libraries/on_boarding_slider/background_controller.dart';
+import 'package:tree/src/view/widgets/libraries/on_boarding_slider/flutter_onboarding_slider.dart';
+import 'package:tree/src/view/widgets/libraries/on_boarding_slider/onboarding_navigation_bar.dart';
+import 'package:tree/src/view/widgets/libraries/on_boarding_slider/page_offset_provider.dart';
 
 import 'background_body.dart';
 

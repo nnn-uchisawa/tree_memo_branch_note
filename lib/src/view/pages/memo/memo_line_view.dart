@@ -77,7 +77,7 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
     const leftIconSize = 48.0;
     const dividerWidth = 1.0;
     const leadingMarginEditText = 10.0;
-    final textFieldWidth = AppUtils.sWidth() -
+    final textFieldWidth = AppUtils.sWidth -
         widget.memoLineState.indent * widget.oneIndent -
         leftIconSize -
         dividerWidth -
@@ -94,7 +94,7 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
             ? Theme.of(context).highlightColor
             : Theme.of(context).scaffoldBackgroundColor,
         child: SizedBox(
-          width: AppUtils.sWidth(),
+          width: AppUtils.sWidth,
           child: Row(children: [
             InkWell(
               onTap: () {
@@ -122,7 +122,7 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
                     .onHorizontalSwiped(widget.memoLineState.index)(ded);
               },
               child: SizedBox(
-                width: AppUtils.sWidth() - leftIconSize,
+                width: AppUtils.sWidth - leftIconSize,
                 child: Column(
                   children: [
                     Row(children: [

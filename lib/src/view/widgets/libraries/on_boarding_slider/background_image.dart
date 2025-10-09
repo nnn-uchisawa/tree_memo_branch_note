@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tree/src/libraries/on_boarding_slider/page_offset_provider.dart';
+import 'package:tree/src/view/widgets/libraries/on_boarding_slider/page_offset_provider.dart';
 
 class BackgroundImage extends StatelessWidget {
   final int id;
