@@ -7,7 +7,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:tree/app_router.dart';
 import 'package:tree/gen/assets.gen.dart';
 import 'package:tree/src/util/app_utils.dart';
+import 'package:tree/src/view/pages/auth/auth_notifier.dart';
+import 'package:tree/src/view/pages/auth/login_dialog.dart';
 import 'package:tree/src/view/pages/home/home_notifier.dart';
+import 'package:tree/src/view/pages/home/widgets/cloud_download_button.dart';
 import 'package:tree/src/view/widgets/safe_appbar_view.dart';
 
 class HomeView extends ConsumerWidget {
@@ -18,40 +21,71 @@ class HomeView extends ConsumerWidget {
     final homeState = ref.watch(homeProvider);
     return SafeAppBarView(
       appBar: AppBar(
-        title: Text(
-          'Tree',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text('Tree', style: TextStyle(color: Colors.white)),
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
+          const CloudDownloadButton(),
+          Consumer(
+            builder: (context, ref, child) {
+              final authState = ref.watch(authProvider);
+              return IconButton(
+                onPressed: () async {
+                  if (authState.isSignedIn) {
+                    // ログアウト確認ダイアログ
+                    AppUtils.showYesNoDialogAlternative(
+                      const Text('ログアウト'),
+                      const Text('ログアウトしますか？'),
+                      () async {
+                        await ref.read(authProvider.notifier).signOut();
+                      },
+                      null,
+                    );
+                  } else {
+                    // ログイン選択ダイアログを表示
+                    showLoginDialog(context);
+                  }
+                },
+                icon: authState.isSignedIn
+                    ? const Icon(Icons.logout, size: 25, color: Colors.white)
+                    : Assets.images.profile.image(
+                        width: 25,
+                        height: 25,
+                        color: Colors.white,
+                      ),
+              );
+            },
+          ),
           IconButton(
-              onPressed: () async {
-                final fileInfo =
-                    await ref.read(homeProvider.notifier).pickFileAndGetInfo();
-                if (fileInfo == null) {
-                  AppUtils.showSnackBar('有効なファイルを選択してください');
-                  return;
-                }
-                final file = fileInfo['file'] as File;
-                final fileName = fileInfo['fileName'] as String;
-                final fileExtension = fileInfo['fileExtension'] as String;
-                final fileSizeKB = fileInfo['fileSizeKB'] as String;
-                AppUtils.showYesNoDialogAlternative(
-                  const Text("確認"),
-                  Text(
-                      "$fileName($fileExtension)\nファイルサイズ: ${fileSizeKB}KB\n\nインポートしますか？"),
-                  () {
-                    ref.read(homeProvider.notifier).saveFileToDocuments(file);
-                  },
-                  null,
-                );
-              },
-              icon: SvgPicture.asset(
-                Assets.images.folder,
-                width: 25,
-                height: 25,
-                colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
-              )),
+            onPressed: () async {
+              final fileInfo = await ref
+                  .read(homeProvider.notifier)
+                  .pickFileAndGetInfo();
+              if (fileInfo == null) {
+                AppUtils.showSnackBar('有効なファイルを選択してください');
+                return;
+              }
+              final file = fileInfo['file'] as File;
+              final fileName = fileInfo['fileName'] as String;
+              final fileExtension = fileInfo['fileExtension'] as String;
+              final fileSizeKB = fileInfo['fileSizeKB'] as String;
+              AppUtils.showYesNoDialogAlternative(
+                const Text("確認"),
+                Text(
+                  "$fileName($fileExtension)\nファイルサイズ: ${fileSizeKB}KB\n\nインポートしますか？",
+                ),
+                () {
+                  ref.read(homeProvider.notifier).saveFileToDocuments(file);
+                },
+                null,
+              );
+            },
+            icon: SvgPicture.asset(
+              Assets.images.folder,
+              width: 25,
+              height: 25,
+              colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
+          ),
           TextButton(
             onPressed: () {
               ref.read(homeProvider.notifier).setMemoState(null);
@@ -78,15 +112,16 @@ class HomeView extends ConsumerWidget {
                             .read(homeProvider.notifier)
                             .getMemoState(homeState.fileNames[index])
                             .then((memoState) {
-                          ref
-                              .read(homeProvider.notifier)
-                              .setMemoState(memoState);
-                          var context = AppRouter.navigatorKey.currentContext;
-                          if (context == null) return;
-                          // 特定のページの読み込みのみなので非同期処理を許可
-                          // ignore: use_build_context_synchronously
-                          MemoRoute().push(context);
-                        });
+                              ref
+                                  .read(homeProvider.notifier)
+                                  .setMemoState(memoState);
+                              var context =
+                                  AppRouter.navigatorKey.currentContext;
+                              if (context == null) return;
+                              // 特定のページの読み込みのみなので非同期処理を許可
+                              // ignore: use_build_context_synchronously
+                              MemoRoute().push(context);
+                            });
                       },
                       child: Row(
                         children: [
@@ -94,9 +129,7 @@ class HomeView extends ConsumerWidget {
                             padding: const EdgeInsets.only(left: 20),
                             alignment: Alignment.centerLeft,
                             height: 50,
-                            child: Text(
-                              homeState.fileNames[index],
-                            ),
+                            child: Text(homeState.fileNames[index]),
                           ),
                           const Spacer(),
                           PopupMenuButton<String>(
@@ -119,7 +152,8 @@ class HomeView extends ConsumerWidget {
                                   var dir =
                                       await getApplicationDocumentsDirectory();
                                   var _ = await AppUtils.shareFile(
-                                      '${dir.path}/$fileName.tmson');
+                                    '${dir.path}/$fileName.tmson',
+                                  );
                                   break;
                                 case 'export':
                                   await ref
@@ -130,6 +164,13 @@ class HomeView extends ConsumerWidget {
                                   await ref
                                       .read(homeProvider.notifier)
                                       .copyToClipboard(fileName);
+                                  break;
+                                case 'cloud_save':
+                                  await _withLoading(() async {
+                                    await ref
+                                        .read(homeProvider.notifier)
+                                        .uploadMemoToCloud(fileName);
+                                  });
                                   break;
                                 case 'delete':
                                   AppUtils.showYesNoDialogAlternative(
@@ -145,69 +186,99 @@ class HomeView extends ConsumerWidget {
                                   break;
                               }
                             },
-                            itemBuilder: (BuildContext context) => [
-                              const PopupMenuItem<String>(
-                                value: 'copy',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.copy, size: 20),
-                                    SizedBox(width: 8),
-                                    Text('コピーを作成'),
-                                  ],
+                            itemBuilder: (BuildContext context) {
+                              final authState = ref.watch(authProvider);
+                              final items = <PopupMenuEntry<String>>[
+                                const PopupMenuItem<String>(
+                                  value: 'copy',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.copy, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('コピーを作成'),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const PopupMenuItem<String>(
-                                value: 'share',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.share, size: 20),
-                                    SizedBox(width: 8),
-                                    Text('メモを共有'),
-                                  ],
+                                const PopupMenuItem<String>(
+                                  value: 'share',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.share, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('メモを共有'),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const PopupMenuItem<String>(
-                                value: 'export',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.file_download, size: 20),
-                                    SizedBox(width: 8),
-                                    Text('txtで共有'),
-                                  ],
+                                const PopupMenuItem<String>(
+                                  value: 'export',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.file_download, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('txtで共有'),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const PopupMenuItem<String>(
-                                value: 'clipboard',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.content_copy, size: 20),
-                                    SizedBox(width: 8),
-                                    Text('クリップボードにコピー'),
-                                  ],
+                                const PopupMenuItem<String>(
+                                  value: 'clipboard',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.content_copy, size: 20),
+                                      SizedBox(width: 8),
+                                      Text('クリップボードにコピー'),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const PopupMenuItem<String>(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.delete,
-                                        size: 20, color: Colors.red),
-                                    SizedBox(width: 8),
-                                    Text('削除',
-                                        style: TextStyle(color: Colors.red)),
-                                  ],
+                              ];
+
+                              // 認証済みの場合のみクラウド保存項目を追加
+                              if (authState.isSignedIn) {
+                                items.add(
+                                  const PopupMenuItem<String>(
+                                    value: 'cloud_save',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.cloud_upload, size: 20),
+                                        SizedBox(width: 8),
+                                        Text('クラウドに保存'),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              items.add(
+                                const PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete,
+                                        size: 20,
+                                        color: Colors.red,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        '削除',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              );
+
+                              return items;
+                            },
                             icon: SvgPicture.asset(
                               Assets.images.verticalThree,
                               colorFilter: ColorFilter.mode(
-                                  Theme.of(context).colorScheme.onSurface,
-                                  BlendMode.srcIn),
+                                Theme.of(context).colorScheme.onSurface,
+                                BlendMode.srcIn,
+                              ),
                               width: 20,
                               height: 20,
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -240,5 +311,36 @@ class LoadingView extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+// クラウド関連の処理は Notifier/CloudDownloadButton へ移行
+
+Future<T> _withLoading<T>(Future<T> Function() task) async {
+  final ctx = AppRouter.navigatorKey.currentContext;
+  if (ctx == null || !ctx.mounted) {
+    return await task();
+  }
+  showDialog(
+    context: ctx,
+    barrierDismissible: false,
+    builder: (dialogCtx) {
+      return const Center(
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: CircularProgressIndicator(),
+        ),
+      );
+    },
+  );
+  try {
+    final result = await task();
+    return result;
+  } finally {
+    final popCtx = AppRouter.navigatorKey.currentContext;
+    if (popCtx != null && popCtx.mounted) {
+      Navigator.of(popCtx, rootNavigator: true).pop();
+    }
   }
 }

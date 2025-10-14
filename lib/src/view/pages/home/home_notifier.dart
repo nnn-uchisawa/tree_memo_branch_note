@@ -6,6 +6,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:tree/src/services/firebase/firebase_auth_service.dart';
+import 'package:tree/src/services/firebase/firebase_storage_service.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/home/home_state.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
@@ -59,8 +61,9 @@ class HomeNotifier extends _$HomeNotifier {
         indent = baseIndent + 1;
 
         // タスクリスト（チェックボックス）の検出
-        final taskMatch =
-            RegExp(r'^[-*+]\s*\[([ xX])\]\s*(.*)').firstMatch(trimmedLine);
+        final taskMatch = RegExp(
+          r'^[-*+]\s*\[([ xX])\]\s*(.*)',
+        ).firstMatch(trimmedLine);
         if (taskMatch != null) {
           final isChecked = taskMatch.group(1)!.toLowerCase() == 'x';
           text = '${isChecked ? '✓' : '○'} ${taskMatch.group(2)!}';
@@ -89,15 +92,17 @@ class HomeNotifier extends _$HomeNotifier {
         isReadOnly = true;
         // コードブロックの中身を次行から抽出
         int codeStart = i + 1;
-        while (
-            codeStart < lines.length && !lines[codeStart].startsWith('```')) {
-          memoLines.add(MemoLineState(
-            index: memoLines.length,
-            text: lines[codeStart],
-            indent: baseIndent + 1,
-            fontSize: fontSize,
-            isReadOnly: true,
-          ));
+        while (codeStart < lines.length &&
+            !lines[codeStart].startsWith('```')) {
+          memoLines.add(
+            MemoLineState(
+              index: memoLines.length,
+              text: lines[codeStart],
+              indent: baseIndent + 1,
+              fontSize: fontSize,
+              isReadOnly: true,
+            ),
+          );
           codeStart++;
         }
         i = codeStart; // コードブロック終了行までスキップ
@@ -109,13 +114,15 @@ class HomeNotifier extends _$HomeNotifier {
         // インラインコードの中身を抽出
         final inlineCodeMatch = RegExp(r'^`([^`]+)`').firstMatch(trimmedLine);
         if (inlineCodeMatch != null) {
-          memoLines.add(MemoLineState(
-            index: memoLines.length,
-            text: inlineCodeMatch.group(1)!,
-            indent: baseIndent + 1,
-            fontSize: fontSize,
-            isReadOnly: true,
-          ));
+          memoLines.add(
+            MemoLineState(
+              index: memoLines.length,
+              text: inlineCodeMatch.group(1)!,
+              indent: baseIndent + 1,
+              fontSize: fontSize,
+              isReadOnly: true,
+            ),
+          );
         }
         isReadOnly = true;
       } else if (RegExp(r'^---+$|^\*\*\*+$|^___+$').hasMatch(trimmedLine)) {
@@ -155,13 +162,15 @@ class HomeNotifier extends _$HomeNotifier {
       }
 
       // 空行の場合もMemoLineStateとして追加
-      memoLines.add(MemoLineState(
-        index: i,
-        text: text,
-        indent: indent,
-        fontSize: fontSize,
-        isReadOnly: isReadOnly,
-      ));
+      memoLines.add(
+        MemoLineState(
+          index: i,
+          text: text,
+          indent: indent,
+          fontSize: fontSize,
+          isReadOnly: isReadOnly,
+        ),
+      );
     }
 
     return MemoState(
@@ -171,13 +180,15 @@ class HomeNotifier extends _$HomeNotifier {
       visibleList: memoLines
           .asMap()
           .entries
-          .map((entry) => MemoLineState(
-                index: entry.key,
-                text: entry.value.text,
-                indent: entry.value.indent,
-                fontSize: entry.value.fontSize,
-                isReadOnly: entry.value.isReadOnly,
-              ))
+          .map(
+            (entry) => MemoLineState(
+              index: entry.key,
+              text: entry.value.text,
+              indent: entry.value.indent,
+              fontSize: entry.value.fontSize,
+              isReadOnly: entry.value.isReadOnly,
+            ),
+          )
           .toList(),
       fileName: fileName,
     );
@@ -227,7 +238,8 @@ class HomeNotifier extends _$HomeNotifier {
       if (fileSize > maxFileSize) {
         final fileSizeKB = (fileSize / 1024).toStringAsFixed(1);
         AppUtils.showSnackBar(
-            'ファイルサイズが制限を超えています: ${fileSizeKB}KB (制限: 1000KB)');
+          'ファイルサイズが制限を超えています: ${fileSizeKB}KB (制限: 1000KB)',
+        );
         return;
       }
 
@@ -235,8 +247,10 @@ class HomeNotifier extends _$HomeNotifier {
 
       if (fileExtension == 'txt') {
         // txtファイルの場合、パースしてMemoStateに変換
-        final memoState =
-            _parseTextFileToMemoState(fileContent, fileNameWithoutExt);
+        final memoState = _parseTextFileToMemoState(
+          fileContent,
+          fileNameWithoutExt,
+        );
         contentToSave = json.encode(memoState.toJson());
         targetFileName = '$fileNameWithoutExt.tmson';
       } else if (fileExtension == 'tmson') {
@@ -256,7 +270,8 @@ class HomeNotifier extends _$HomeNotifier {
       // 成功時にファイルサイズも表示
       final finalFileSizeKB = (fileSize / 1024).toStringAsFixed(1);
       AppUtils.showSnackBar(
-          'ファイルをインポートしました: $targetFileName (${finalFileSizeKB}KB)');
+        'ファイルをインポートしました: $targetFileName (${finalFileSizeKB}KB)',
+      );
     } catch (e) {
       AppUtils.showSnackBar('ファイルの読み込みに失敗しました: $e');
     }
@@ -408,10 +423,85 @@ class HomeNotifier extends _$HomeNotifier {
     }
   }
 
+  // ===== Cloud (Firebase Storage) =====
+
+  /// クラウド上のメモ一覧を取得
+  Future<List<String>> fetchCloudMemoNames() async {
+    try {
+      final names = await FirebaseStorageService.getMemoFileNames();
+      return names;
+    } catch (e) {
+      AppUtils.showSnackBar('クラウド一覧の取得に失敗しました: $e');
+      return [];
+    }
+  }
+
+  /// 単一メモをクラウドからダウンロードしてローカルへ保存後、一覧更新
+  Future<void> downloadMemoFromCloud(String fileName) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final localPath = '${dir.path}/$fileName.tmson';
+      await FirebaseStorageService.downloadMemo(fileName, localPath);
+      await updateFileNames();
+      AppUtils.showSnackBar('ダウンロードしました: $fileName');
+    } catch (e) {
+      AppUtils.showSnackBar('ダウンロードに失敗しました: $e');
+    }
+  }
+
+  /// すべてのメモをクラウドからダウンロードしてローカルへ保存後、一覧更新
+  Future<void> downloadAllMemosFromCloud(List<String> fileNames) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      for (final name in fileNames) {
+        final localPath = '${dir.path}/$name.tmson';
+        await FirebaseStorageService.downloadMemo(name, localPath);
+      }
+      await updateFileNames();
+      AppUtils.showSnackBar('一括ダウンロードが完了しました');
+    } catch (e) {
+      AppUtils.showSnackBar('一括ダウンロードに失敗しました: $e');
+    }
+  }
+
+  /// クラウド上のメモを削除
+  Future<void> deleteMemoInCloud(String fileName) async {
+    try {
+      await FirebaseStorageService.deleteMemo(fileName);
+      AppUtils.showSnackBar('クラウドから削除しました: $fileName');
+    } catch (e) {
+      AppUtils.showSnackBar('クラウド削除に失敗しました: $e');
+    }
+  }
+
+  /// ローカルのメモをクラウドへアップロード
+  Future<void> uploadMemoToCloud(String fileName) async {
+    try {
+      if (!FirebaseAuthService.isSignedIn) {
+        AppUtils.showSnackBar('ログインが必要です');
+        return;
+      }
+
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/$fileName.tmson');
+
+      if (!await file.exists()) {
+        AppUtils.showSnackBar('ファイルが見つかりません');
+        return;
+      }
+
+      await FirebaseStorageService.uploadMemo(fileName, file);
+      AppUtils.showSnackBar('クラウドに保存しました');
+    } catch (e) {
+      AppUtils.showSnackBar('クラウド保存に失敗しました: $e');
+    }
+  }
+
   /// ファイル選択と情報取得のみ（UI部品はViewで生成）
   Future<Map<String, dynamic>?> pickFileAndGetInfo() async {
-    FilePickerResult? result =
-        await FilePicker.platform.pickFiles(type: FileType.any);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+    );
     if (result == null || result.files.isEmpty || result.files.length > 1) {
       return null;
     }

@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.1+2
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.8.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -32,7 +32,7 @@ dependencies:
     sdk: flutter
 
   # 🏗️ 状態管理・アーキテクチャ
-  flutter_riverpod: ^3.0.0          # 主要状態管理ライブラリ
+  flutter_riverpod: ^3.0.3          # 主要状態管理ライブラリ
   provider: ^6.1.5+1               # 補助的な状態管理
 
   # 🛣️ ナビゲーション・ルーティング
@@ -57,37 +57,38 @@ dependencies:
   file_picker: ^10.3.3             # ファイル選択
   share_plus: ^12.0.0              # ファイル共有
 
-  # 🌐 ネットワーク・通信
-  http: ^1.3.0                     # HTTPクライアント
-
   # 🔧 コード生成・シリアライゼーション
-  freezed: ^3.2.3                  # イミュータブルクラス生成
   freezed_annotation: ^3.1.0       # Freezedアノテーション
-  json_serializable: ^6.11.1       # JSONシリアライゼーション
   json_annotation: ^4.9.0          # JSONアノテーション
-
-  # 🚀 アプリ配布・ビルド
-  flutter_flavorizr: ^2.4.1        # フレーバー管理
-  flutter_launcher_icons: ^0.14.4  # アプリアイコン生成
-  app_version_update: ^3.1.0       # アプリバージョン更新
+  riverpod_annotation: ^3.0.3      # Riverpodアノテーション
+  
+  # 🚀 アプリ配布・ビルド（実行時不要なので dev に移動）
+  app_version_update: ^6.1.3       # アプリバージョン更新
 
   # 🌍 国際化・ユーティリティ
   intl: ^0.20.2                    # 国際化・日付フォーマット
   quiver: ^3.2.2                   # ユーティリティ関数
 
-  # 🔥 Firebase（コメントアウト）
-  # firebase_core: ^2.32.0
-  # cloud_firestore: ^4.17.5
-  # firebase_app_check: ^0.2.2+7
+  # 🔥 Firebase
+  firebase_core: ^4.2.0           # Firebase初期化
+  firebase_auth: ^6.1.1            # Firebase認証
+  firebase_storage: ^13.0.3        # Firebaseストレージ
+  google_sign_in: ^6.3.0           # Googleサインイン（既存実装互換）
+  sign_in_with_apple: ^7.0.1       # Appleサインイン
+  flutter_signin_button: ^2.1.1    # サインインボタンUI
+  crypto: ^3.0.6                   # SHA-256 (Apple Sign In nonce 用)
+  flutter_dotenv: ^5.1.0           # 環境変数読み込み（FirebaseOptions用）
+
+  # 🚀 アプリ配布・ビルド（開発用）
+  flutter_native_splash: ^2.3.2    # スプラッシュスクリーン
 dev_dependencies:
   # 🧪 テスト・開発
   flutter_test:                    # Flutterテストフレームワーク
     sdk: flutter
   flutter_lints: ^6.0.0            # コード品質チェック
-
+  
   # 🏗️ 状態管理・アーキテクチャ（開発用）
-  riverpod_annotation: ^3.0.0      # Riverpodアノテーション
-  riverpod_generator: ^3.0.0       # Riverpodコード生成
+  riverpod_generator: ^3.0.3       # Riverpodコード生成
 
   # 🛣️ ナビゲーション・ルーティング（開発用）
   go_router_builder: ^4.1.0        # GoRouterコード生成
@@ -95,11 +96,16 @@ dev_dependencies:
   # 🖼️ アセット・画像（開発用）
   flutter_gen_runner: ^5.12.0      # アセット生成ランナー
 
-  # 🚀 アプリ配布・ビルド（開発用）
-  flutter_native_splash: ^2.3.2    # スプラッシュスクリーン
-
   # 🔧 コード生成・シリアライゼーション（開発用）
-  build_runner: ^2.7.1             # ビルドランナー
+  build_runner: ^2.7.1             # ビルドランナー（go_router_builder互換）
+  
+  # Freezed/JSON シリアライザ（ビルド時のみ使用）
+  freezed: ^3.2.3                  # イミュータブルクラス生成
+  json_serializable: ^6.11.1       # JSONシリアライゼーション
+  
+  # アプリ配布・ビルド（実行時不要）
+  flutter_flavorizr: ^2.4.1        # フレーバー管理
+  flutter_launcher_icons: ^0.14.4  # アプリアイコン生成
 flutter_launcher_icons:
   image_path_ios: "assets/icon512_white.png"
   image_path_android: "assets/icon512.png"
@@ -151,7 +157,11 @@ flutter:
     - assets/images/vertical-three.svg
     - assets/images/line-up.svg
     - assets/images/line-down.svg
+    - assets/images/profile.png
     - assets/Treeの使い方.tmson
+    - .env
+    - .env.android
+    - .env.ios
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
@@ -177,3 +187,11 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+
+flutter_gen:
+  assets:
+    exclude:
+      - .env
+      - .env.android
+      - .env.ios

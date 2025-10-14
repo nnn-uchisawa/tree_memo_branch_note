@@ -14,7 +14,7 @@ flavors:
       applicationId: "com.nnn.tree.local"
 
     ios:
-      bundleId: "com.nnn.tree.local"
+      bundleId: "jp.nnn.tree.local"
 
   dev:
     app:
@@ -22,7 +22,7 @@ flavors:
     android:
       applicationId: "com.nnn.tree.debug"
     ios:
-      bundleId: "com.nnn.tree.dev"
+      bundleId: "jp.nnn.tree.dev"
 
   prod:
     app:
@@ -31,4 +31,4 @@ flavors:
     android:
       applicationId: "com.nnn.tree"
     ios:
-      bundleId: "com.nnn.tree"
+      bundleId: "jp.nnn.tree"

@@ -8,12 +8,23 @@ A treememo mobile app satisfiable for me
 
 terminalでソースを置きたいディレクトリに移動し以下を実行、又はクライアントでクローン
 ```
-<span style="background:black,color:white">$ git clone https://github.com/nnn-uchisawa/tree_memo_branch_note.git</span>
+$ git clone https://github.com/nnn-uchisawa/tree_memo_branch_note.git
 ```
 /assets/fonts
 に「Noto-SansJP-Regular.ttf」を配置
 DLはコチラ💁
 https://fonts.google.com/noto/specimen/Noto+Sans+JP
+
+/android/app
+にgoogle-service.jsonを配置
+
+/ios/Runner
+にGoogleService-Info.plistを配置（Xcodeの操作が必要な場合があります）
+
+PJルートに以下の環境変数ファイルを配置
+.env
+.env.android
+.env.ios
 
 ### 環境構築
 
@@ -33,7 +44,7 @@ vscodeでPJルートを開き
 vscode内terminalで以下のコマンドを実行
 
 ```
-<span style="background:black,color:white">$ flutter pub get && flutter pub run build_runner build</span>
+$ flutter pub get && flutter pub run build_runner build
 ```
 
 ### 実行端末の設定
@@ -58,11 +69,11 @@ iOS
 3. vscode内terminalで以下のコマンドを実行
 
 ```
-<span style="background:black,color:white">$ flutter run</span>
+$ flutter run
 ```
 
 4. デバッグ実行したい場合は以下のコマンドを実行
 
 ```
-<span style="background:black,color:white">$ flutter run --debug</span>
+$ flutter run --debug
 ```

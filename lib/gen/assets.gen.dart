@@ -59,6 +59,9 @@ class $AssetsImagesGen {
   /// File path: assets/images/open-folder.svg
   String get openFolder => 'assets/images/open-folder.svg';
 
+  /// File path: assets/images/profile.png
+  AssetGenImage get profile => const AssetGenImage('assets/images/profile.png');
+
   /// File path: assets/images/read-only.svg
   String get readOnly => 'assets/images/read-only.svg';
 
@@ -78,28 +81,29 @@ class $AssetsImagesGen {
   String get verticalThree => 'assets/images/vertical-three.svg';
 
   /// List of all assets
-  List<String> get values => [
-        cancel,
-        changeFontSize,
-        changeIndentWidth,
-        check,
-        decreaseIndent,
-        erase,
-        focus,
-        folder,
-        function,
-        increaseIndent,
-        lineDown,
-        lineUp,
-        lockLocked,
-        lockUnlocked,
-        openFolder,
-        readOnly,
-        save,
-        share,
-        unfocus,
-        verticalThree
-      ];
+  List<dynamic> get values => [
+    cancel,
+    changeFontSize,
+    changeIndentWidth,
+    check,
+    decreaseIndent,
+    erase,
+    focus,
+    folder,
+    function,
+    increaseIndent,
+    lineDown,
+    lineUp,
+    lockLocked,
+    lockUnlocked,
+    openFolder,
+    profile,
+    readOnly,
+    save,
+    share,
+    unfocus,
+    verticalThree,
+  ];
 }
 
 class $AssetsImagesTutorialGen {
@@ -198,15 +202,8 @@ class AssetGenImage {
     );
   }
 
-  ImageProvider provider({
-    AssetBundle? bundle,
-    String? package,
-  }) {
-    return AssetImage(
-      _assetName,
-      bundle: bundle,
-      package: package,
-    );
+  ImageProvider provider({AssetBundle? bundle, String? package}) {
+    return AssetImage(_assetName, bundle: bundle, package: package);
   }
 
   String get path => _assetName;
