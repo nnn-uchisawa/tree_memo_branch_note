@@ -128,8 +128,6 @@ class $AssetsImagesTutorialGen {
 class Assets {
   const Assets._();
 
-  // static const String aEnv = '.env.android';
-  // static const String aEnv = '.env.ios';
   static const String tree = 'assets/Treeの使い方.tmson';
   static const $AssetsImagesGen images = $AssetsImagesGen();
 

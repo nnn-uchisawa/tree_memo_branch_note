@@ -36,6 +36,8 @@ class CloudDownloadButton extends ConsumerWidget {
       }
 
       await showModalBottomSheet(
+        // 同じコンテキストで開閉するため許可
+        // ignore: use_build_context_synchronously
         context: safeContext,
         builder: (context) {
           return SafeArea(
