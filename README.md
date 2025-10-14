@@ -21,6 +21,11 @@ https://fonts.google.com/noto/specimen/Noto+Sans+JP
 /ios/Runner
 にGoogleService-Info.plistを配置（Xcodeの操作が必要な場合があります）
 
+PJルートに以下の環境変数ファイルを配置
+.env
+.env.android
+.env.ios
+
 ### 環境構築
 
 vscodeのflutter設定手順はコチラ💁(英語 公式)
