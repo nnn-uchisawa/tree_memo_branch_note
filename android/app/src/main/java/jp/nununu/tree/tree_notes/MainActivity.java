@@ -1,4 +1,4 @@
-package jp.nununu.tree.tree_notes;
+package com.nnn.tree;
 
 import io.flutter.embedding.android.FlutterActivity;
 
