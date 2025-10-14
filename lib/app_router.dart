@@ -22,7 +22,7 @@ class AppRouter {
     errorPageBuilder: (context, state) => MaterialPage(
       key: state.pageKey,
       child: Scaffold(
-        body: Center(
+        body: SingleChildScrollView(
           child: Text(state.error.toString()),
         ),
       ),
@@ -38,12 +38,14 @@ class InitRoute extends GoRouteData with $InitRoute {
   Future<String?> redirect(BuildContext context, GoRouterState state) async {
     final isNI = await SharedPreference.isNotInitial();
     if (!isNI) {
-      final jsonstringJp = await DefaultAssetBundle.of(context)
+      // 特定のファイルの読み込みのみなので非同期処理を許可
+      // ignore: use_build_context_synchronously
+      final jsonStringJp = await DefaultAssetBundle.of(context)
           .loadString("assets/Treeの使い方.tmson");
       final dir = await getApplicationDocumentsDirectory();
       final pathJp = '${dir.path}/Treeの使い方.tmson';
       final newFileJp = File(pathJp);
-      await newFileJp.writeAsString(jsonstringJp);
+      await newFileJp.writeAsString(jsonStringJp);
       await SharedPreference.setIsNotInitial();
       return const WalkThroughRoute().location;
     }
