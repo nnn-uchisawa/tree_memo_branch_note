@@ -54,8 +54,8 @@ class OnBoardingPageBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.blue,
-      width: AppUtils.sWidth(),
-      height: AppUtils.sHeight(),
+      width: AppUtils.sWidth,
+      height: AppUtils.sHeight,
     );
   }
 }

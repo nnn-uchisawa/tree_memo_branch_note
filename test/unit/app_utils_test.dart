@@ -7,7 +7,7 @@ void main() {
   group('AppUtils Tests', () {
     test('sWidth should return a valid width', () {
       // AppRouter.navigatorKeyがnullまたはcontextがない場合はデフォルト値を返す
-      final width = AppUtils.sWidth();
+      final width = AppUtils.sWidth;
       expect(width, isA<double>());
       expect(width, greaterThan(0));
       // デフォルト値は1080.0
@@ -16,7 +16,7 @@ void main() {
 
     test('sHeight should return a valid height', () {
       // AppRouter.navigatorKeyがnullまたはcontextがない場合はデフォルト値を返す
-      final height = AppUtils.sHeight();
+      final height = AppUtils.sHeight;
       expect(height, isA<double>());
       expect(height, greaterThan(0));
       // デフォルト値は1920.0

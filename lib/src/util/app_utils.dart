@@ -7,7 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:tree/app_router.dart';
 
 class AppUtils {
-  static double sWidth() {
+  static double get sWidth {
     if (AppRouter.navigatorKey.currentContext != null) {
       var context = AppRouter.navigatorKey.currentContext!;
       return MediaQuery.of(context).size.width;
@@ -15,7 +15,7 @@ class AppUtils {
     return 1080.0;
   }
 
-  static double sHeight() {
+  static double get sHeight {
     if (AppRouter.navigatorKey.currentContext != null) {
       var context = AppRouter.navigatorKey.currentContext!;
       return MediaQuery.of(context).size.height;

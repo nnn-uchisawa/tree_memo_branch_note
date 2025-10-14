@@ -16,16 +16,14 @@ class MemoTopBarItem extends ConsumerWidget {
     var index = ref.read(memoProvider).focusedIndex;
     return Material(
       child: Container(
-        width: AppUtils.sWidth(),
-        height: AppUtils.sHeight() / AppConst.topBarHeightRatio,
+        width: AppUtils.sWidth,
+        height: AppUtils.sHeight / AppConst.topBarHeightRatio,
         color: Color.fromARGB(127, 0, 0, 0),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              const SizedBox(
-                width: 8,
-              ),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: () {
                   final index = ref.read(memoProvider).focusedIndex;
@@ -47,9 +45,7 @@ class MemoTopBarItem extends ConsumerWidget {
                     ? Container()
                     : Row(
                         children: [
-                          const SizedBox(
-                            width: 8,
-                          ),
+                          const SizedBox(width: 8),
                           IconButton(
                             onPressed: () {
                               ref
@@ -64,7 +60,9 @@ class MemoTopBarItem extends ConsumerWidget {
                                 width: 25,
                                 height: 25,
                                 colorFilter: ColorFilter.mode(
-                                    Colors.white, BlendMode.srcIn),
+                                  Colors.white,
+                                  BlendMode.srcIn,
+                                ),
                               ),
                             ),
                           ),
@@ -77,9 +75,7 @@ class MemoTopBarItem extends ConsumerWidget {
                     ? Container()
                     : Row(
                         children: [
-                          const SizedBox(
-                            width: 8,
-                          ),
+                          const SizedBox(width: 8),
                           IconButton(
                             onPressed: () {
                               if (index >= 0) {
@@ -95,13 +91,13 @@ class MemoTopBarItem extends ConsumerWidget {
                                 width: 25,
                                 height: 25,
                                 colorFilter: ColorFilter.mode(
-                                    Colors.white, BlendMode.srcIn),
+                                  Colors.white,
+                                  BlendMode.srcIn,
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            width: 8,
-                          ),
+                          const SizedBox(width: 8),
                           IconButton(
                             onPressed: () {
                               if (index >= 0) {
@@ -115,12 +111,12 @@ class MemoTopBarItem extends ConsumerWidget {
                               width: 25,
                               height: 25,
                               colorFilter: ColorFilter.mode(
-                                  Colors.white, BlendMode.srcIn),
+                                Colors.white,
+                                BlendMode.srcIn,
+                              ),
                             ),
                           ),
-                          const SizedBox(
-                            width: 8,
-                          ),
+                          const SizedBox(width: 8),
                           memoLineState.isReadOnly
                               ? IconButton(
                                   onPressed: () {
@@ -135,7 +131,9 @@ class MemoTopBarItem extends ConsumerWidget {
                                     width: 25,
                                     height: 25,
                                     colorFilter: ColorFilter.mode(
-                                        Colors.white, BlendMode.srcIn),
+                                      Colors.white,
+                                      BlendMode.srcIn,
+                                    ),
                                   ),
                                 )
                               : IconButton(
@@ -151,12 +149,12 @@ class MemoTopBarItem extends ConsumerWidget {
                                     width: 22,
                                     height: 22,
                                     colorFilter: ColorFilter.mode(
-                                        Colors.white, BlendMode.srcIn),
+                                      Colors.white,
+                                      BlendMode.srcIn,
+                                    ),
                                   ),
                                 ),
-                          const SizedBox(
-                            width: 8,
-                          ),
+                          const SizedBox(width: 8),
                           IconButton(
                             onPressed: () {
                               ref
@@ -168,15 +166,15 @@ class MemoTopBarItem extends ConsumerWidget {
                               width: 25,
                               height: 25,
                               colorFilter: ColorFilter.mode(
-                                  Colors.white, BlendMode.srcIn),
+                                Colors.white,
+                                BlendMode.srcIn,
+                              ),
                             ),
                           ),
                         ],
                       ),
               ),
-              const SizedBox(
-                width: 8,
-              ),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: () {
                   ref
@@ -190,9 +188,7 @@ class MemoTopBarItem extends ConsumerWidget {
                   colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
                 ),
               ),
-              const SizedBox(
-                width: 8,
-              ),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: ref.read(memoProvider.notifier).showClearDialogs,
                 icon: SvgPicture.asset(
@@ -202,9 +198,7 @@ class MemoTopBarItem extends ConsumerWidget {
                   colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
                 ),
               ),
-              const SizedBox(
-                width: 8,
-              ),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: () {
                   ref.read(memoProvider.notifier).showSaveDialog(() {});
@@ -222,9 +216,7 @@ class MemoTopBarItem extends ConsumerWidget {
                     ? Container()
                     : Row(
                         children: [
-                          const SizedBox(
-                            width: 8,
-                          ),
+                          const SizedBox(width: 8),
                           IconButton(
                             onPressed: () {
                               if (index >= 0) {
@@ -240,16 +232,16 @@ class MemoTopBarItem extends ConsumerWidget {
                                 width: 18,
                                 height: 18,
                                 colorFilter: ColorFilter.mode(
-                                    Colors.redAccent, BlendMode.srcIn),
+                                  Colors.redAccent,
+                                  BlendMode.srcIn,
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
               ),
-              const SizedBox(
-                width: 8,
-              ),
+              const SizedBox(width: 8),
             ],
           ),
         ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tree/src/libraries/on_boarding_slider/background_body.dart';
+import 'package:tree/src/view/widgets/libraries/on_boarding_slider/background_body.dart';
 
 import '../helpers/test_helpers.dart';
 
@@ -15,9 +15,9 @@ void main() {
     testWidgets('should display PageView with correct number of pages',
         (WidgetTester tester) async {
       final testBodies = [
-        Container(child: Text('Page 1')),
-        Container(child: Text('Page 2')),
-        Container(child: Text('Page 3')),
+        Text('Page 1'),
+        Text('Page 2'),
+        Text('Page 3'),
       ];
 
       await tester.pumpWidget(
@@ -43,8 +43,8 @@ void main() {
       int? calledWithPage;
 
       final testBodies = [
-        Container(key: Key('page1'), child: Text('Page 1')),
-        Container(key: Key('page2'), child: Text('Page 2')),
+        Text('Page 1', key: Key('page1')),
+        Text('Page 2', key: Key('page2')),
       ];
 
       await tester.pumpWidget(
@@ -70,7 +70,7 @@ void main() {
     testWidgets('should have ClampingScrollPhysics',
         (WidgetTester tester) async {
       final testBodies = [
-        Container(child: Text('Page 1')),
+        Text('Page 1'),
       ];
 
       await tester.pumpWidget(
@@ -90,7 +90,7 @@ void main() {
 
     testWidgets('should use provided controller', (WidgetTester tester) async {
       final testBodies = [
-        Container(child: Text('Page 1')),
+        Text('Page 1'),
       ];
 
       await tester.pumpWidget(
@@ -113,7 +113,7 @@ void main() {
       // アサーションはデバッグモードでのみ有効
       // 長さが正しい場合は正常に動作することを確認
       final testBodies = [
-        Container(child: Text('Page 1')),
+        Text('Page 1'),
       ];
 
       await tester.pumpWidget(

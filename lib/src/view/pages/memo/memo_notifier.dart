@@ -8,11 +8,13 @@ import 'package:path_provider/path_provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/app_router.dart';
-import 'package:tree/src/ex/adaptive_text_field.dart';
+import 'package:tree/src/services/firebase/firebase_storage_service.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
+import 'package:tree/src/view/pages/auth/auth_notifier.dart';
 import 'package:tree/src/view/pages/home/home_notifier.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
+import 'package:tree/src/view/widgets/adaptive_text_field.dart';
 
 import 'memo_state.dart';
 
@@ -22,16 +24,49 @@ part 'memo_notifier.g.dart';
 class MemoNotifier extends _$MemoNotifier {
   MemoState baseState = MemoState();
   final List<FocusNode> _focusNodes = [];
+  final Map<int, TextEditingController> _textControllers = {};
+  final Map<int, GlobalKey> _dividerKeys = {};
 
   List<FocusNode> get focusNodes => _focusNodes;
+
+  /// TextEditingControllerを取得または作成
+  TextEditingController getTextController(int index) {
+    if (!_textControllers.containsKey(index)) {
+      final controller = TextEditingController(
+        text: index < state.list.length ? state.list[index].text : '',
+      );
+      _textControllers[index] = controller;
+    }
+    return _textControllers[index]!;
+  }
+
+  /// GlobalKeyを取得または作成
+  GlobalKey getDividerKey(int index) {
+    if (!_dividerKeys.containsKey(index)) {
+      final key = GlobalKey(debugLabel: "memolinekey:$index");
+      _dividerKeys[index] = key;
+    }
+    return _dividerKeys[index]!;
+  }
+
+  /// コントローラーとキーをクリーンアップ
+  void cleanupControllersAndKeys() {
+    // 不要になったコントローラーを破棄
+    for (final controller in _textControllers.values) {
+      controller.dispose();
+    }
+    _textControllers.clear();
+    _dividerKeys.clear();
+  }
 
   @override
   MemoState build() {
     var home = ref.watch(homeProvider);
     var memo = home.memoState;
     memo ??= MemoState(
-        list: [MemoLineState(index: 0)],
-        visibleList: [MemoLineState(index: 0)]);
+      list: [MemoLineState(index: 0)],
+      visibleList: [MemoLineState(index: 0)],
+    );
     baseState = memo.copyWith();
     return memo;
   }
@@ -53,16 +88,20 @@ class MemoNotifier extends _$MemoNotifier {
 
   /// メモの行の値が含まれたStateObjectの配列から閉じている行を再帰的に探して不可視な行を削除し返却する（プライベート）
   List<MemoLineState> _getFoldingLineList(
-      List<MemoLineState> list, int parentIndex) {
+    List<MemoLineState> list,
+    int parentIndex,
+  ) {
     if (list.isEmpty) {
       return [];
     }
     var nextParent = parentIndex + 1;
 
     if (list[parentIndex].isFolding) {
-      for (int targetIndex = parentIndex + 1;
-          targetIndex < list.length;
-          targetIndex++, nextParent++) {
+      for (
+        int targetIndex = parentIndex + 1;
+        targetIndex < list.length;
+        targetIndex++, nextParent++
+      ) {
         if (targetIndex < list.length) {
           if (list[targetIndex].indent > list[parentIndex].indent) {
             list.removeAt(targetIndex);
@@ -92,9 +131,11 @@ class MemoNotifier extends _$MemoNotifier {
     var next = start + 1;
     var end = start;
     if (list[start].isFolding) {
-      for (int targetIndex = start + 1;
-          targetIndex < list.length;
-          targetIndex++, next++) {
+      for (
+        int targetIndex = start + 1;
+        targetIndex < list.length;
+        targetIndex++, next++
+      ) {
         if (targetIndex < list.length) {
           if (list[targetIndex].indent > list[start].indent) {
             list.removeAt(targetIndex);
@@ -124,8 +165,9 @@ class MemoNotifier extends _$MemoNotifier {
     final startIndent = list[fromIndex].indent;
     var destination = fromIndex;
     var count = 0;
-    final foldingEnd =
-        list[fromIndex].isFolding ? _getFoldingEnd(fromIndex) : fromIndex + 1;
+    final foldingEnd = list[fromIndex].isFolding
+        ? _getFoldingEnd(fromIndex)
+        : fromIndex + 1;
     if (foldingEnd == list.length && visibleDistance > 0) return fromIndex;
     var subList = list.sublist(fromIndex, foldingEnd);
     if (0 > visibleDistance && fromIndex + visibleDistance >= 0) {
@@ -179,18 +221,21 @@ class MemoNotifier extends _$MemoNotifier {
     List<MemoLineState> list = List.from(state.list);
     List<MemoLineState> newList = [
       ...list,
-      MemoLineState(index: state.list.length)
+      MemoLineState(index: state.list.length),
     ];
     var newNode = FocusNode();
     addFocusNode(newNode);
-    List<MemoLineState> visibleList =
-        _getFoldingLineList(List.from(newList), 0);
+    List<MemoLineState> visibleList = _getFoldingLineList(
+      List.from(newList),
+      0,
+    );
     state = state.copyWith(
-        list: newList,
-        visibleList: visibleList,
-        focusedIndex: visibleList.length - 1,
-        needFocusChange: true,
-        isEditing: false);
+      list: newList,
+      visibleList: visibleList,
+      focusedIndex: visibleList.length - 1,
+      needFocusChange: true,
+      isEditing: false,
+    );
     state = state.copyWith(isEditing: true);
   }
 
@@ -198,22 +243,20 @@ class MemoNotifier extends _$MemoNotifier {
     var next = index + 1;
     List<MemoLineState> list = List.from(state.list);
     for (int i = next; i < list.length; i++) {
-      list[i] = list[i].copyWith(
-        index: list[i].index + 1,
-      );
+      list[i] = list[i].copyWith(index: list[i].index + 1);
     }
-    List<MemoLineState> front =
-        index == 0 ? [list[0]] : [...list.sublist(0, index + 1)];
-    var newLine = MemoLineState(
-      index: next,
-      indent: list[index].indent,
-    );
+    List<MemoLineState> front = index == 0
+        ? [list[0]]
+        : [...list.sublist(0, index + 1)];
+    var newLine = MemoLineState(index: next, indent: list[index].indent);
     var back = (list.length - 1) == index ? [] : [...list.sublist(next)];
     var newNode = FocusNode();
     insertFocusNode(next, newNode);
     List<MemoLineState> newList = [...front, newLine, ...back];
-    List<MemoLineState> visibleList =
-        _getFoldingLineList(List.from(newList), 0);
+    List<MemoLineState> visibleList = _getFoldingLineList(
+      List.from(newList),
+      0,
+    );
     state = state.copyWith(
       list: newList,
       visibleList: visibleList,
@@ -226,37 +269,45 @@ class MemoNotifier extends _$MemoNotifier {
 
   void onChangeFontSize(int index, double fontSize) {
     List<MemoLineState> list = List.from(state.list);
-    MemoLineState mlState = list[index];
-    mlState = mlState.copyWith(fontSize: fontSize);
+    MemoLineState memoLineState = list[index];
+    memoLineState = memoLineState.copyWith(fontSize: fontSize);
 
     // 更新されたメモラインをリスト内の正しい位置に配置
-    list[index] = mlState;
+    list[index] = memoLineState;
 
     List<MemoLineState> newList = List.from(list);
-    List<MemoLineState> visibleList =
-        _getFoldingLineList(List.from(newList), 0);
+    List<MemoLineState> visibleList = _getFoldingLineList(
+      List.from(newList),
+      0,
+    );
     state = state.copyWith(list: list, visibleList: visibleList);
   }
 
   Function(DragEndDetails dragEndDetails) onHorizontalSwiped(int index) {
     return (dragEndDetails) {
       List<MemoLineState> list = List.from(state.list);
-      MemoLineState mlState = list[index];
+      MemoLineState memoLineState = list[index];
 
       if (dragEndDetails.velocity.pixelsPerSecond.dx > 20 &&
-          mlState.indent < 10) {
-        mlState = mlState.copyWith(indent: mlState.indent + 1);
+          memoLineState.indent < 10) {
+        memoLineState = memoLineState.copyWith(
+          indent: memoLineState.indent + 1,
+        );
       } else if (dragEndDetails.velocity.pixelsPerSecond.dx < -20 &&
-          mlState.indent > 0) {
-        mlState = mlState.copyWith(indent: mlState.indent - 1);
+          memoLineState.indent > 0) {
+        memoLineState = memoLineState.copyWith(
+          indent: memoLineState.indent - 1,
+        );
       }
 
       // 更新されたメモラインをリスト内の正しい位置に配置
-      list[index] = mlState;
+      list[index] = memoLineState;
 
       List<MemoLineState> newList = List.from(list);
-      List<MemoLineState> visibleList =
-          _getFoldingLineList(List.from(newList), 0);
+      List<MemoLineState> visibleList = _getFoldingLineList(
+        List.from(newList),
+        0,
+      );
       state = state.copyWith(list: list, visibleList: visibleList);
     };
   }
@@ -264,16 +315,21 @@ class MemoNotifier extends _$MemoNotifier {
   Function() onChangeIndent(int index, int quantity) {
     return () {
       List<MemoLineState> list = state.list.toList();
-      MemoLineState mlState = list[index];
-      if (mlState.indent + quantity < 0 || mlState.indent + quantity > 10) {
+      MemoLineState memoLineState = list[index];
+      if (memoLineState.indent + quantity < 0 ||
+          memoLineState.indent + quantity > 10) {
         return;
       }
-      mlState = mlState.copyWith(indent: mlState.indent + quantity);
-      list[index] = mlState;
+      memoLineState = memoLineState.copyWith(
+        indent: memoLineState.indent + quantity,
+      );
+      list[index] = memoLineState;
 
       List<MemoLineState> newList = List.from(list);
-      List<MemoLineState> visibleList =
-          _getFoldingLineList(List.from(newList), 0);
+      List<MemoLineState> visibleList = _getFoldingLineList(
+        List.from(newList),
+        0,
+      );
       state = state.copyWith(list: list, visibleList: visibleList);
     };
   }
@@ -281,18 +337,18 @@ class MemoNotifier extends _$MemoNotifier {
   Function(String text) onTextChange(int index) {
     return (text) {
       List<MemoLineState> list = List.from(state.list);
-      MemoLineState mlState = list[index];
+      MemoLineState memoLineState = list[index];
 
-      mlState = mlState.copyWith(
-        text: text,
-      );
+      memoLineState = memoLineState.copyWith(text: text);
 
       // 更新されたメモラインをリスト内の正しい位置に配置
-      list[index] = mlState;
+      list[index] = memoLineState;
 
       List<MemoLineState> newList = List.from(list);
-      List<MemoLineState> visibleList =
-          _getFoldingLineList(List.from(newList), 0);
+      List<MemoLineState> visibleList = _getFoldingLineList(
+        List.from(newList),
+        0,
+      );
       state = state.copyWith(
         list: list,
         visibleList: visibleList,
@@ -310,10 +366,7 @@ class MemoNotifier extends _$MemoNotifier {
   }
 
   void upDown() {
-    state = state.copyWith(
-      isTapIndentChange: false,
-      isTapClear: false,
-    );
+    state = state.copyWith(isTapIndentChange: false, isTapClear: false);
   }
 
   void resetStateWithoutFIndex() {
@@ -337,9 +390,13 @@ class MemoNotifier extends _$MemoNotifier {
     resetFocusIfFocus();
     resetState();
     AppUtils.showYesNoDialogAlternativeDestructive(
-        Text("確認"), Text("この行を削除してもよろしいですか？"), () {
-      deleteLine(index);
-    }, null);
+      Text("確認"),
+      Text("この行を削除してもよろしいですか？"),
+      () {
+        deleteLine(index);
+      },
+      null,
+    );
   }
 
   void deleteLine(int index) {
@@ -360,13 +417,22 @@ class MemoNotifier extends _$MemoNotifier {
     List<MemoLineState> visibleList = _getFoldingLineList(List.from(list), 0);
     if (index != 0) {
       state = state.copyWith(
-          list: list, visibleList: visibleList, focusedIndex: index);
+        list: list,
+        visibleList: visibleList,
+        focusedIndex: index,
+      );
     } else if (_focusNodes.isNotEmpty) {
       state = state.copyWith(
-          list: list, visibleList: visibleList, focusedIndex: index);
+        list: list,
+        visibleList: visibleList,
+        focusedIndex: index,
+      );
     } else {
       state = state.copyWith(
-          list: list, visibleList: visibleList, focusedIndex: -1);
+        list: list,
+        visibleList: visibleList,
+        focusedIndex: -1,
+      );
     }
   }
 
@@ -395,10 +461,15 @@ class MemoNotifier extends _$MemoNotifier {
 
       setTrueNeedFocusChangeStatus();
       List<MemoLineState> newList = List.from(list);
-      List<MemoLineState> visibleList =
-          _getFoldingLineList(List.from(newList), 0);
+      List<MemoLineState> visibleList = _getFoldingLineList(
+        List.from(newList),
+        0,
+      );
       state = state.copyWith(
-          list: list, visibleList: visibleList, isEditing: false);
+        list: list,
+        visibleList: visibleList,
+        isEditing: false,
+      );
     };
   }
 
@@ -450,7 +521,10 @@ class MemoNotifier extends _$MemoNotifier {
   }
 
   void saveYes(
-      TextEditingController tec, String fileName, Function handler) async {
+    TextEditingController tec,
+    String fileName,
+    Function handler,
+  ) async {
     try {
       state = state.copyWith(isSaveDialogOpen: false);
 
@@ -485,10 +559,9 @@ class MemoNotifier extends _$MemoNotifier {
     }
   }
 
-  Future<void> showSliderIndentChangeDialog() async {
+  void showSliderIndentChangeDialog() {
     resetFocusIfFocus();
     resetState();
-    await Future.delayed(Duration(milliseconds: 10));
     var context = AppRouter.navigatorKey.currentContext;
     if (context == null) return;
     showDialog(
@@ -498,22 +571,24 @@ class MemoNotifier extends _$MemoNotifier {
         child: SizedBox(
           width: 200,
           child: SizedBox(
-            height: AppUtils.sHeight() / 4,
+            height: AppUtils.sHeight / 4,
             child: Stack(
               children: [
                 Consumer(
                   builder: (c, r, w) {
                     return Slider(
-                        activeColor: Colors.blue,
-                        thumbColor: Colors.blueAccent,
-                        divisions: AppConst.maxIndentWidth.toInt() -
-                            AppConst.minIndentWidth.toInt(),
-                        max: AppConst.maxIndentWidth,
-                        min: AppConst.minIndentWidth,
-                        value: r.watch(memoProvider).oneIndent,
-                        onChanged: (v) {
-                          onChangeOneIndent(v);
-                        });
+                      activeColor: Colors.blue,
+                      thumbColor: Colors.blueAccent,
+                      divisions:
+                          AppConst.maxIndentWidth.toInt() -
+                          AppConst.minIndentWidth.toInt(),
+                      max: AppConst.maxIndentWidth,
+                      min: AppConst.minIndentWidth,
+                      value: r.watch(memoProvider).oneIndent,
+                      onChanged: (v) {
+                        onChangeOneIndent(v);
+                      },
+                    );
                   },
                 ),
                 // ステップ数表示
@@ -529,12 +604,15 @@ class MemoNotifier extends _$MemoNotifier {
                       return Center(
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.blueAccent.withValues(alpha: .1),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                                color: Colors.white.withValues(alpha: .3)),
+                              color: Colors.white.withValues(alpha: .3),
+                            ),
                           ),
                           child: Text(
                             stepCount.toString(),
@@ -562,7 +640,7 @@ class MemoNotifier extends _$MemoNotifier {
                       );
                     },
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -586,76 +664,85 @@ class MemoNotifier extends _$MemoNotifier {
         backgroundColor: const Color.fromARGB(127, 0, 0, 0),
         child: SizedBox(
           width: 200,
-          child: Stack(children: [
-            SizedBox(
-              height: AppUtils.sHeight() / 4,
-              child: Consumer(
-                builder: (c, r, w) {
-                  var index = state.focusedIndex;
-                  return Slider(
+          child: Stack(
+            children: [
+              SizedBox(
+                height: AppUtils.sHeight / 4,
+                child: Consumer(
+                  builder: (c, r, w) {
+                    var index = state.focusedIndex;
+                    return Slider(
                       activeColor: Colors.blue,
                       thumbColor: Colors.blueAccent,
-                      divisions: AppConst.maxFontSize.toInt() -
+                      divisions:
+                          AppConst.maxFontSize.toInt() -
                           AppConst.minFontSize.toInt(),
                       max: AppConst.maxFontSize,
                       min: AppConst.minFontSize,
                       value: r.watch(memoProvider).list[index].fontSize,
                       onChanged: (v) {
                         onChangeFontSize(index, v);
-                      });
-                },
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-            // ステップ数表示
-            Positioned(
-              top: 10,
-              left: 0,
-              right: 0,
-              child: Consumer(
-                builder: (c, r, w) {
-                  var index = state.focusedIndex;
-                  final currentValue =
-                      r.watch(memoProvider).list[index].fontSize;
-                  final stepCount =
-                      (currentValue - AppConst.minFontSize + 1).toInt();
-                  return Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.blueAccent.withValues(alpha: .1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: .3)),
-                      ),
-                      child: Text(
-                        stepCount.toString(),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
+              // ステップ数表示
+              Positioned(
+                top: 10,
+                left: 0,
+                right: 0,
+                child: Consumer(
+                  builder: (c, r, w) {
+                    var index = state.focusedIndex;
+                    final currentValue = r
+                        .watch(memoProvider)
+                        .list[index]
+                        .fontSize;
+                    final stepCount = (currentValue - AppConst.minFontSize + 1)
+                        .toInt();
+                    return Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blueAccent.withValues(alpha: .1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: .3),
+                          ),
+                        ),
+                        child: Text(
+                          stepCount.toString(),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-            Positioned(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-              child: Consumer(
-                builder: (c, r, w) {
-                  return TextButton(
-                    onPressed: r.read(memoProvider.notifier).resetFontSize,
-                    child: Text(
-                      "reset",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  );
-                },
+              Positioned(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                child: Consumer(
+                  builder: (c, r, w) {
+                    return TextButton(
+                      onPressed: r.read(memoProvider.notifier).resetFontSize,
+                      child: Text(
+                        "reset",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  },
+                ),
               ),
-            )
-          ]),
+            ],
+          ),
         ),
       ),
     );
@@ -665,9 +752,9 @@ class MemoNotifier extends _$MemoNotifier {
     if (state.focusedIndex == -1) return;
     List<MemoLineState> list = List.from(state.list);
     var index = state.focusedIndex;
-    var mlstate = list[index];
-    mlstate = mlstate.copyWith(fontSize: 14);
-    list.replaceRange(index, index + 1, [mlstate]);
+    var memoLineState = list[index];
+    memoLineState = memoLineState.copyWith(fontSize: 14);
+    list.replaceRange(index, index + 1, [memoLineState]);
     state = state.copyWith(list: list);
     resetStateWithoutFIndex();
   }
@@ -678,12 +765,16 @@ class MemoNotifier extends _$MemoNotifier {
       resetState();
       await Future.delayed(Duration(milliseconds: 10));
       AppUtils.showYesNoDialogAlternativeDestructive(
-          const Text("確認"), const Text("すべてのメモをクリアしてもよろしいですか？"), () {
-        clearYes();
-        changeFocusNodeIndex(-1);
-      }, () {
-        clearCancel();
-      });
+        const Text("確認"),
+        const Text("すべてのメモをクリアしてもよろしいですか？"),
+        () {
+          clearYes();
+          changeFocusNodeIndex(-1);
+        },
+        () {
+          clearCancel();
+        },
+      );
     }
   }
 
@@ -719,7 +810,7 @@ class MemoNotifier extends _$MemoNotifier {
         throw Exception("ファイルの作成に失敗しました");
       }
 
-      ref.invalidate(fileNamesFutureProvider);
+      await ref.read(homeProvider.notifier).updateFileNames();
       log('ファイル保存成功: $path');
     } catch (e) {
       log('_saveJsonToFile エラー: $e');
@@ -783,7 +874,7 @@ class MemoNotifier extends _$MemoNotifier {
       // リネーム後にデータを更新して保存
       await _saveJsonToFileWithName(newFileName);
 
-      ref.invalidate(fileNamesFutureProvider);
+      await ref.read(homeProvider.notifier).updateFileNames();
       log('ファイルリネーム成功: $oldPath -> $newPath');
     } catch (e) {
       log('renameFile エラー: $e');
@@ -831,8 +922,9 @@ class MemoNotifier extends _$MemoNotifier {
     state = state.copyWith(isSaveDialogOpen: true);
     var fileName = state.fileName;
     var title = const Text("ファイル保存");
-    var textEditingController =
-        TextEditingController.fromValue(TextEditingValue(text: state.fileName));
+    var textEditingController = TextEditingController.fromValue(
+      TextEditingValue(text: state.fileName),
+    );
     var content = AdaptiveTextField(
       placeholder: "ファイル名",
       onChanged: (String text) {
@@ -842,12 +934,51 @@ class MemoNotifier extends _$MemoNotifier {
     );
 
     await Future.delayed(Duration(milliseconds: 10));
-    AppUtils.showYesNoDialogAlternativeTECArg(title, content, (tec) {
-      state = state.copyWith(isSaveDialogOpen: false);
-      saveYes(tec, fileName, handler);
-    }, (tec) {
-      saveCancel(tec);
-    }, textEditingController);
+    AppUtils.showYesNoDialogAlternativeTECArg(
+      title,
+      content,
+      (tec) {
+        state = state.copyWith(isSaveDialogOpen: false);
+        saveYes(tec, fileName, handler);
+      },
+      (tec) {
+        saveCancel(tec);
+      },
+      textEditingController,
+    );
+  }
+
+  /// クラウドに保存
+  Future<void> saveToCloud() async {
+    try {
+      final authState = ref.read(authProvider);
+      if (!authState.isSignedIn) {
+        AppUtils.showSnackBar('ログインが必要です');
+        return;
+      }
+
+      // 現在のメモをローカルに保存
+      final fileName = state.fileName;
+      if (fileName.isEmpty) {
+        AppUtils.showSnackBar('ファイル名を設定してください');
+        return;
+      }
+
+      // ローカルファイルを取得
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/$fileName.tmson');
+
+      if (!await file.exists()) {
+        AppUtils.showSnackBar('ファイルが見つかりません');
+        return;
+      }
+
+      // Firebase Storage にアップロード
+      await FirebaseStorageService.uploadMemo(fileName, file);
+      AppUtils.showSnackBar('クラウドに保存しました');
+    } catch (e) {
+      AppUtils.showSnackBar('クラウド保存に失敗しました: ${e.toString()}');
+    }
   }
 
   void resetFocusIfFocus() {
@@ -856,10 +987,7 @@ class MemoNotifier extends _$MemoNotifier {
         v.unfocus();
       }
       List<MemoLineState> list = List.from(state.list);
-      state = state.copyWith(
-        list: list,
-        focusedIndex: -1,
-      );
+      state = state.copyWith(list: list, focusedIndex: -1);
     }
   }
 

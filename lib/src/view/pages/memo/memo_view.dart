@@ -141,8 +141,8 @@ class MemoView extends ConsumerWidget {
                 Expanded(
                   child: state.list.isEmpty
                       ? Container(
-                          width: AppUtils.sWidth(),
-                          height: AppUtils.sHeight(),
+                          width: AppUtils.sWidth,
+                          height: AppUtils.sHeight,
                           decoration: const BoxDecoration(),
                           child: const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
