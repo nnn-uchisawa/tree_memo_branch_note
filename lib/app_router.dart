@@ -42,10 +42,15 @@ class InitRoute extends GoRouteData with $InitRoute {
       // ignore: use_build_context_synchronously
       final jsonStringJp = await DefaultAssetBundle.of(context)
           .loadString("assets/Treeの使い方.tmson");
+      final jsonStringCloud = await DefaultAssetBundle.of(context)
+          .loadString("assets/クラウド機能の使い方.tmson");
       final dir = await getApplicationDocumentsDirectory();
       final pathJp = '${dir.path}/Treeの使い方.tmson';
+      final pathCloud = '${dir.path}/クラウド機能の使い方.tmson';
       final newFileJp = File(pathJp);
+      final newFileCloud = File(pathCloud);
       await newFileJp.writeAsString(jsonStringJp);
+      await newFileCloud.writeAsString(jsonStringCloud);
       await SharedPreference.setIsNotInitial();
       return const WalkThroughRoute().location;
     }
