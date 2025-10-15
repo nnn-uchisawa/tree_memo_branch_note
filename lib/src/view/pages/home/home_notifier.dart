@@ -9,6 +9,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/src/services/firebase/firebase_auth_service.dart';
 import 'package:tree/src/services/firebase/firebase_storage_service.dart';
 import 'package:tree/src/util/app_utils.dart';
+import 'package:tree/src/util/shared_preference.dart';
+import 'package:tree/src/view/pages/auth/auth_notifier.dart';
 import 'package:tree/src/view/pages/home/home_state.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
 import 'package:tree/src/view/pages/memo/memo_state.dart';
@@ -27,6 +29,23 @@ class HomeNotifier extends _$HomeNotifier {
   Future<void> updateFileNames() async {
     final fileNames = await getFileNameList();
     state = state.copyWith(fileNames: fileNames);
+  }
+
+  /// HomeView表示時のセッションチェック
+  Future<void> checkSessionOnHomeView() async {
+    // SharedPreference でログイン状態が true の場合のみチェック
+    if (!SharedPreference.isLoggedIn) return;
+    
+    // トークン有効性チェック
+    final isValid = await FirebaseAuthService.validateToken();
+    
+    if (!isValid) {
+      // トークン切れ: ログアウト処理
+      await ref.read(authProvider.notifier).signOut();
+      
+      // トースト通知
+      AppUtils.showSnackBar('セッションが切れました');
+    }
   }
 
   /// txtファイルの内容をMemoStateに変換する（プライベート）

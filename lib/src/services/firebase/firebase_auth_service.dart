@@ -152,6 +152,23 @@ class FirebaseAuthService {
   /// ユーザーメールアドレスを取得
   static String? get email => currentUser?.email;
 
+  /// トークンの有効性をチェック（Firebase に実リクエストを送って確認）
+  static Future<bool> validateToken() async {
+    try {
+      final user = currentUser;
+      if (user == null) return false;
+      
+      // getIdToken(true) で強制リフレッシュし、トークンの有効性を確認
+      await user.getIdToken(true);
+      return true;
+    } on FirebaseAuthException {
+      // トークン切れや認証エラー
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Apple サインイン（nonceあり版 - デバッグ用）
   static Future<UserCredential?> signInWithAppleWithNonce() async {
     try {
