@@ -22,9 +22,7 @@ class AppRouter {
     errorPageBuilder: (context, state) => MaterialPage(
       key: state.pageKey,
       child: Scaffold(
-        body: SingleChildScrollView(
-          child: Text(state.error.toString()),
-        ),
+        body: SingleChildScrollView(child: Text(state.error.toString())),
       ),
     ),
   );
@@ -40,10 +38,12 @@ class InitRoute extends GoRouteData with $InitRoute {
     if (!isNI) {
       // 特定のファイルの読み込みのみなので非同期処理を許可
       // ignore: use_build_context_synchronously
-      final jsonStringJp = await DefaultAssetBundle.of(context)
-          .loadString("assets/Treeの使い方.tmson");
-      final jsonStringCloud = await DefaultAssetBundle.of(context)
-          .loadString("assets/クラウド機能の使い方.tmson");
+      final jsonStringJp = await DefaultAssetBundle.of(
+        context,
+      ).loadString("assets/Treeの使い方.tmson");
+      final jsonStringCloud = await DefaultAssetBundle.of(
+        context,
+      ).loadString("assets/クラウド機能の使い方.tmson");
       final dir = await getApplicationDocumentsDirectory();
       final pathJp = '${dir.path}/Treeの使い方.tmson';
       final pathCloud = '${dir.path}/クラウド機能の使い方.tmson';

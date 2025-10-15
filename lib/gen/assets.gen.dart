@@ -130,9 +130,10 @@ class Assets {
 
   static const String tree = 'assets/Treeの使い方.tmson';
   static const $AssetsImagesGen images = $AssetsImagesGen();
+  static const String a = 'assets/クラウド機能の使い方.tmson';
 
   /// List of all assets
-  static List<String> get values => [tree];
+  static List<String> get values => [tree, a];
 }
 
 class AssetGenImage {

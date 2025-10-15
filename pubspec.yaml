@@ -159,6 +159,7 @@ flutter:
     - assets/images/line-down.svg
     - assets/images/profile.png
     - assets/Treeの使い方.tmson
+    - assets/クラウド機能の使い方.tmson
     - .env
     - .env.android
     - .env.ios
