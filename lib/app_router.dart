@@ -36,12 +36,14 @@ class InitRoute extends GoRouteData with $InitRoute {
   Future<String?> redirect(BuildContext context, GoRouterState state) async {
     final isNI = await SharedPreference.isNotInitial();
     if (!isNI) {
-      // 特定のファイルの読み込みのみなので非同期処理を許可
-      // ignore: use_build_context_synchronously
       final jsonStringJp = await DefaultAssetBundle.of(
+        // 特定のファイルの読み込みのみなので非同期処理を許可
+        // ignore: use_build_context_synchronously
         context,
       ).loadString("assets/Treeの使い方.tmson");
       final jsonStringCloud = await DefaultAssetBundle.of(
+        // 特定のファイルの読み込みのみなので非同期処理を許可
+        // ignore: use_build_context_synchronously
         context,
       ).loadString("assets/クラウド機能の使い方.tmson");
       final dir = await getApplicationDocumentsDirectory();
