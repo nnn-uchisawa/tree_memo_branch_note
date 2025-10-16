@@ -161,8 +161,6 @@ flutter:
     - assets/Treeの使い方.tmson
     - assets/クラウド機能の使い方.tmson
     - .env
-    - .env.android
-    - .env.ios
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
@@ -194,5 +192,3 @@ flutter_gen:
   assets:
     exclude:
       - .env
-      - .env.android
-      - .env.ios

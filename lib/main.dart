@@ -17,19 +17,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  // 環境変数をロード（プラットフォーム別の.envを優先）
-  String envFile = '.env';
-  switch (defaultTargetPlatform) {
-    case TargetPlatform.iOS:
-      envFile = '.env.ios';
-      break;
-    case TargetPlatform.android:
-      envFile = '.env.android';
-      break;
-    default:
-      envFile = '.env';
-  }
-  await dotenv.load(fileName: envFile);
+  // 環境変数をロード
+  await dotenv.load(fileName: '.env');
 
   // Firebase を初期化
   await FirebaseService.initialize();
