@@ -599,8 +599,8 @@ class MemoNotifier extends _$MemoNotifier {
 
       // 既存ファイル名かどうかをチェック
       final existingFileNames = await FileService.getAllDisplayNames();
-      final isOverwriting = existingFileNames.contains(newFileName) && 
-                           fileName != newFileName;
+      final isOverwriting =
+          existingFileNames.contains(newFileName) && fileName != newFileName;
 
       if (isOverwriting) {
         // 上書き確認ダイアログを表示
