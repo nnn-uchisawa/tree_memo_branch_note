@@ -71,7 +71,7 @@ class HomeNotifier extends _$HomeNotifier {
     try {
       // Firebase Authの現在のユーザーをチェック
       final currentUser = FirebaseAuthService.currentUser;
-      
+
       if (currentUser != null) {
         // Firebase Authにユーザーが存在する場合、SharedPreferenceを更新
         await SharedPreference.saveLoginState();

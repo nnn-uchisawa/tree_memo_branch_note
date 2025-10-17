@@ -54,12 +54,8 @@ class AuthNotifier extends _$AuthNotifier {
   /// アプリ起動時の自動ログイン処理
   Future<void> _checkAutoLogin() async {
     try {
-      // オフラインなら即座に未ログイン状態にして起動を継続
-      final hasNetwork = await _hasInternetConnection();
-      if (!hasNetwork) {
-        if (FirebaseAuthService.isSignedIn) {
-          await FirebaseAuthService.signOut();
-        }
+      // セッションが有効かチェック
+      if (!SharedPreference.isSessionValid) {
         await _clearLoginState();
         state = state.copyWith(
           isSignedIn: false,
@@ -67,6 +63,28 @@ class AuthNotifier extends _$AuthNotifier {
           displayName: null,
           email: null,
         );
+        return;
+      }
+
+      // オフラインなら既存のセッション情報を使用
+      final hasNetwork = await _hasInternetConnection();
+      if (!hasNetwork) {
+        if (SharedPreference.isLoggedIn) {
+          // オフラインでもセッションが有効な場合はログイン状態を維持
+          state = state.copyWith(
+            isSignedIn: true,
+            userId: 'offline_user', // オフライン時の仮ID
+            displayName: 'オフライン',
+            email: null,
+          );
+        } else {
+          state = state.copyWith(
+            isSignedIn: false,
+            userId: null,
+            displayName: null,
+            email: null,
+          );
+        }
         return;
       }
 
@@ -83,12 +101,27 @@ class AuthNotifier extends _$AuthNotifier {
             email: currentUser.email,
           );
         } else {
-          // セッションが無効な場合、SharedPreferences をクリア
-          await _clearLoginState();
+          // Firebase セッションが無効な場合、自動ログインを試行
+          await _attemptSessionRestore();
         }
+      } else {
+        // SharedPreferences でログイン状態が false の場合
+        state = state.copyWith(
+          isSignedIn: false,
+          userId: null,
+          displayName: null,
+          email: null,
+        );
       }
     } catch (e) {
-      log('自動ログイン確認エラー: $e');
+      log('自動ログイン処理エラー: $e');
+      await _clearLoginState();
+      state = state.copyWith(
+        isSignedIn: false,
+        userId: null,
+        displayName: null,
+        email: null,
+      );
     }
   }
 
@@ -105,9 +138,102 @@ class AuthNotifier extends _$AuthNotifier {
   /// ログイン状態を SharedPreferences に保存（ログイン情報は保存しない）
   Future<void> _saveLoginState(User user) async {
     try {
-      await SharedPreference.saveLoginState();
+      // 認証プロバイダーを判定
+      String? provider;
+      for (final providerData in user.providerData) {
+        if (providerData.providerId == 'google.com') {
+          provider = 'google';
+          break;
+        } else if (providerData.providerId == 'apple.com') {
+          provider = 'apple';
+          break;
+        }
+      }
+      
+      await SharedPreference.saveLoginState(provider: provider);
     } catch (e) {
       log('ログイン状態保存エラー: $e');
+    }
+  }
+
+  /// セッション復元を試行
+  Future<void> _attemptSessionRestore() async {
+    try {
+      final lastProvider = SharedPreference.lastLoginProvider;
+      if (lastProvider == null) {
+        await _clearLoginState();
+        return;
+      }
+
+      // 最後のログインプロバイダーに基づいて自動ログインを試行
+      if (lastProvider == 'google') {
+        await _restoreGoogleSession();
+      } else if (lastProvider == 'apple') {
+        await _restoreAppleSession();
+      } else {
+        await _clearLoginState();
+      }
+    } catch (e) {
+      log('セッション復元エラー: $e');
+      await _clearLoginState();
+    }
+  }
+
+  /// Google セッション復元
+  Future<void> _restoreGoogleSession() async {
+    try {
+      // Google Sign-in の自動ログインを試行
+      final user = await FirebaseAuthService.signInWithGoogle();
+      if (user != null) {
+        await _saveLoginState(user.user!);
+        state = state.copyWith(
+          isSignedIn: true,
+          userId: user.user!.uid,
+          displayName: user.user!.displayName,
+          email: user.user!.email,
+        );
+        log('Google セッション復元成功');
+      } else {
+        await _clearLoginState();
+        state = state.copyWith(
+          isSignedIn: false,
+          userId: null,
+          displayName: null,
+          email: null,
+        );
+      }
+    } catch (e) {
+      log('Google セッション復元エラー: $e');
+      await _clearLoginState();
+    }
+  }
+
+  /// Apple セッション復元
+  Future<void> _restoreAppleSession() async {
+    try {
+      // Apple Sign-in の自動ログインを試行
+      final user = await FirebaseAuthService.signInWithApple();
+      if (user != null) {
+        await _saveLoginState(user.user!);
+        state = state.copyWith(
+          isSignedIn: true,
+          userId: user.user!.uid,
+          displayName: user.user!.displayName,
+          email: user.user!.email,
+        );
+        log('Apple セッション復元成功');
+      } else {
+        await _clearLoginState();
+        state = state.copyWith(
+          isSignedIn: false,
+          userId: null,
+          displayName: null,
+          email: null,
+        );
+      }
+    } catch (e) {
+      log('Apple セッション復元エラー: $e');
+      await _clearLoginState();
     }
   }
 
@@ -119,7 +245,6 @@ class AuthNotifier extends _$AuthNotifier {
       log('ログイン状態クリアエラー: $e');
     }
   }
-
 
   /// Google サインイン
   Future<void> signInWithGoogle() async {
