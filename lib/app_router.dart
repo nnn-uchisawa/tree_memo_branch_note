@@ -52,7 +52,7 @@ class InitRoute extends GoRouteData with $InitRoute {
       // JSONをパースしてMemoStateに変換
       final jsonDataJp = json.decode(jsonStringJp);
       final jsonDataCloud = json.decode(jsonStringCloud);
-      
+
       final memoStateJp = MemoState.fromJson(jsonDataJp);
       final memoStateCloud = MemoState.fromJson(jsonDataCloud);
 
@@ -60,10 +60,12 @@ class InitRoute extends GoRouteData with $InitRoute {
       await FileService.saveMemoStateWithDisplayName(
         memoStateJp, 
         memoStateJp.fileName,
+        updateLastModified: false, // lastUpdatedを保持
       );
       await FileService.saveMemoStateWithDisplayName(
         memoStateCloud, 
         memoStateCloud.fileName,
+        updateLastModified: false, // lastUpdatedを保持
       );
 
       await SharedPreference.setIsNotInitial();

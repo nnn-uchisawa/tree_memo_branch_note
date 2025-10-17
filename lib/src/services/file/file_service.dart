@@ -104,8 +104,9 @@ class FileService {
   /// MemoStateを表示名で保存
   static Future<void> saveMemoStateWithDisplayName(
     MemoState memoState,
-    String displayName,
-  ) async {
+    String displayName, {
+    bool updateLastModified = true,
+  }) async {
     var dir = await getApplicationDocumentsDirectory();
     var path = '${dir.path}/$displayName.tmson';
     var file = File(path);
@@ -114,8 +115,11 @@ class FileService {
     var j = memoState.toJson();
     j['fileName'] = displayName;
 
-    // last_updatedを現在時刻に設定
-    j['lastUpdated'] = DateTime.now().toIso8601String();
+    // last_updatedを更新する場合のみ現在時刻に設定
+    if (updateLastModified) {
+      j['lastUpdated'] = DateTime.now().toIso8601String();
+    }
+    // 更新しない場合は既存のlastUpdatedを保持
 
     // JSONエンコードのチェック
     String jsonString;
