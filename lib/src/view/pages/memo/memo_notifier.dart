@@ -8,7 +8,6 @@ import 'package:path_provider/path_provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/app_router.dart';
-import 'package:tree/src/services/firebase/firebase_storage_service.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
@@ -818,79 +817,64 @@ class MemoNotifier extends _$MemoNotifier {
     }
   }
 
-  Future<void> deleteFileFromName(String fileName) async {
+  Future<void> deleteFileFromName(String displayName) async {
     try {
-      if (fileName.trim().isEmpty) {
+      if (displayName.trim().isEmpty) {
         log('deleteFileFromName: ファイル名が空のためスキップ');
         return;
       }
 
-      var dir = await getApplicationDocumentsDirectory();
-      var path = '${dir.path}/${fileName.trim()}.tmson';
-      var file = File(path);
-
-      if (await file.exists()) {
-        await file.delete();
-        log('ファイル削除成功: $path');
-      } else {
-        log('削除対象ファイルが存在しません: $path');
-      }
+      // home_notifierのdeleteFileFromNameを使用（表示名ベース）
+      await ref.read(homeProvider.notifier).deleteFileFromName(displayName);
+      log('ファイル削除成功: $displayName');
     } catch (e) {
       log('deleteFileFromName エラー: $e');
       // ファイル削除エラーは致命的ではないため、例外を再スローしない
     }
   }
 
-  Future<void> renameFile(String oldFileName, String newFileName) async {
+  Future<void> renameFile(String oldDisplayName, String newDisplayName) async {
     try {
-      if (oldFileName.trim().isEmpty || newFileName.trim().isEmpty) {
+      if (oldDisplayName.trim().isEmpty || newDisplayName.trim().isEmpty) {
         throw Exception("ファイル名が空です");
       }
 
-      var dir = await getApplicationDocumentsDirectory();
-      var oldPath = '${dir.path}/${oldFileName.trim()}.tmson';
-      var newPath = '${dir.path}/${newFileName.trim()}.tmson';
-
-      var oldFile = File(oldPath);
-      var newFile = File(newPath);
-
       // 古いファイルが存在するかチェック
-      if (!await oldFile.exists()) {
-        // 古いファイルが存在しない場合は新規作成として処理
-        log('古いファイルが存在しないため、新規作成として処理: $oldPath');
-        await _saveJsonToFileWithName(newFileName);
-        return;
+      try {
+        await ref.read(homeProvider.notifier).getMemoState(oldDisplayName);
+      } catch (e) {
+        throw Exception("古いファイルが見つかりません: $oldDisplayName");
       }
 
-      // 新しいファイル名が既に存在するかチェック
-      if (await newFile.exists()) {
-        log('同名ファイルが存在するため削除: $newPath');
-        await newFile.delete();
-      }
-
-      // ファイルをリネーム
-      await oldFile.rename(newPath);
-
-      // リネーム後にデータを更新して保存
-      await _saveJsonToFileWithName(newFileName);
+      // コピーしてから古いファイルを削除する方式でリネーム
+      await ref.read(homeProvider.notifier).copyFile(oldDisplayName);
+      
+      // 新しいファイル名で保存
+      await _saveJsonToFileWithName(newDisplayName);
+      
+      // 古いファイルを削除
+      await ref.read(homeProvider.notifier).deleteFileFromName(oldDisplayName);
 
       await ref.read(homeProvider.notifier).updateFileNames();
-      log('ファイルリネーム成功: $oldPath -> $newPath');
+      log('ファイルリネーム成功: $oldDisplayName -> $newDisplayName');
     } catch (e) {
       log('renameFile エラー: $e');
       throw Exception("ファイルリネームエラー: $e");
     }
   }
 
-  Future<void> _saveJsonToFileWithName(String fileName) async {
+  Future<void> _saveJsonToFileWithName(String displayName) async {
     try {
-      if (fileName.trim().isEmpty) {
+      if (displayName.trim().isEmpty) {
         throw Exception("ファイル名が空です");
       }
 
+      // 表示名をJSON内のfileNameとして設定
       var j = state.toJson();
+      j['fileName'] = displayName.trim();
+      
       var dir = await getApplicationDocumentsDirectory();
-      var path = '${dir.path}/${fileName.trim()}.tmson';
+      var path = '${dir.path}/${displayName.trim()}.tmson';
       var file = File(path);
 
       // JSONエンコードのチェック
@@ -958,24 +942,14 @@ class MemoNotifier extends _$MemoNotifier {
       }
 
       // 現在のメモをローカルに保存
-      final fileName = state.fileName;
-      if (fileName.isEmpty) {
+      final displayName = state.fileName;
+      if (displayName.isEmpty) {
         AppUtils.showSnackBar('ファイル名を設定してください');
         return;
       }
 
-      // ローカルファイルを取得
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/$fileName.tmson');
-
-      if (!await file.exists()) {
-        AppUtils.showSnackBar('ファイルが見つかりません');
-        return;
-      }
-
-      // Firebase Storage にアップロード
-      await FirebaseStorageService.uploadMemo(fileName, file);
-      AppUtils.showSnackBar('クラウドに保存しました');
+      // home_notifierのuploadMemoToCloudを使用（表示名ベース）
+      await ref.read(homeProvider.notifier).uploadMemoToCloud(displayName);
     } catch (e) {
       AppUtils.showSnackBar('クラウド保存に失敗しました: ${e.toString()}');
     }
