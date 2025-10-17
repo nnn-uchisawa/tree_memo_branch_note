@@ -118,11 +118,14 @@ class $AssetsImagesTutorialGen {
   /// File path: assets/images/tutorial/3.png
   AssetGenImage get a3 => const AssetGenImage('assets/images/tutorial/3.png');
 
-  /// File path: assets/images/tutorial/4.PNG
-  AssetGenImage get a4 => const AssetGenImage('assets/images/tutorial/4.PNG');
+  /// File path: assets/images/tutorial/4.png
+  AssetGenImage get a4 => const AssetGenImage('assets/images/tutorial/4.png');
+
+  /// File path: assets/images/tutorial/5.png
+  AssetGenImage get a5 => const AssetGenImage('assets/images/tutorial/5.png');
 
   /// List of all assets
-  List<AssetGenImage> get values => [a1, a2, a3, a4];
+  List<AssetGenImage> get values => [a1, a2, a3, a4, a5];
 }
 
 class Assets {

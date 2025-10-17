@@ -136,7 +136,8 @@ flutter:
     - assets/images/tutorial/1.png
     - assets/images/tutorial/2.png
     - assets/images/tutorial/3.png
-    - assets/images/tutorial/4.PNG
+    - assets/images/tutorial/4.png
+    - assets/images/tutorial/5.png
     - assets/images/change-font-size.svg
     - assets/images/change-indent-width.svg
     - assets/images/decrease-indent.svg
