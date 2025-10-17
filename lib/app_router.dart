@@ -58,12 +58,12 @@ class InitRoute extends GoRouteData with $InitRoute {
 
       // FileServiceを使用してファイルを保存（表示順を維持するためlastUpdatedを保持）
       await FileService.saveMemoStateWithDisplayName(
-        memoStateJp, 
+        memoStateJp,
         memoStateJp.fileName,
         updateLastModified: false, // lastUpdatedを保持
       );
       await FileService.saveMemoStateWithDisplayName(
-        memoStateCloud, 
+        memoStateCloud,
         memoStateCloud.fileName,
         updateLastModified: false, // lastUpdatedを保持
       );

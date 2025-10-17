@@ -12,17 +12,27 @@ import 'package:tree/src/view/pages/home/home_notifier.dart';
 import 'package:tree/src/view/pages/home/widgets/cloud_download_button.dart';
 import 'package:tree/src/view/widgets/safe_appbar_view.dart';
 
-class HomeView extends ConsumerWidget {
+class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends ConsumerState<HomeView> {
+  bool _hasCheckedSession = false;
+
+  @override
+  Widget build(BuildContext context) {
     final homeState = ref.watch(homeProvider);
 
     // 初回表示時のみセッションチェック
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(homeProvider.notifier).checkSessionOnHomeView();
-    });
+    if (!_hasCheckedSession) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(homeProvider.notifier).checkSessionOnHomeView();
+        _hasCheckedSession = true;
+      });
+    }
 
     return SafeAppBarView(
       appBar: AppBar(
