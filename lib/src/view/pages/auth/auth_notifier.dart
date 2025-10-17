@@ -149,7 +149,7 @@ class AuthNotifier extends _$AuthNotifier {
           break;
         }
       }
-      
+
       await SharedPreference.saveLoginState(provider: provider);
     } catch (e) {
       log('ログイン状態保存エラー: $e');

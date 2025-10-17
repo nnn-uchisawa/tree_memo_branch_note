@@ -7,10 +7,8 @@ import 'package:path_provider/path_provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/src/services/file/file_service.dart';
-import 'package:tree/src/services/firebase/firebase_auth_service.dart';
 import 'package:tree/src/services/firebase/firebase_storage_service.dart';
 import 'package:tree/src/util/app_utils.dart';
-import 'package:tree/src/util/shared_preference.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
 import 'package:tree/src/view/pages/home/home_state.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
@@ -20,8 +18,6 @@ part 'home_notifier.g.dart';
 
 @riverpod
 class HomeNotifier extends _$HomeNotifier {
-  DateTime? _lastSessionCheck;
-
   @override
   HomeState build() {
     updateFileNames();
@@ -37,56 +33,6 @@ class HomeNotifier extends _$HomeNotifier {
     await FileService.migrateExistingFiles();
   }
 
-  /// HomeView表示時のセッションチェック
-  Future<void> checkSessionOnHomeView() async {
-    // 最後のチェックから5分以内の場合はスキップ
-    final now = DateTime.now();
-    if (_lastSessionCheck != null &&
-        now.difference(_lastSessionCheck!).inMinutes < 5) {
-      return;
-    }
-
-    _lastSessionCheck = now;
-
-    // SharedPreference でログイン状態が true の場合
-    if (SharedPreference.isLoggedIn) {
-      // トークン有効性チェック
-      final isValid = await FirebaseAuthService.validateToken();
-
-      if (!isValid) {
-        // トークン切れ: ログアウト処理
-        await ref.read(authProvider.notifier).signOut();
-
-        // トースト通知
-        AppUtils.showSnackBar('セッションが切れました');
-      }
-    } else {
-      // ログイン状態が false の場合、自動ログインを試行
-      await _attemptAutoLogin();
-    }
-  }
-
-  /// 自動ログインを試行
-  Future<void> _attemptAutoLogin() async {
-    try {
-      // Firebase Authの現在のユーザーをチェック
-      final currentUser = FirebaseAuthService.currentUser;
-
-      if (currentUser != null) {
-        // Firebase Authにユーザーが存在する場合、SharedPreferenceを更新
-        await SharedPreference.saveLoginState();
-        log('自動ログイン成功: ${currentUser.email}');
-      } else {
-        // Firebase Authにユーザーが存在しない場合、SharedPreferenceをクリア
-        await SharedPreference.clearLoginState();
-        log('自動ログイン失敗: ユーザーが存在しません');
-      }
-    } catch (e) {
-      // エラーが発生した場合、SharedPreferenceをクリア
-      await SharedPreference.clearLoginState();
-      log('自動ログインエラー: $e');
-    }
-  }
 
   /// txtファイルの内容をMemoStateに変換する（プライベート）
   MemoState _parseTextFileToMemoState(String content, String fileName) {
@@ -492,7 +438,8 @@ class HomeNotifier extends _$HomeNotifier {
   /// ローカルのメモをクラウドへアップロード
   Future<void> uploadMemoToCloud(String displayName) async {
     try {
-      if (!FirebaseAuthService.isSignedIn) {
+      final authState = ref.read(authProvider);
+      if (!authState.isSignedIn) {
         AppUtils.showSnackBar('ログインが必要です');
         return;
       }

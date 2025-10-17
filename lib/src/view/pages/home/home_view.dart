@@ -20,19 +20,9 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView> {
-  bool _hasCheckedSession = false;
-
   @override
   Widget build(BuildContext context) {
     final homeState = ref.watch(homeProvider);
-
-    // 初回表示時のみセッションチェック
-    if (!_hasCheckedSession) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(homeProvider.notifier).checkSessionOnHomeView();
-        _hasCheckedSession = true;
-      });
-    }
 
     return SafeAppBarView(
       appBar: AppBar(
