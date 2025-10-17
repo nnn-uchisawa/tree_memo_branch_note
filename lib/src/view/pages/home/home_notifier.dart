@@ -39,9 +39,6 @@ class HomeNotifier extends _$HomeNotifier {
 
   /// HomeView表示時のセッションチェック
   Future<void> checkSessionOnHomeView() async {
-    // SharedPreference でログイン状態が true の場合のみチェック
-    if (!SharedPreference.isLoggedIn) return;
-
     // 最後のチェックから5分以内の場合はスキップ
     final now = DateTime.now();
     if (_lastSessionCheck != null &&
@@ -51,15 +48,43 @@ class HomeNotifier extends _$HomeNotifier {
 
     _lastSessionCheck = now;
 
-    // トークン有効性チェック
-    final isValid = await FirebaseAuthService.validateToken();
+    // SharedPreference でログイン状態が true の場合
+    if (SharedPreference.isLoggedIn) {
+      // トークン有効性チェック
+      final isValid = await FirebaseAuthService.validateToken();
 
-    if (!isValid) {
-      // トークン切れ: ログアウト処理
-      await ref.read(authProvider.notifier).signOut();
+      if (!isValid) {
+        // トークン切れ: ログアウト処理
+        await ref.read(authProvider.notifier).signOut();
 
-      // トースト通知
-      AppUtils.showSnackBar('セッションが切れました');
+        // トースト通知
+        AppUtils.showSnackBar('セッションが切れました');
+      }
+    } else {
+      // ログイン状態が false の場合、自動ログインを試行
+      await _attemptAutoLogin();
+    }
+  }
+
+  /// 自動ログインを試行
+  Future<void> _attemptAutoLogin() async {
+    try {
+      // Firebase Authの現在のユーザーをチェック
+      final currentUser = FirebaseAuthService.currentUser;
+      
+      if (currentUser != null) {
+        // Firebase Authにユーザーが存在する場合、SharedPreferenceを更新
+        await SharedPreference.saveLoginState();
+        log('自動ログイン成功: ${currentUser.email}');
+      } else {
+        // Firebase Authにユーザーが存在しない場合、SharedPreferenceをクリア
+        await SharedPreference.clearLoginState();
+        log('自動ログイン失敗: ユーザーが存在しません');
+      }
+    } catch (e) {
+      // エラーが発生した場合、SharedPreferenceをクリア
+      await SharedPreference.clearLoginState();
+      log('自動ログインエラー: $e');
     }
   }
 

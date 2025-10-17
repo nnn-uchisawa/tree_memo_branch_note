@@ -102,15 +102,10 @@ class AuthNotifier extends _$AuthNotifier {
     }
   }
 
-  /// ログイン状態を SharedPreferences に保存
+  /// ログイン状態を SharedPreferences に保存（ログイン情報は保存しない）
   Future<void> _saveLoginState(User user) async {
     try {
-      await SharedPreference.saveLoginState(
-        userId: user.uid,
-        email: user.email ?? '',
-        displayName: user.displayName ?? '',
-        authProvider: _getAuthProvider(user),
-      );
+      await SharedPreference.saveLoginState();
     } catch (e) {
       log('ログイン状態保存エラー: $e');
     }
@@ -125,17 +120,6 @@ class AuthNotifier extends _$AuthNotifier {
     }
   }
 
-  /// 認証プロバイダーを判定
-  String _getAuthProvider(User user) {
-    for (final provider in user.providerData) {
-      if (provider.providerId == 'google.com') {
-        return 'google';
-      } else if (provider.providerId == 'apple.com') {
-        return 'apple';
-      }
-    }
-    return 'unknown';
-  }
 
   /// Google サインイン
   Future<void> signInWithGoogle() async {
