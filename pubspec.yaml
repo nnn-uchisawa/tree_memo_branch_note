@@ -158,8 +158,8 @@ flutter:
     - assets/images/line-up.svg
     - assets/images/line-down.svg
     - assets/images/profile.png
-    - assets/Treeの使い方.tmson
-    - assets/クラウド機能の使い方.tmson
+    - assets/usage_of_tree.tmson
+    - assets/usage_of_cloud.tmson
     - .env
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

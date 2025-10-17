@@ -19,12 +19,12 @@ class HomeView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeProvider);
-    
+
     // セッションチェック（毎回実行）
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(homeProvider.notifier).checkSessionOnHomeView();
     });
-    
+
     return SafeAppBarView(
       appBar: AppBar(
         title: Text('Tree', style: TextStyle(color: Colors.white)),
@@ -179,7 +179,7 @@ class HomeView extends ConsumerWidget {
                                   });
                                   break;
                                 case 'delete':
-                                  AppUtils.showYesNoDialogAlternative(
+                                  AppUtils.showYesNoDialogAlternativeDestructive(
                                     const Text('削除の確認'),
                                     Text('"$fileName" を削除しますか？'),
                                     () async {

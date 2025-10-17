@@ -40,15 +40,15 @@ class InitRoute extends GoRouteData with $InitRoute {
         // 特定のファイルの読み込みのみなので非同期処理を許可
         // ignore: use_build_context_synchronously
         context,
-      ).loadString("assets/Treeの使い方.tmson");
+      ).loadString("assets/usage_of_tree.tmson");
       final jsonStringCloud = await DefaultAssetBundle.of(
         // 特定のファイルの読み込みのみなので非同期処理を許可
         // ignore: use_build_context_synchronously
         context,
-      ).loadString("assets/クラウド機能の使い方.tmson");
+      ).loadString("assets/usage_of_cloud.tmson");
       final dir = await getApplicationDocumentsDirectory();
-      final pathJp = '${dir.path}/Treeの使い方.tmson';
-      final pathCloud = '${dir.path}/クラウド機能の使い方.tmson';
+      final pathJp = '${dir.path}/usage_of_tree.tmson';
+      final pathCloud = '${dir.path}/usage_of_cloud.tmson';
       final newFileJp = File(pathJp);
       final newFileCloud = File(pathCloud);
       await newFileJp.writeAsString(jsonStringJp);
