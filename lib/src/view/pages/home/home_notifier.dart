@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/src/services/firebase/firebase_auth_service.dart';
 import 'package:tree/src/services/firebase/firebase_storage_service.dart';
+import 'package:tree/src/services/file/file_service.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/util/shared_preference.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
@@ -31,7 +32,7 @@ class HomeNotifier extends _$HomeNotifier {
     state = state.copyWith(fileNames: fileNames);
 
     // 既存ファイルのマイグレーション処理
-    await _migrateExistingFiles();
+    await FileService.migrateExistingFiles();
   }
 
   /// HomeView表示時のセッションチェック
@@ -217,53 +218,11 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   Future<MemoState> getMemoState(String displayName) async {
-    // 表示名から物理ファイル名を取得
-    final physicalFileName = await _getPhysicalFileName(displayName);
-    if (physicalFileName == null) {
-      throw Exception('ファイルが見つかりません: $displayName');
-    }
-
-    return await _loadMemoStateFromFile(physicalFileName);
+    return await FileService.loadMemoStateFromDisplayName(displayName);
   }
 
   Future<List<String>> getFileNameList() async {
-    var dir = await getApplicationDocumentsDirectory();
-
-    List<String> fileNames = [];
-
-    // tmsonファイルを取得
-    final tmsonFiles = dir
-        .listSync()
-        .whereType<File>()
-        .where((File f) => f.uri.pathSegments.last.endsWith('.tmson'))
-        .toList();
-
-    for (File file in tmsonFiles) {
-      try {
-        // ファイルを読み込んでJSONをパース
-        final content = await file.readAsString();
-        final jsonData = json.decode(content);
-
-        // fileNameアトリビュートを取得
-        if (jsonData is Map<String, dynamic> &&
-            jsonData.containsKey('fileName')) {
-          final fileName = jsonData['fileName'] as String?;
-          if (fileName != null && fileName.isNotEmpty) {
-            fileNames.add(fileName);
-          }
-        }
-      } catch (e) {
-        // JSONパースエラーの場合、ファイル名から拡張子を除いたものを使用
-        final fileName = file.uri.pathSegments.last;
-        if (fileName.endsWith('.tmson')) {
-          fileNames.add(
-            fileName.substring(0, fileName.length - 6),
-          ); // .tmsonを除去
-        }
-      }
-    }
-
-    return fileNames;
+    return await FileService.getAllDisplayNames();
   }
 
   void saveFileToDocuments(File file) async {
@@ -327,61 +286,19 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   Future<void> deleteFileFromName(String displayName) async {
-    // 表示名から物理ファイル名を取得
-    final physicalFileName = await _getPhysicalFileName(displayName);
-    if (physicalFileName == null) {
+    try {
+      await FileService.deleteFileByDisplayName(displayName);
+      // ファイルリストを更新
+      await updateFileNames();
+    } catch (e) {
       AppUtils.showSnackBar('ファイルが見つかりません: $displayName');
-      return;
     }
-
-    var dir = await getApplicationDocumentsDirectory();
-    var path = '${dir.path}/$physicalFileName.tmson';
-    var file = File(path);
-    await file.delete();
-    // ファイルリストを更新
-    await updateFileNames();
   }
 
   Future<void> copyFile(String displayName) async {
     try {
-      // 表示名から物理ファイル名を取得
-      final physicalFileName = await _getPhysicalFileName(displayName);
-      if (physicalFileName == null) {
-        AppUtils.showSnackBar('コピー元のファイルが見つかりません: $displayName');
-        return;
-      }
-
-      var dir = await getApplicationDocumentsDirectory();
-      var originalPath = '${dir.path}/$physicalFileName.tmson';
-      var originalFile = File(originalPath);
-
-      if (!await originalFile.exists()) {
-        AppUtils.showSnackBar('コピー元のファイルが存在しません');
-        return;
-      }
-
-      // 新しいファイル名を生成（重複チェック付き）
-      String newDisplayName = await _generateUniqueFileName(displayName);
-      String newPhysicalFileName = await _generateUniquePhysicalFileName(
-        physicalFileName,
-      );
-      var newPath = '${dir.path}/$newPhysicalFileName.tmson';
-      var newFile = File(newPath);
-
-      // ファイルの内容を読み取ってコピー
-      String content = await originalFile.readAsString();
-
-      // JSONをパースしてfileNameを更新
-      try {
-        final jsonData = json.decode(content);
-        jsonData['fileName'] = newDisplayName;
-        content = json.encode(jsonData);
-      } catch (_) {
-        // JSONパースエラーの場合はそのままコピー
-      }
-
-      await newFile.writeAsString(content);
-
+      final newDisplayName = await FileService.copyFileByDisplayName(displayName);
+      
       // ファイルリストを更新
       await updateFileNames();
 
@@ -393,144 +310,6 @@ class HomeNotifier extends _$HomeNotifier {
     }
   }
 
-  /// ユニークなファイル名を生成する（プライベート）
-  Future<String> _generateUniqueFileName(String originalFileName) async {
-    String baseFileName = originalFileName;
-    String newFileName = baseFileName;
-    int counter = 1;
-
-    // 既存のファイル名をすべて取得
-    List<String> existingFileNames = await getFileNameList();
-
-    // 元のファイル名に(n)が既に付いている場合の処理
-    RegExp regExp = RegExp(r'^(.+)\((\d+)\)$');
-    Match? match = regExp.firstMatch(originalFileName);
-    if (match != null) {
-      baseFileName = match.group(1)!;
-      // 既存の番号は無視して、新しい番号を付ける
-    }
-
-    // ユニークなファイル名を生成
-    while (existingFileNames.contains(newFileName)) {
-      newFileName = '$baseFileName($counter)';
-      counter++;
-    }
-
-    return newFileName;
-  }
-
-  /// ユニークな物理ファイル名を生成する（プライベート）
-  Future<String> _generateUniquePhysicalFileName(
-    String originalPhysicalFileName,
-  ) async {
-    String baseFileName = originalPhysicalFileName;
-    String newFileName = baseFileName;
-    int counter = 1;
-
-    var dir = await getApplicationDocumentsDirectory();
-    final existingFiles = dir
-        .listSync()
-        .whereType<File>()
-        .where((f) => f.uri.pathSegments.last.endsWith('.tmson'))
-        .map((f) => f.uri.pathSegments.last.replaceAll('.tmson', ''))
-        .toList();
-
-    // 元のファイル名に(n)が既に付いている場合の処理
-    RegExp regExp = RegExp(r'^(.+)\((\d+)\)$');
-    Match? match = regExp.firstMatch(originalPhysicalFileName);
-    if (match != null) {
-      baseFileName = match.group(1)!;
-      // 既存の番号は無視して、新しい番号を付ける
-    }
-
-    // ユニークなファイル名を生成
-    while (existingFiles.contains(newFileName)) {
-      newFileName = '$baseFileName($counter)';
-      counter++;
-    }
-
-    return newFileName;
-  }
-
-  /// 表示名（JSON内のfileName）から物理ファイル名を取得
-  Future<String?> _getPhysicalFileName(String displayName) async {
-    var dir = await getApplicationDocumentsDirectory();
-    final tmsonFiles = dir
-        .listSync()
-        .whereType<File>()
-        .where((f) => f.uri.pathSegments.last.endsWith('.tmson'))
-        .toList();
-
-    for (File file in tmsonFiles) {
-      try {
-        final content = await file.readAsString();
-        final jsonData = json.decode(content);
-        if (jsonData['fileName'] == displayName) {
-          return file.uri.pathSegments.last.replaceAll('.tmson', '');
-        }
-      } catch (_) {}
-    }
-    return null;
-  }
-
-  /// JSON内のfileNameが正しく設定されているか確認・修正
-  Future<void> _ensureFileNameInJson(String physicalFileName) async {
-    var dir = await getApplicationDocumentsDirectory();
-    var filePath = '${dir.path}/$physicalFileName.tmson';
-    var file = File(filePath);
-
-    if (!await file.exists()) {
-      return;
-    }
-
-    try {
-      final content = await file.readAsString();
-      final jsonData = json.decode(content);
-
-      // fileNameが存在しないか空の場合、物理ファイル名を設定
-      if (!jsonData.containsKey('fileName') ||
-          jsonData['fileName'] == null ||
-          (jsonData['fileName'] as String).isEmpty) {
-        jsonData['fileName'] = physicalFileName;
-        await file.writeAsString(json.encode(jsonData));
-      }
-    } catch (_) {
-      // JSONパースエラーの場合は何もしない
-    }
-  }
-
-  /// 既存ファイルのマイグレーション処理
-  Future<void> _migrateExistingFiles() async {
-    var dir = await getApplicationDocumentsDirectory();
-    final tmsonFiles = dir
-        .listSync()
-        .whereType<File>()
-        .where((f) => f.uri.pathSegments.last.endsWith('.tmson'))
-        .toList();
-
-    for (File file in tmsonFiles) {
-      final physicalFileName = file.uri.pathSegments.last.replaceAll(
-        '.tmson',
-        '',
-      );
-      await _ensureFileNameInJson(physicalFileName);
-    }
-  }
-
-  /// ファイル名からMemoStateを読み込む共通処理
-  Future<MemoState> _loadMemoStateFromFile(String fileName) async {
-    var dir = await getApplicationDocumentsDirectory();
-    var filePath = '${dir.path}/$fileName.tmson';
-    var file = File(filePath);
-
-    if (!await file.exists()) {
-      throw Exception('ファイルが存在しません');
-    }
-
-    String jsonString = await file.readAsString();
-    Map<String, dynamic> j = json.decode(jsonString);
-    return MemoState.fromJson(j);
-  }
 
   /// MemoStateをテキスト形式に変換する共通処理
   /// インデントはスペースで表現、改行ごとにインデント付与、各MemoLineStateごとに空行を追加
@@ -550,13 +329,7 @@ class HomeNotifier extends _$HomeNotifier {
 
   /// ファイル名からテキスト形式に変換する共通処理
   Future<String> _convertFileToText(String displayName) async {
-    // 表示名から物理ファイル名を取得
-    final physicalFileName = await _getPhysicalFileName(displayName);
-    if (physicalFileName == null) {
-      throw Exception('ファイルが見つかりません: $displayName');
-    }
-
-    final memoState = await _loadMemoStateFromFile(physicalFileName);
+    final memoState = await FileService.loadMemoStateFromDisplayName(displayName);
     return _convertMemoStateToText(memoState);
   }
 
@@ -602,8 +375,7 @@ class HomeNotifier extends _$HomeNotifier {
   /// ファイルを共有
   Future<void> shareFile(String displayName) async {
     try {
-      // 表示名から物理ファイル名を取得
-      final physicalFileName = await _getPhysicalFileName(displayName);
+      final physicalFileName = await FileService.getPhysicalFileName(displayName);
       if (physicalFileName == null) {
         AppUtils.showSnackBar('ファイルが見つかりません: $displayName');
         return;
@@ -639,7 +411,7 @@ class HomeNotifier extends _$HomeNotifier {
       await FirebaseStorageService.downloadMemo(fileName, localPath);
 
       // ダウンロード後にfileNameが正しく設定されているか確認・修正
-      await _ensureFileNameInJson(fileName);
+      await FileService.ensureFileNameInJson(fileName);
 
       await updateFileNames();
       AppUtils.showSnackBar('ダウンロードしました: $fileName');
@@ -657,7 +429,7 @@ class HomeNotifier extends _$HomeNotifier {
         await FirebaseStorageService.downloadMemo(name, localPath);
 
         // ダウンロード後にfileNameが正しく設定されているか確認・修正
-        await _ensureFileNameInJson(name);
+        await FileService.ensureFileNameInJson(name);
       }
       await updateFileNames();
       AppUtils.showSnackBar('一括ダウンロードが完了しました');
@@ -684,8 +456,7 @@ class HomeNotifier extends _$HomeNotifier {
         return;
       }
 
-      // 表示名から物理ファイル名を取得
-      final physicalFileName = await _getPhysicalFileName(displayName);
+      final physicalFileName = await FileService.getPhysicalFileName(displayName);
       if (physicalFileName == null) {
         AppUtils.showSnackBar('ファイルが見つかりません: $displayName');
         return;

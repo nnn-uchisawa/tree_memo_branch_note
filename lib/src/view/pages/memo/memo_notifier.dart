@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/app_router.dart';
+import 'package:tree/src/services/file/file_service.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
@@ -824,8 +825,7 @@ class MemoNotifier extends _$MemoNotifier {
         return;
       }
 
-      // home_notifierのdeleteFileFromNameを使用（表示名ベース）
-      await ref.read(homeProvider.notifier).deleteFileFromName(displayName);
+      await FileService.deleteFileByDisplayName(displayName);
       log('ファイル削除成功: $displayName');
     } catch (e) {
       log('deleteFileFromName エラー: $e');
@@ -841,19 +841,19 @@ class MemoNotifier extends _$MemoNotifier {
 
       // 古いファイルが存在するかチェック
       try {
-        await ref.read(homeProvider.notifier).getMemoState(oldDisplayName);
+        await FileService.loadMemoStateFromDisplayName(oldDisplayName);
       } catch (e) {
         throw Exception("古いファイルが見つかりません: $oldDisplayName");
       }
 
       // コピーしてから古いファイルを削除する方式でリネーム
-      await ref.read(homeProvider.notifier).copyFile(oldDisplayName);
+      await FileService.copyFileByDisplayName(oldDisplayName);
       
       // 新しいファイル名で保存
       await _saveJsonToFileWithName(newDisplayName);
       
       // 古いファイルを削除
-      await ref.read(homeProvider.notifier).deleteFileFromName(oldDisplayName);
+      await FileService.deleteFileByDisplayName(oldDisplayName);
 
       await ref.read(homeProvider.notifier).updateFileNames();
       log('ファイルリネーム成功: $oldDisplayName -> $newDisplayName');
@@ -865,35 +865,7 @@ class MemoNotifier extends _$MemoNotifier {
 
   Future<void> _saveJsonToFileWithName(String displayName) async {
     try {
-      if (displayName.trim().isEmpty) {
-        throw Exception("ファイル名が空です");
-      }
-
-      // 表示名をJSON内のfileNameとして設定
-      var j = state.toJson();
-      j['fileName'] = displayName.trim();
-      
-      var dir = await getApplicationDocumentsDirectory();
-      var path = '${dir.path}/${displayName.trim()}.tmson';
-      var file = File(path);
-
-      // JSONエンコードのチェック
-      String jsonString;
-      try {
-        jsonString = json.encode(j);
-      } catch (e) {
-        throw Exception("データのJSONエンコードに失敗しました: $e");
-      }
-
-      // ファイル書き込み
-      await file.writeAsString(jsonString);
-
-      // ファイルが正常に書き込まれたかチェック
-      if (!await file.exists()) {
-        throw Exception("ファイルの作成に失敗しました");
-      }
-
-      log('ファイル保存成功: $path');
+      await FileService.saveMemoStateWithDisplayName(state, displayName);
     } catch (e) {
       log('_saveJsonToFileWithName エラー: $e');
       throw Exception("ファイル保存エラー: $e");
