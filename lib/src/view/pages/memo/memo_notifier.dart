@@ -848,10 +848,10 @@ class MemoNotifier extends _$MemoNotifier {
 
       // コピーしてから古いファイルを削除する方式でリネーム
       await FileService.copyFileByDisplayName(oldDisplayName);
-      
+
       // 新しいファイル名で保存
       await _saveJsonToFileWithName(newDisplayName);
-      
+
       // 古いファイルを削除
       await FileService.deleteFileByDisplayName(oldDisplayName);
 

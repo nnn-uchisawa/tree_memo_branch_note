@@ -158,14 +158,21 @@ class FirebaseAuthService {
       final user = currentUser;
       if (user == null) return false;
       
-      // getIdToken(true) で強制リフレッシュし、トークンの有効性を確認
-      await user.getIdToken(true);
+      // ネットワークエラーを考慮してタイムアウトを設定
+      await user.getIdToken(true).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Token validation timeout');
+        },
+      );
       return true;
     } on FirebaseAuthException {
       // トークン切れや認証エラー
       return false;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      // ネットワークエラーやタイムアウトの場合は既存セッションを維持
+      // ログアウトは行わない
+      return true;
     }
   }
 

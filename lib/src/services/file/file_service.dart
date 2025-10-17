@@ -15,7 +15,7 @@ class FileService {
         .whereType<File>()
         .where((f) => f.uri.pathSegments.last.endsWith('.tmson'))
         .toList();
-    
+
     for (File file in tmsonFiles) {
       try {
         final content = await file.readAsString();
@@ -60,7 +60,7 @@ class FileService {
     try {
       final content = await file.readAsString();
       final jsonData = json.decode(content);
-      
+
       // fileNameが存在しないか空の場合、物理ファイル名を設定
       if (!jsonData.containsKey('fileName') ||
           jsonData['fileName'] == null ||
@@ -74,7 +74,9 @@ class FileService {
   }
 
   /// 表示名からMemoStateを読み込む
-  static Future<MemoState> loadMemoStateFromDisplayName(String displayName) async {
+  static Future<MemoState> loadMemoStateFromDisplayName(
+    String displayName,
+  ) async {
     final physicalFileName = await getPhysicalFileName(displayName);
     if (physicalFileName == null) {
       throw Exception('ファイルが見つかりません: $displayName');
@@ -83,7 +85,9 @@ class FileService {
   }
 
   /// 物理ファイル名からMemoStateを読み込む
-  static Future<MemoState> loadMemoStateFromPhysicalName(String physicalFileName) async {
+  static Future<MemoState> loadMemoStateFromPhysicalName(
+    String physicalFileName,
+  ) async {
     var dir = await getApplicationDocumentsDirectory();
     var filePath = '${dir.path}/$physicalFileName.tmson';
     var file = File(filePath);
@@ -98,7 +102,10 @@ class FileService {
   }
 
   /// MemoStateを表示名で保存
-  static Future<void> saveMemoStateWithDisplayName(MemoState memoState, String displayName) async {
+  static Future<void> saveMemoStateWithDisplayName(
+    MemoState memoState,
+    String displayName,
+  ) async {
     var dir = await getApplicationDocumentsDirectory();
     var path = '${dir.path}/$displayName.tmson';
     var file = File(path);
@@ -156,13 +163,15 @@ class FileService {
 
     // 新しいファイル名を生成（重複チェック付き）
     String newDisplayName = await generateUniqueDisplayName(displayName);
-    String newPhysicalFileName = await generateUniquePhysicalFileName(physicalFileName);
+    String newPhysicalFileName = await generateUniquePhysicalFileName(
+      physicalFileName,
+    );
     var newPath = '${dir.path}/$newPhysicalFileName.tmson';
     var newFile = File(newPath);
 
     // ファイルの内容を読み取ってコピー
     String content = await originalFile.readAsString();
-    
+
     // JSONをパースしてfileNameを更新
     try {
       final jsonData = json.decode(content);
@@ -171,13 +180,15 @@ class FileService {
     } catch (_) {
       // JSONパースエラーの場合はそのままコピー
     }
-    
+
     await newFile.writeAsString(content);
     return newDisplayName;
   }
 
   /// ユニークな表示名を生成
-  static Future<String> generateUniqueDisplayName(String originalDisplayName) async {
+  static Future<String> generateUniqueDisplayName(
+    String originalDisplayName,
+  ) async {
     String baseFileName = originalDisplayName;
     String newFileName = baseFileName;
     int counter = 1;
@@ -203,7 +214,9 @@ class FileService {
   }
 
   /// ユニークな物理ファイル名を生成
-  static Future<String> generateUniquePhysicalFileName(String originalPhysicalFileName) async {
+  static Future<String> generateUniquePhysicalFileName(
+    String originalPhysicalFileName,
+  ) async {
     String baseFileName = originalPhysicalFileName;
     String newFileName = baseFileName;
     int counter = 1;

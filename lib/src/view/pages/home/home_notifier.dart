@@ -6,9 +6,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:tree/src/services/file/file_service.dart';
 import 'package:tree/src/services/firebase/firebase_auth_service.dart';
 import 'package:tree/src/services/firebase/firebase_storage_service.dart';
-import 'package:tree/src/services/file/file_service.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/util/shared_preference.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
@@ -20,6 +20,8 @@ part 'home_notifier.g.dart';
 
 @riverpod
 class HomeNotifier extends _$HomeNotifier {
+  DateTime? _lastSessionCheck;
+
   @override
   HomeState build() {
     updateFileNames();
@@ -39,6 +41,15 @@ class HomeNotifier extends _$HomeNotifier {
   Future<void> checkSessionOnHomeView() async {
     // SharedPreference でログイン状態が true の場合のみチェック
     if (!SharedPreference.isLoggedIn) return;
+
+    // 最後のチェックから5分以内の場合はスキップ
+    final now = DateTime.now();
+    if (_lastSessionCheck != null && 
+        now.difference(_lastSessionCheck!).inMinutes < 5) {
+      return;
+    }
+
+    _lastSessionCheck = now;
 
     // トークン有効性チェック
     final isValid = await FirebaseAuthService.validateToken();
@@ -297,8 +308,10 @@ class HomeNotifier extends _$HomeNotifier {
 
   Future<void> copyFile(String displayName) async {
     try {
-      final newDisplayName = await FileService.copyFileByDisplayName(displayName);
-      
+      final newDisplayName = await FileService.copyFileByDisplayName(
+        displayName,
+      );
+
       // ファイルリストを更新
       await updateFileNames();
 
@@ -309,7 +322,6 @@ class HomeNotifier extends _$HomeNotifier {
       AppUtils.showSnackBar('ファイルのコピーに失敗しました');
     }
   }
-
 
   /// MemoStateをテキスト形式に変換する共通処理
   /// インデントはスペースで表現、改行ごとにインデント付与、各MemoLineStateごとに空行を追加
@@ -329,7 +341,9 @@ class HomeNotifier extends _$HomeNotifier {
 
   /// ファイル名からテキスト形式に変換する共通処理
   Future<String> _convertFileToText(String displayName) async {
-    final memoState = await FileService.loadMemoStateFromDisplayName(displayName);
+    final memoState = await FileService.loadMemoStateFromDisplayName(
+      displayName,
+    );
     return _convertMemoStateToText(memoState);
   }
 
@@ -375,7 +389,9 @@ class HomeNotifier extends _$HomeNotifier {
   /// ファイルを共有
   Future<void> shareFile(String displayName) async {
     try {
-      final physicalFileName = await FileService.getPhysicalFileName(displayName);
+      final physicalFileName = await FileService.getPhysicalFileName(
+        displayName,
+      );
       if (physicalFileName == null) {
         AppUtils.showSnackBar('ファイルが見つかりません: $displayName');
         return;
@@ -456,7 +472,9 @@ class HomeNotifier extends _$HomeNotifier {
         return;
       }
 
-      final physicalFileName = await FileService.getPhysicalFileName(displayName);
+      final physicalFileName = await FileService.getPhysicalFileName(
+        displayName,
+      );
       if (physicalFileName == null) {
         AppUtils.showSnackBar('ファイルが見つかりません: $displayName');
         return;

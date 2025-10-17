@@ -19,7 +19,7 @@ class HomeView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeProvider);
 
-    // セッションチェック（毎回実行）
+    // 初回表示時のみセッションチェック
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(homeProvider.notifier).checkSessionOnHomeView();
     });
