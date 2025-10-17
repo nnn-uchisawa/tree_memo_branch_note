@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:tree/app_router.dart';
 import 'package:tree/gen/assets.gen.dart';
 import 'package:tree/src/util/app_utils.dart';
@@ -155,11 +154,9 @@ class HomeView extends ConsumerWidget {
                                   );
                                   break;
                                 case 'share':
-                                  var dir =
-                                      await getApplicationDocumentsDirectory();
-                                  var _ = await AppUtils.shareFile(
-                                    '${dir.path}/$fileName.tmson',
-                                  );
+                                  await ref
+                                      .read(homeProvider.notifier)
+                                      .shareFile(fileName);
                                   break;
                                 case 'export':
                                   await ref

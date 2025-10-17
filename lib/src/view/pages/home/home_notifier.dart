@@ -599,6 +599,25 @@ class HomeNotifier extends _$HomeNotifier {
     }
   }
 
+  /// ファイルを共有
+  Future<void> shareFile(String displayName) async {
+    try {
+      // 表示名から物理ファイル名を取得
+      final physicalFileName = await _getPhysicalFileName(displayName);
+      if (physicalFileName == null) {
+        AppUtils.showSnackBar('ファイルが見つかりません: $displayName');
+        return;
+      }
+
+      final dir = await getApplicationDocumentsDirectory();
+      final filePath = '${dir.path}/$physicalFileName.tmson';
+      await AppUtils.shareFile(filePath);
+    } catch (e) {
+      log('shareFile エラー: $e');
+      AppUtils.showSnackBar('ファイルの共有に失敗しました');
+    }
+  }
+
   // ===== Cloud (Firebase Storage) =====
 
   /// クラウド上のメモ一覧を取得
