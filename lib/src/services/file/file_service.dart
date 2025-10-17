@@ -113,7 +113,7 @@ class FileService {
     // 表示名をJSON内のfileNameとして設定
     var j = memoState.toJson();
     j['fileName'] = displayName;
-    
+
     // last_updatedを現在時刻に設定
     j['lastUpdated'] = DateTime.now().toIso8601String();
 
@@ -274,10 +274,7 @@ class FileService {
           final fileName = jsonData['fileName'] as String?;
           if (fileName != null && fileName.isNotEmpty) {
             final lastUpdated = jsonData['lastUpdated'] as String? ?? '';
-            fileData.add({
-              'fileName': fileName,
-              'lastUpdated': lastUpdated,
-            });
+            fileData.add({'fileName': fileName, 'lastUpdated': lastUpdated});
           }
         }
       } catch (e) {
@@ -285,10 +282,7 @@ class FileService {
         final fileName = file.uri.pathSegments.last;
         if (fileName.endsWith('.tmson')) {
           final displayName = fileName.substring(0, fileName.length - 6);
-          fileData.add({
-            'fileName': displayName,
-            'lastUpdated': '',
-          });
+          fileData.add({'fileName': displayName, 'lastUpdated': ''});
         }
       }
     }
@@ -297,11 +291,11 @@ class FileService {
     fileData.sort((a, b) {
       final aTime = a['lastUpdated'] as String;
       final bTime = b['lastUpdated'] as String;
-      
+
       if (aTime.isEmpty && bTime.isEmpty) return 0;
       if (aTime.isEmpty) return 1; // last_updatedがないファイルは後ろに
       if (bTime.isEmpty) return -1;
-      
+
       try {
         final aDateTime = DateTime.parse(aTime);
         final bDateTime = DateTime.parse(bTime);

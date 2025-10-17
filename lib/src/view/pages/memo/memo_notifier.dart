@@ -517,6 +517,64 @@ class MemoNotifier extends _$MemoNotifier {
     state = state.copyWith(isSaveDialogOpen: false);
   }
 
+  /// 上書き確認ダイアログを表示
+  void _showOverwriteConfirmDialog(
+    String newFileName,
+    String currentFileName,
+    Function handler,
+  ) {
+    final context = AppRouter.navigatorKey.currentContext;
+    if (context == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('上書き確認'),
+        content: Text('「$newFileName」という名前のファイルが既に存在します。\n上書きしますか？'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await _performOverwrite(newFileName, currentFileName, handler);
+            },
+            child: const Text('上書き'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 上書き処理を実行
+  Future<void> _performOverwrite(
+    String newFileName,
+    String currentFileName,
+    Function handler,
+  ) async {
+    try {
+      // ファイル名が変更された場合の処理
+      if (currentFileName.isNotEmpty && currentFileName != newFileName) {
+        await renameFile(currentFileName, newFileName);
+      } else {
+        // 同じファイル名での保存（上書き）
+        await FileService.saveMemoStateWithDisplayName(state, newFileName);
+        await ref.read(homeProvider.notifier).updateFileNames();
+      }
+
+      handler();
+      setBaseState();
+      AppUtils.showSnackBar("ファイルを上書き保存しました");
+    } catch (e) {
+      log('_performOverwrite エラー: $e');
+      AppUtils.showSnackBar("上書き保存に失敗しました: ${e.toString()}");
+    }
+  }
+
   void saveYes(
     TextEditingController tec,
     String fileName,
@@ -536,6 +594,17 @@ class MemoNotifier extends _$MemoNotifier {
       final invalidChars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|'];
       if (invalidChars.any((char) => newFileName.contains(char))) {
         AppUtils.showSnackBar("ファイル名に無効な文字が含まれています");
+        return;
+      }
+
+      // 既存ファイル名かどうかをチェック
+      final existingFileNames = await FileService.getAllDisplayNames();
+      final isOverwriting = existingFileNames.contains(newFileName) && 
+                           fileName != newFileName;
+
+      if (isOverwriting) {
+        // 上書き確認ダイアログを表示
+        _showOverwriteConfirmDialog(newFileName, fileName, handler);
         return;
       }
 
