@@ -1,10 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tree/src/repositories/file_repository.dart';
 import 'package:tree/src/repositories/storage_repository.dart';
-import 'package:tree/src/view/pages/memo/memo_state.dart';
+import 'package:tree/src/view/pages/home/home_state.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
+import 'package:tree/src/view/pages/memo/memo_state.dart';
 
-/// テスト用のモックリポジトリ
+/// テスト用のモックFileRepository
 class TestFileRepository implements FileRepository {
   final Map<String, MemoState> _files = {};
 
@@ -44,7 +45,7 @@ class TestFileRepository implements FileRepository {
 
   @override
   Future<String?> getPhysicalFileName(String displayName) async {
-    return _files.containsKey(displayName) ? '${displayName}.tmson' : null;
+    return _files.containsKey(displayName) ? '$displayName.tmson' : null;
   }
 
   @override
@@ -54,6 +55,7 @@ class TestFileRepository implements FileRepository {
   Future<void> migrateExistingFiles() async {}
 }
 
+/// テスト用のモックStorageRepository
 class TestStorageRepository implements StorageRepository {
   final Map<String, String> _files = {};
 
@@ -64,7 +66,10 @@ class TestStorageRepository implements StorageRepository {
 
   @override
   Future<String> downloadFile(String fileName) async {
-    return _files[fileName] ?? '';
+    if (!_files.containsKey(fileName)) {
+      throw Exception('File not found: $fileName');
+    }
+    return _files[fileName]!;
   }
 
   @override
@@ -98,9 +103,18 @@ void main() {
       final memoState2 = MemoState(fileName: 'file2');
       final memoState3 = MemoState(fileName: 'file3');
 
-      await testFileRepository.saveMemoStateWithDisplayName(memoState1, 'file1');
-      await testFileRepository.saveMemoStateWithDisplayName(memoState2, 'file2');
-      await testFileRepository.saveMemoStateWithDisplayName(memoState3, 'file3');
+      await testFileRepository.saveMemoStateWithDisplayName(
+        memoState1,
+        'file1',
+      );
+      await testFileRepository.saveMemoStateWithDisplayName(
+        memoState2,
+        'file2',
+      );
+      await testFileRepository.saveMemoStateWithDisplayName(
+        memoState3,
+        'file3',
+      );
 
       final fileNames = await testFileRepository.getAllDisplayNames();
 
@@ -135,8 +149,13 @@ void main() {
         lastUpdated: DateTime.now().toIso8601String(),
       );
 
-      await testFileRepository.saveMemoStateWithDisplayName(memoState, 'test_file');
-      final loaded = await testFileRepository.loadMemoStateFromDisplayName('test_file');
+      await testFileRepository.saveMemoStateWithDisplayName(
+        memoState,
+        'test_file',
+      );
+      final loaded = await testFileRepository.loadMemoStateFromDisplayName(
+        'test_file',
+      );
 
       expect(loaded, isNotNull);
       expect(loaded?.fileName, equals('test_file'));
@@ -146,22 +165,38 @@ void main() {
 
     test('ファイルの削除が正常に動作する', () async {
       final memoState = MemoState(fileName: 'test_file');
-      await testFileRepository.saveMemoStateWithDisplayName(memoState, 'test_file');
+      await testFileRepository.saveMemoStateWithDisplayName(
+        memoState,
+        'test_file',
+      );
 
-      expect(await testFileRepository.loadMemoStateFromDisplayName('test_file'), isNotNull);
+      expect(
+        await testFileRepository.loadMemoStateFromDisplayName('test_file'),
+        isNotNull,
+      );
 
       await testFileRepository.deleteFileByDisplayName('test_file');
-      expect(await testFileRepository.loadMemoStateFromDisplayName('test_file'), isNull);
+      expect(
+        await testFileRepository.loadMemoStateFromDisplayName('test_file'),
+        isNull,
+      );
     });
 
     test('ファイルのコピーが正常に動作する', () async {
       final memoState = MemoState(fileName: 'original');
-      await testFileRepository.saveMemoStateWithDisplayName(memoState, 'original');
+      await testFileRepository.saveMemoStateWithDisplayName(
+        memoState,
+        'original',
+      );
 
       await testFileRepository.copyFileByDisplayName('original');
 
-      final original = await testFileRepository.loadMemoStateFromDisplayName('original');
-      final copied = await testFileRepository.loadMemoStateFromDisplayName('original_copy');
+      final original = await testFileRepository.loadMemoStateFromDisplayName(
+        'original',
+      );
+      final copied = await testFileRepository.loadMemoStateFromDisplayName(
+        'original_copy',
+      );
 
       expect(original, isNotNull);
       expect(copied, isNotNull);
@@ -183,7 +218,10 @@ void main() {
       await testStorageRepository.uploadFile('test_file', 'content');
 
       expect(await testStorageRepository.fileExists('test_file'), isTrue);
-      expect(await testStorageRepository.downloadFile('test_file'), equals('content'));
+      expect(
+        await testStorageRepository.downloadFile('test_file'),
+        equals('content'),
+      );
     });
 
     test('クラウドファイルのダウンロードが正常に動作する', () async {
@@ -206,7 +244,61 @@ void main() {
       await testStorageRepository.uploadFile('existing_file', 'content');
 
       expect(await testStorageRepository.fileExists('existing_file'), isTrue);
-      expect(await testStorageRepository.fileExists('non_existing_file'), isFalse);
+      expect(
+        await testStorageRepository.fileExists('non_existing_file'),
+        isFalse,
+      );
+    });
+
+    test('HomeStateの初期化が正常に動作する', () {
+      final homeState = HomeState();
+
+      expect(homeState.fileNames, isEmpty);
+      expect(homeState.list, isEmpty);
+      expect(homeState.memoState, isNull);
+    });
+
+    test('HomeStateのコピーが正常に動作する', () {
+      final originalState = HomeState(fileNames: ['file1', 'file2']);
+
+      final copiedState = originalState.copyWith(
+        fileNames: ['file1', 'file2', 'file3'],
+      );
+
+      expect(copiedState.fileNames, contains('file1'));
+      expect(copiedState.fileNames, contains('file2'));
+      expect(copiedState.fileNames, contains('file3'));
+    });
+
+    test('複数のファイル操作が正常に動作する', () async {
+      // 複数ファイルの作成
+      final memoState1 = MemoState(fileName: 'file1');
+      final memoState2 = MemoState(fileName: 'file2');
+
+      await testFileRepository.saveMemoStateWithDisplayName(
+        memoState1,
+        'file1',
+      );
+      await testFileRepository.saveMemoStateWithDisplayName(
+        memoState2,
+        'file2',
+      );
+
+      // ファイル一覧の確認
+      final fileNames = await testFileRepository.getAllDisplayNames();
+      expect(fileNames.length, equals(2));
+
+      // ファイルのコピー
+      await testFileRepository.copyFileByDisplayName('file1');
+      final copiedFileNames = await testFileRepository.getAllDisplayNames();
+      expect(copiedFileNames.length, equals(3));
+      expect(copiedFileNames, contains('file1_copy'));
+
+      // ファイルの削除
+      await testFileRepository.deleteFileByDisplayName('file2');
+      final finalFileNames = await testFileRepository.getAllDisplayNames();
+      expect(finalFileNames.length, equals(2));
+      expect(finalFileNames, isNot(contains('file2')));
     });
   });
 }

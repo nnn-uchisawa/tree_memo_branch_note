@@ -3,8 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tree/src/util/shared_preference.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   group('SharedPreference Tests', () {
     setUp(() {
       // テスト前の初期化
@@ -35,6 +33,7 @@ void main() {
 
     group('Login State Tests', () {
       test('ログイン状態の保存と取得が正常に動作する', () async {
+        await SharedPreference.init();
         expect(SharedPreference.isLoggedIn, false);
 
         await SharedPreference.saveLoginState();
@@ -45,6 +44,7 @@ void main() {
       });
 
       test('プロバイダー付きでログイン状態を保存できる', () async {
+        await SharedPreference.init();
         await SharedPreference.saveLoginState(provider: 'google');
         expect(SharedPreference.isLoggedIn, true);
         expect(SharedPreference.lastLoginProvider, 'google');
@@ -54,12 +54,14 @@ void main() {
       });
 
       test('セッションタイムスタンプが正しく保存される', () async {
+        await SharedPreference.init();
         await SharedPreference.saveLoginState();
         expect(SharedPreference.sessionTimestamp, isNotNull);
         expect(SharedPreference.sessionTimestamp, isA<int>());
       });
 
       test('セッション有効性の判定が正常に動作する', () async {
+        await SharedPreference.init();
         // 新しいセッションは有効
         await SharedPreference.saveLoginState();
         expect(SharedPreference.isSessionValid, true);
@@ -70,6 +72,7 @@ void main() {
       });
 
       test('ログイン状態クリア時にすべての情報が削除される', () async {
+        await SharedPreference.init();
         await SharedPreference.saveLoginState(provider: 'google');
         expect(SharedPreference.isLoggedIn, true);
         expect(SharedPreference.lastLoginProvider, 'google');

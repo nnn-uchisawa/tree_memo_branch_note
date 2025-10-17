@@ -1,138 +1,144 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tree/src/repositories/storage_repository.dart';
 
-/// ストレージリポジトリのテスト用モック
-class MockStorageRepository implements StorageRepository {
+/// テスト用のモックStorageRepository
+class TestStorageRepository implements StorageRepository {
   final Map<String, String> _files = {};
-  bool _shouldThrowError = false;
-
-  void setShouldThrowError(bool value) {
-    _shouldThrowError = value;
-  }
 
   @override
   Future<void> uploadFile(String fileName, String content) async {
-    if (_shouldThrowError) {
-      throw Exception('Upload failed');
-    }
     _files[fileName] = content;
   }
 
   @override
   Future<String> downloadFile(String fileName) async {
-    if (_shouldThrowError) {
-      throw Exception('Download failed');
-    }
     if (!_files.containsKey(fileName)) {
-      throw Exception('File not found');
+      throw Exception('File not found: $fileName');
     }
     return _files[fileName]!;
   }
 
   @override
   Future<List<String>> getFileList() async {
-    if (_shouldThrowError) {
-      throw Exception('Get file list failed');
-    }
     return _files.keys.toList();
   }
 
   @override
   Future<void> deleteFile(String fileName) async {
-    if (_shouldThrowError) {
-      throw Exception('Delete failed');
-    }
     _files.remove(fileName);
   }
 
   @override
   Future<bool> fileExists(String fileName) async {
-    if (_shouldThrowError) {
-      throw Exception('File exists check failed');
-    }
     return _files.containsKey(fileName);
   }
 }
 
 void main() {
   group('StorageRepository Tests', () {
-    late MockStorageRepository repository;
+    late StorageRepository storageRepository;
 
     setUp(() {
-      repository = MockStorageRepository();
+      storageRepository = TestStorageRepository();
     });
 
-    test('ファイルのアップロードが正常に動作する', () async {
-      const fileName = 'test.txt';
-      const content = 'test content';
+    test('uploadFile stores content correctly', () async {
+      await storageRepository.uploadFile('test_file.tmson', 'test content');
 
-      await repository.uploadFile(fileName, content);
-
-      expect(await repository.fileExists(fileName), isTrue);
-      expect(await repository.downloadFile(fileName), equals(content));
+      expect(await storageRepository.fileExists('test_file.tmson'), isTrue);
+      expect(
+        await storageRepository.downloadFile('test_file.tmson'),
+        equals('test content'),
+      );
     });
 
-    test('ファイルのダウンロードが正常に動作する', () async {
-      const fileName = 'test.txt';
-      const content = 'test content';
+    test('downloadFile returns correct content', () async {
+      await storageRepository.uploadFile('test_file.tmson', 'file content');
 
-      await repository.uploadFile(fileName, content);
-      final downloadedContent = await repository.downloadFile(fileName);
+      final content = await storageRepository.downloadFile('test_file.tmson');
 
-      expect(downloadedContent, equals(content));
+      expect(content, equals('file content'));
     });
 
-    test('ファイル一覧の取得が正常に動作する', () async {
-      await repository.uploadFile('file1.txt', 'content1');
-      await repository.uploadFile('file2.txt', 'content2');
+    test('downloadFile throws exception for non-existent file', () async {
+      expect(
+        () async => await storageRepository.downloadFile('non_existent_file'),
+        throwsA(isA<Exception>()),
+      );
+    });
 
-      final fileList = await repository.getFileList();
+    test('getFileList returns list of uploaded files', () async {
+      await storageRepository.uploadFile('file1.tmson', 'content1');
+      await storageRepository.uploadFile('file2.tmson', 'content2');
 
-      expect(fileList, contains('file1.txt'));
-      expect(fileList, contains('file2.txt'));
+      final fileList = await storageRepository.getFileList();
+
+      expect(fileList, contains('file1.tmson'));
+      expect(fileList, contains('file2.tmson'));
       expect(fileList.length, equals(2));
     });
 
-    test('ファイルの削除が正常に動作する', () async {
-      const fileName = 'test.txt';
-      const content = 'test content';
+    test('deleteFile removes file correctly', () async {
+      await storageRepository.uploadFile('test_file.tmson', 'content');
+      expect(await storageRepository.fileExists('test_file.tmson'), isTrue);
 
-      await repository.uploadFile(fileName, content);
-      expect(await repository.fileExists(fileName), isTrue);
-
-      await repository.deleteFile(fileName);
-      expect(await repository.fileExists(fileName), isFalse);
+      await storageRepository.deleteFile('test_file.tmson');
+      expect(await storageRepository.fileExists('test_file.tmson'), isFalse);
     });
 
-    test('存在しないファイルのダウンロードでエラーが発生する', () async {
-      expect(
-        () => repository.downloadFile('nonexistent.txt'),
-        throwsA(isA<Exception>()),
-      );
+    test('fileExists returns correct status', () async {
+      expect(await storageRepository.fileExists('non_existent_file'), isFalse);
+
+      await storageRepository.uploadFile('existing_file.tmson', 'content');
+      expect(await storageRepository.fileExists('existing_file.tmson'), isTrue);
     });
 
-    test('エラー発生時に適切に例外が投げられる', () async {
-      repository.setShouldThrowError(true);
+    test('multiple operations work together correctly', () async {
+      // 複数ファイルのアップロード
+      await storageRepository.uploadFile('file1.tmson', 'content1');
+      await storageRepository.uploadFile('file2.tmson', 'content2');
 
+      // ファイル一覧の確認
+      final fileList = await storageRepository.getFileList();
+      expect(fileList.length, equals(2));
+
+      // ファイルの存在確認
+      expect(await storageRepository.fileExists('file1.tmson'), isTrue);
+      expect(await storageRepository.fileExists('file2.tmson'), isTrue);
+
+      // ファイルのダウンロード
+      final content1 = await storageRepository.downloadFile('file1.tmson');
+      final content2 = await storageRepository.downloadFile('file2.tmson');
+      expect(content1, equals('content1'));
+      expect(content2, equals('content2'));
+
+      // ファイルの削除
+      await storageRepository.deleteFile('file1.tmson');
+      expect(await storageRepository.fileExists('file1.tmson'), isFalse);
+      expect(await storageRepository.fileExists('file2.tmson'), isTrue);
+
+      // 最終的なファイル一覧
+      final finalFileList = await storageRepository.getFileList();
+      expect(finalFileList.length, equals(1));
+      expect(finalFileList, contains('file2.tmson'));
+    });
+
+    test('empty file list returns empty list', () async {
+      final fileList = await storageRepository.getFileList();
+      expect(fileList, isEmpty);
+    });
+
+    test('uploading same file overwrites content', () async {
+      await storageRepository.uploadFile('test_file.tmson', 'original content');
       expect(
-        () => repository.uploadFile('test.txt', 'content'),
-        throwsA(isA<Exception>()),
+        await storageRepository.downloadFile('test_file.tmson'),
+        equals('original content'),
       );
+
+      await storageRepository.uploadFile('test_file.tmson', 'updated content');
       expect(
-        () => repository.downloadFile('test.txt'),
-        throwsA(isA<Exception>()),
-      );
-      expect(
-        () => repository.getFileList(),
-        throwsA(isA<Exception>()),
-      );
-      expect(
-        () => repository.deleteFile('test.txt'),
-        throwsA(isA<Exception>()),
-      );
-      expect(
-        () => repository.fileExists('test.txt'),
-        throwsA(isA<Exception>()),
+        await storageRepository.downloadFile('test_file.tmson'),
+        equals('updated content'),
       );
     });
   });

@@ -6,6 +6,8 @@ import 'package:tree/src/tree_app.dart';
 import 'package:tree/src/view/pages/home/home_view.dart';
 import 'package:tree/src/view/widgets/on_boarding_page.dart';
 
+import 'helpers/test_helpers.dart';
+
 void main() {
   setUpAll(() {
     // フレーバーの設定
@@ -13,24 +15,18 @@ void main() {
   });
 
   group('TreeApp Basic Tests', () {
-    testWidgets('TreeApp should build without crashing',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: TreeApp(),
-        ),
-      );
+    testWidgets('TreeApp should build without crashing', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(ProviderScope(child: TreeApp()));
 
       expect(find.byType(MaterialApp), findsOneWidget);
     });
 
-    testWidgets('TreeApp should have correct theme configuration',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: TreeApp(),
-        ),
-      );
+    testWidgets('TreeApp should have correct theme configuration', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(ProviderScope(child: TreeApp()));
 
       final MaterialApp materialApp = tester.widget(find.byType(MaterialApp));
 
@@ -48,15 +44,10 @@ void main() {
   });
 
   group('HomeView Basic Tests', () {
-    testWidgets('HomeView should display basic structure',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: HomeView(),
-          ),
-        ),
-      );
+    testWidgets('HomeView should display basic structure', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(wrapWithProviderScope(HomeView()));
 
       // 基本的な構造が存在することを確認
       expect(find.byType(HomeView), findsOneWidget);
@@ -66,8 +57,9 @@ void main() {
   });
 
   group('OnBoardingPage Tests', () {
-    testWidgets('OnBoardingPage should display title when provided',
-        (WidgetTester tester) async {
+    testWidgets('OnBoardingPage should display title when provided', (
+      WidgetTester tester,
+    ) async {
       const testTitle = 'Test Title';
 
       await tester.pumpWidget(
@@ -82,8 +74,9 @@ void main() {
       expect(find.text(testTitle), findsOneWidget);
     });
 
-    testWidgets('OnBoardingPage should display description when provided',
-        (WidgetTester tester) async {
+    testWidgets('OnBoardingPage should display description when provided', (
+      WidgetTester tester,
+    ) async {
       const testDescription = 'Test Description';
 
       await tester.pumpWidget(
@@ -98,26 +91,21 @@ void main() {
       expect(find.text(testDescription), findsOneWidget);
     });
 
-    testWidgets('OnBoardingPage should handle null title and description',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnBoardingPage(),
-        ),
-      );
+    testWidgets('OnBoardingPage should handle null title and description', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(MaterialApp(home: OnBoardingPage()));
 
       // nullの場合でもクラッシュしないことを確認
       expect(find.byType(OnBoardingPage), findsOneWidget);
     });
 
-    testWidgets('OnBoardingPage should have blue background',
-        (WidgetTester tester) async {
+    testWidgets('OnBoardingPage should have blue background', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: OnBoardingPage(
-            title: 'Test',
-            description: 'Test',
-          ),
+          home: OnBoardingPage(title: 'Test', description: 'Test'),
         ),
       );
 
@@ -127,8 +115,9 @@ void main() {
   });
 
   group('UI Component Tests', () {
-    testWidgets('Text widgets should have correct styling',
-        (WidgetTester tester) async {
+    testWidgets('Text widgets should have correct styling', (
+      WidgetTester tester,
+    ) async {
       const testTitle = 'Test Title';
 
       await tester.pumpWidget(
@@ -146,15 +135,10 @@ void main() {
       expect(titleWidget.style?.fontWeight, FontWeight.bold);
     });
 
-    testWidgets('AppBar should have correct styling in HomeView',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: HomeView(),
-          ),
-        ),
-      );
+    testWidgets('AppBar should have correct styling in HomeView', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(wrapWithProviderScope(HomeView()));
 
       final titleWidget = tester.widget<Text>(find.text('Tree'));
       expect(titleWidget.style?.color, Colors.white);
@@ -170,8 +154,9 @@ void main() {
   // });
 
   group('Provider Tests', () {
-    testWidgets('ProviderScope should be properly configured',
-        (WidgetTester tester) async {
+    testWidgets('ProviderScope should be properly configured', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -191,8 +176,9 @@ void main() {
   });
 
   group('Basic Widget Structure Tests', () {
-    testWidgets('OnBoardingPage should have proper widget structure',
-        (WidgetTester tester) async {
+    testWidgets('OnBoardingPage should have proper widget structure', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: OnBoardingPage(
@@ -208,15 +194,10 @@ void main() {
       expect(find.byType(SizedBox), findsWidgets);
     });
 
-    testWidgets('HomeView should have proper widget structure',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: HomeView(),
-          ),
-        ),
-      );
+    testWidgets('HomeView should have proper widget structure', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(wrapWithProviderScope(HomeView()));
 
       // 基本的なウィジェット構造の確認
       expect(find.byType(AppBar), findsOneWidget);
@@ -225,16 +206,13 @@ void main() {
   });
 
   group('Widget Behavior Tests', () {
-    testWidgets('Widgets should handle null properties gracefully',
-        (WidgetTester tester) async {
+    testWidgets('Widgets should handle null properties gracefully', (
+      WidgetTester tester,
+    ) async {
       // OnBoardingPageでnullプロパティを処理できることを確認
       await tester.pumpWidget(
         MaterialApp(
-          home: OnBoardingPage(
-            image: null,
-            title: null,
-            description: null,
-          ),
+          home: OnBoardingPage(image: null, title: null, description: null),
         ),
       );
 

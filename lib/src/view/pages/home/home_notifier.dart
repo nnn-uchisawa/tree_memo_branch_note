@@ -4,12 +4,9 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
-// ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tree/src/repositories/file_repository.dart';
-import 'package:tree/src/repositories/firebase_storage_repository.dart';
-import 'package:tree/src/repositories/local_file_repository.dart';
-import 'package:tree/src/repositories/storage_repository.dart';
+import 'package:tree/src/repositories/repository_providers.dart';
+import 'package:tree/src/services/firebase/firebase_storage_service.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
 import 'package:tree/src/view/pages/home/home_state.dart';
@@ -20,13 +17,8 @@ part 'home_notifier.g.dart';
 
 @riverpod
 class HomeNotifier extends _$HomeNotifier {
-  late final FileRepository _fileRepository;
-  late final StorageRepository _storageRepository;
-
   @override
   HomeState build() {
-    _fileRepository = LocalFileRepository();
-    _storageRepository = FirebaseStorageRepository();
     updateFileNames();
     return HomeState();
   }
@@ -37,7 +29,8 @@ class HomeNotifier extends _$HomeNotifier {
     state = state.copyWith(fileNames: fileNames);
 
     // 既存ファイルのマイグレーション処理
-    await _fileRepository.migrateExistingFiles();
+    final fileRepository = ref.read(fileRepositoryProvider);
+    await fileRepository.migrateExistingFiles();
   }
 
   /// txtファイルの内容をMemoStateに変換する（プライベート）
@@ -206,7 +199,8 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   Future<MemoState> getMemoState(String displayName) async {
-    final memoState = await _fileRepository.loadMemoStateFromDisplayName(
+    final fileRepository = ref.read(fileRepositoryProvider);
+    final memoState = await fileRepository.loadMemoStateFromDisplayName(
       displayName,
     );
     if (memoState == null) {
@@ -216,7 +210,8 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   Future<List<String>> getFileNameList() async {
-    return await _fileRepository.getAllDisplayNames();
+    final fileRepository = ref.read(fileRepositoryProvider);
+    return await fileRepository.getAllDisplayNames();
   }
 
   void saveFileToDocuments(File file) async {
@@ -281,7 +276,8 @@ class HomeNotifier extends _$HomeNotifier {
 
   Future<void> deleteFileFromName(String displayName) async {
     try {
-      await _fileRepository.deleteFileByDisplayName(displayName);
+      final fileRepository = ref.read(fileRepositoryProvider);
+      await fileRepository.deleteFileByDisplayName(displayName);
       // ファイルリストを更新
       await updateFileNames();
     } catch (e) {
@@ -291,7 +287,8 @@ class HomeNotifier extends _$HomeNotifier {
 
   Future<void> copyFile(String displayName) async {
     try {
-      await _fileRepository.copyFileByDisplayName(displayName);
+      final fileRepository = ref.read(fileRepositoryProvider);
+      await fileRepository.copyFileByDisplayName(displayName);
 
       // ファイルリストを更新
       await updateFileNames();
@@ -322,7 +319,8 @@ class HomeNotifier extends _$HomeNotifier {
 
   /// ファイル名からテキスト形式に変換する共通処理
   Future<String> _convertFileToText(String displayName) async {
-    final memoState = await _fileRepository.loadMemoStateFromDisplayName(
+    final fileRepository = ref.read(fileRepositoryProvider);
+    final memoState = await fileRepository.loadMemoStateFromDisplayName(
       displayName,
     );
     if (memoState == null) {
@@ -373,7 +371,8 @@ class HomeNotifier extends _$HomeNotifier {
   /// ファイルを共有
   Future<void> shareFile(String displayName) async {
     try {
-      final physicalFileName = await _fileRepository.getPhysicalFileName(
+      final fileRepository = ref.read(fileRepositoryProvider);
+      final physicalFileName = await fileRepository.getPhysicalFileName(
         displayName,
       );
       if (physicalFileName == null) {
@@ -395,7 +394,7 @@ class HomeNotifier extends _$HomeNotifier {
   /// クラウド上のメモ一覧を取得
   Future<List<String>> fetchCloudMemoNames() async {
     try {
-      final names = await _storageRepository.getFileList();
+      final names = await FirebaseStorageService.getMemoFileNames();
       return names;
     } catch (e) {
       AppUtils.showSnackBar('クラウド一覧の取得に失敗しました: $e');
@@ -408,11 +407,11 @@ class HomeNotifier extends _$HomeNotifier {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final localPath = '${dir.path}/$fileName.tmson';
-      final content = await _storageRepository.downloadFile(fileName);
-      await File(localPath).writeAsString(content);
+      await FirebaseStorageService.downloadMemo(fileName, localPath);
 
       // ダウンロード後にfileNameが正しく設定されているか確認・修正
-      await _fileRepository.ensureFileNameInJson(fileName);
+      final fileRepository = ref.read(fileRepositoryProvider);
+      await fileRepository.ensureFileNameInJson(fileName);
 
       await updateFileNames();
       AppUtils.showSnackBar('ダウンロードしました: $fileName');
@@ -427,11 +426,11 @@ class HomeNotifier extends _$HomeNotifier {
       final dir = await getApplicationDocumentsDirectory();
       for (final name in fileNames) {
         final localPath = '${dir.path}/$name.tmson';
-        final content = await _storageRepository.downloadFile(name);
-        await File(localPath).writeAsString(content);
+        await FirebaseStorageService.downloadMemo(name, localPath);
 
         // ダウンロード後にfileNameが正しく設定されているか確認・修正
-        await _fileRepository.ensureFileNameInJson(name);
+        final fileRepository = ref.read(fileRepositoryProvider);
+        await fileRepository.ensureFileNameInJson(name);
       }
       await updateFileNames();
       AppUtils.showSnackBar('一括ダウンロードが完了しました');
@@ -443,7 +442,7 @@ class HomeNotifier extends _$HomeNotifier {
   /// クラウド上のメモを削除
   Future<void> deleteMemoInCloud(String fileName) async {
     try {
-      await _storageRepository.deleteFile(fileName);
+      await FirebaseStorageService.deleteMemo(fileName);
       AppUtils.showSnackBar('クラウドから削除しました: $fileName');
     } catch (e) {
       AppUtils.showSnackBar('クラウド削除に失敗しました: $e');
@@ -459,7 +458,8 @@ class HomeNotifier extends _$HomeNotifier {
         return;
       }
 
-      final physicalFileName = await _fileRepository.getPhysicalFileName(
+      final fileRepository = ref.read(fileRepositoryProvider);
+      final physicalFileName = await fileRepository.getPhysicalFileName(
         displayName,
       );
       if (physicalFileName == null) {
@@ -475,8 +475,7 @@ class HomeNotifier extends _$HomeNotifier {
         return;
       }
 
-      final content = await file.readAsString();
-      await _storageRepository.uploadFile(physicalFileName, content);
+      await FirebaseStorageService.uploadMemo(physicalFileName, file);
       AppUtils.showSnackBar('クラウドに保存しました');
     } catch (e) {
       AppUtils.showSnackBar('クラウド保存に失敗しました: $e');

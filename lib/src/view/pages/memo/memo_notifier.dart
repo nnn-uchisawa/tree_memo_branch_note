@@ -2,10 +2,9 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/app_router.dart';
-import 'package:tree/src/services/file/file_service.dart';
+import 'package:tree/src/repositories/repository_providers.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
@@ -562,7 +561,8 @@ class MemoNotifier extends _$MemoNotifier {
         await renameFile(currentFileName, newFileName);
       } else {
         // 同じファイル名での保存（上書き）
-        await FileService.saveMemoStateWithDisplayName(state, newFileName);
+        final fileRepository = ref.read(fileRepositoryProvider);
+        await fileRepository.saveMemoStateWithDisplayName(state, newFileName);
         await ref.read(homeProvider.notifier).updateFileNames();
       }
 
@@ -598,7 +598,8 @@ class MemoNotifier extends _$MemoNotifier {
       }
 
       // 既存ファイル名かどうかをチェック
-      final existingFileNames = await FileService.getAllDisplayNames();
+      final fileRepository = ref.read(fileRepositoryProvider);
+      final existingFileNames = await fileRepository.getAllDisplayNames();
       final isOverwriting =
           existingFileNames.contains(newFileName) && fileName != newFileName;
 
@@ -855,7 +856,8 @@ class MemoNotifier extends _$MemoNotifier {
         throw Exception("ファイル名が空です");
       }
 
-      await FileService.saveMemoStateWithDisplayName(state, fileName);
+      final fileRepository = ref.read(fileRepositoryProvider);
+      await fileRepository.saveMemoStateWithDisplayName(state, fileName);
       await ref.read(homeProvider.notifier).updateFileNames();
       log('ファイル保存成功: $fileName');
     } catch (e) {
@@ -871,7 +873,8 @@ class MemoNotifier extends _$MemoNotifier {
         return;
       }
 
-      await FileService.deleteFileByDisplayName(displayName);
+      final fileRepository = ref.read(fileRepositoryProvider);
+      await fileRepository.deleteFileByDisplayName(displayName);
       log('ファイル削除成功: $displayName');
     } catch (e) {
       log('deleteFileFromName エラー: $e');
@@ -886,20 +889,21 @@ class MemoNotifier extends _$MemoNotifier {
       }
 
       // 古いファイルが存在するかチェック
+      final fileRepository = ref.read(fileRepositoryProvider);
       try {
-        await FileService.loadMemoStateFromDisplayName(oldDisplayName);
+        await fileRepository.loadMemoStateFromDisplayName(oldDisplayName);
       } catch (e) {
         throw Exception("古いファイルが見つかりません: $oldDisplayName");
       }
 
       // コピーしてから古いファイルを削除する方式でリネーム
-      await FileService.copyFileByDisplayName(oldDisplayName);
+      await fileRepository.copyFileByDisplayName(oldDisplayName);
 
       // 新しいファイル名で保存
       await _saveJsonToFileWithName(newDisplayName);
 
       // 古いファイルを削除
-      await FileService.deleteFileByDisplayName(oldDisplayName);
+      await fileRepository.deleteFileByDisplayName(oldDisplayName);
 
       await ref.read(homeProvider.notifier).updateFileNames();
       log('ファイルリネーム成功: $oldDisplayName -> $newDisplayName');
@@ -911,7 +915,8 @@ class MemoNotifier extends _$MemoNotifier {
 
   Future<void> _saveJsonToFileWithName(String displayName) async {
     try {
-      await FileService.saveMemoStateWithDisplayName(state, displayName);
+      final fileRepository = ref.read(fileRepositoryProvider);
+      await fileRepository.saveMemoStateWithDisplayName(state, displayName);
     } catch (e) {
       log('_saveJsonToFileWithName エラー: $e');
       throw Exception("ファイル保存エラー: $e");
