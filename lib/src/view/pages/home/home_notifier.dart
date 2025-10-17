@@ -44,7 +44,7 @@ class HomeNotifier extends _$HomeNotifier {
 
     // 最後のチェックから5分以内の場合はスキップ
     final now = DateTime.now();
-    if (_lastSessionCheck != null && 
+    if (_lastSessionCheck != null &&
         now.difference(_lastSessionCheck!).inMinutes < 5) {
       return;
     }
