@@ -1,10 +1,11 @@
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:tree/src/services/file/file_service.dart';
 import 'package:tree/src/util/shared_preference.dart';
 import 'package:tree/src/view/pages/home/home_view.dart';
+import 'package:tree/src/view/pages/memo/memo_state.dart';
 import 'package:tree/src/view/pages/memo/memo_view.dart';
 import 'package:tree/src/view/pages/walk_through/walk_through_view.dart';
 
@@ -36,6 +37,7 @@ class InitRoute extends GoRouteData with $InitRoute {
   Future<String?> redirect(BuildContext context, GoRouterState state) async {
     final isNI = await SharedPreference.isNotInitial();
     if (!isNI) {
+      // アセットファイルを読み込み
       final jsonStringJp = await DefaultAssetBundle.of(
         // 特定のファイルの読み込みのみなので非同期処理を許可
         // ignore: use_build_context_synchronously
@@ -46,13 +48,24 @@ class InitRoute extends GoRouteData with $InitRoute {
         // ignore: use_build_context_synchronously
         context,
       ).loadString("assets/usage_of_cloud.tmson");
-      final dir = await getApplicationDocumentsDirectory();
-      final pathJp = '${dir.path}/usage_of_tree.tmson';
-      final pathCloud = '${dir.path}/usage_of_cloud.tmson';
-      final newFileJp = File(pathJp);
-      final newFileCloud = File(pathCloud);
-      await newFileJp.writeAsString(jsonStringJp);
-      await newFileCloud.writeAsString(jsonStringCloud);
+
+      // JSONをパースしてMemoStateに変換
+      final jsonDataJp = json.decode(jsonStringJp);
+      final jsonDataCloud = json.decode(jsonStringCloud);
+      
+      final memoStateJp = MemoState.fromJson(jsonDataJp);
+      final memoStateCloud = MemoState.fromJson(jsonDataCloud);
+
+      // FileServiceを使用してファイルを保存（表示順を維持するためlastUpdatedを保持）
+      await FileService.saveMemoStateWithDisplayName(
+        memoStateJp, 
+        memoStateJp.fileName,
+      );
+      await FileService.saveMemoStateWithDisplayName(
+        memoStateCloud, 
+        memoStateCloud.fileName,
+      );
+
       await SharedPreference.setIsNotInitial();
       return const WalkThroughRoute().location;
     }
