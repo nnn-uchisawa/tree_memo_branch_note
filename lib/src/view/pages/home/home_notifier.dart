@@ -29,7 +29,7 @@ class HomeNotifier extends _$HomeNotifier {
   Future<void> updateFileNames() async {
     final fileNames = await getFileNameList();
     state = state.copyWith(fileNames: fileNames);
-    
+
     // 既存ファイルのマイグレーション処理
     await _migrateExistingFiles();
   }
@@ -362,13 +362,15 @@ class HomeNotifier extends _$HomeNotifier {
 
       // 新しいファイル名を生成（重複チェック付き）
       String newDisplayName = await _generateUniqueFileName(displayName);
-      String newPhysicalFileName = await _generateUniquePhysicalFileName(physicalFileName);
+      String newPhysicalFileName = await _generateUniquePhysicalFileName(
+        physicalFileName,
+      );
       var newPath = '${dir.path}/$newPhysicalFileName.tmson';
       var newFile = File(newPath);
 
       // ファイルの内容を読み取ってコピー
       String content = await originalFile.readAsString();
-      
+
       // JSONをパースしてfileNameを更新
       try {
         final jsonData = json.decode(content);
@@ -377,7 +379,7 @@ class HomeNotifier extends _$HomeNotifier {
       } catch (_) {
         // JSONパースエラーの場合はそのままコピー
       }
-      
+
       await newFile.writeAsString(content);
 
       // ファイルリストを更新
@@ -418,7 +420,9 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   /// ユニークな物理ファイル名を生成する（プライベート）
-  Future<String> _generateUniquePhysicalFileName(String originalPhysicalFileName) async {
+  Future<String> _generateUniquePhysicalFileName(
+    String originalPhysicalFileName,
+  ) async {
     String baseFileName = originalPhysicalFileName;
     String newFileName = baseFileName;
     int counter = 1;
@@ -456,7 +460,7 @@ class HomeNotifier extends _$HomeNotifier {
         .whereType<File>()
         .where((f) => f.uri.pathSegments.last.endsWith('.tmson'))
         .toList();
-    
+
     for (File file in tmsonFiles) {
       try {
         final content = await file.readAsString();
@@ -468,7 +472,6 @@ class HomeNotifier extends _$HomeNotifier {
     }
     return null;
   }
-
 
   /// JSON内のfileNameが正しく設定されているか確認・修正
   Future<void> _ensureFileNameInJson(String physicalFileName) async {
@@ -483,10 +486,10 @@ class HomeNotifier extends _$HomeNotifier {
     try {
       final content = await file.readAsString();
       final jsonData = json.decode(content);
-      
+
       // fileNameが存在しないか空の場合、物理ファイル名を設定
-      if (!jsonData.containsKey('fileName') || 
-          jsonData['fileName'] == null || 
+      if (!jsonData.containsKey('fileName') ||
+          jsonData['fileName'] == null ||
           (jsonData['fileName'] as String).isEmpty) {
         jsonData['fileName'] = physicalFileName;
         await file.writeAsString(json.encode(jsonData));
@@ -506,7 +509,10 @@ class HomeNotifier extends _$HomeNotifier {
         .toList();
 
     for (File file in tmsonFiles) {
-      final physicalFileName = file.uri.pathSegments.last.replaceAll('.tmson', '');
+      final physicalFileName = file.uri.pathSegments.last.replaceAll(
+        '.tmson',
+        '',
+      );
       await _ensureFileNameInJson(physicalFileName);
     }
   }
@@ -549,7 +555,7 @@ class HomeNotifier extends _$HomeNotifier {
     if (physicalFileName == null) {
       throw Exception('ファイルが見つかりません: $displayName');
     }
-    
+
     final memoState = await _loadMemoStateFromFile(physicalFileName);
     return _convertMemoStateToText(memoState);
   }
@@ -612,10 +618,10 @@ class HomeNotifier extends _$HomeNotifier {
       final dir = await getApplicationDocumentsDirectory();
       final localPath = '${dir.path}/$fileName.tmson';
       await FirebaseStorageService.downloadMemo(fileName, localPath);
-      
+
       // ダウンロード後にfileNameが正しく設定されているか確認・修正
       await _ensureFileNameInJson(fileName);
-      
+
       await updateFileNames();
       AppUtils.showSnackBar('ダウンロードしました: $fileName');
     } catch (e) {
@@ -630,7 +636,7 @@ class HomeNotifier extends _$HomeNotifier {
       for (final name in fileNames) {
         final localPath = '${dir.path}/$name.tmson';
         await FirebaseStorageService.downloadMemo(name, localPath);
-        
+
         // ダウンロード後にfileNameが正しく設定されているか確認・修正
         await _ensureFileNameInJson(name);
       }
