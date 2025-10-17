@@ -26,6 +26,7 @@ _MemoState _$MemoStateFromJson(Map<String, dynamic> json) => _MemoState(
   isSaveDialogOpen: json['isSaveDialogOpen'] as bool? ?? false,
   needFocusChange: json['needFocusChange'] as bool? ?? false,
   focusedIndex: (json['focusedIndex'] as num?)?.toInt() ?? 0,
+  lastUpdated: json['lastUpdated'] as String? ?? "",
 );
 
 Map<String, dynamic> _$MemoStateToJson(_MemoState instance) =>
@@ -41,4 +42,5 @@ Map<String, dynamic> _$MemoStateToJson(_MemoState instance) =>
       'isSaveDialogOpen': instance.isSaveDialogOpen,
       'needFocusChange': instance.needFocusChange,
       'focusedIndex': instance.focusedIndex,
+      'lastUpdated': instance.lastUpdated,
     };

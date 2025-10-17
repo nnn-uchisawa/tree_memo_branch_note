@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MemoState {
 
- String get fileName; List<MemoLineState> get list; List<MemoLineState> get visibleList; double get oneIndent; String get rnd; bool get isTapIndentChange; bool get isEditing; bool get isTapClear; bool get isSaveDialogOpen; bool get needFocusChange; int get focusedIndex;
+ String get fileName; List<MemoLineState> get list; List<MemoLineState> get visibleList; double get oneIndent; String get rnd; bool get isTapIndentChange; bool get isEditing; bool get isTapClear; bool get isSaveDialogOpen; bool get needFocusChange; int get focusedIndex; String get lastUpdated;
 /// Create a copy of MemoState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $MemoStateCopyWith<MemoState> get copyWith => _$MemoStateCopyWithImpl<MemoState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MemoState&&(identical(other.fileName, fileName) || other.fileName == fileName)&&const DeepCollectionEquality().equals(other.list, list)&&const DeepCollectionEquality().equals(other.visibleList, visibleList)&&(identical(other.oneIndent, oneIndent) || other.oneIndent == oneIndent)&&(identical(other.rnd, rnd) || other.rnd == rnd)&&(identical(other.isTapIndentChange, isTapIndentChange) || other.isTapIndentChange == isTapIndentChange)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.isTapClear, isTapClear) || other.isTapClear == isTapClear)&&(identical(other.isSaveDialogOpen, isSaveDialogOpen) || other.isSaveDialogOpen == isSaveDialogOpen)&&(identical(other.needFocusChange, needFocusChange) || other.needFocusChange == needFocusChange)&&(identical(other.focusedIndex, focusedIndex) || other.focusedIndex == focusedIndex));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MemoState&&(identical(other.fileName, fileName) || other.fileName == fileName)&&const DeepCollectionEquality().equals(other.list, list)&&const DeepCollectionEquality().equals(other.visibleList, visibleList)&&(identical(other.oneIndent, oneIndent) || other.oneIndent == oneIndent)&&(identical(other.rnd, rnd) || other.rnd == rnd)&&(identical(other.isTapIndentChange, isTapIndentChange) || other.isTapIndentChange == isTapIndentChange)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.isTapClear, isTapClear) || other.isTapClear == isTapClear)&&(identical(other.isSaveDialogOpen, isSaveDialogOpen) || other.isSaveDialogOpen == isSaveDialogOpen)&&(identical(other.needFocusChange, needFocusChange) || other.needFocusChange == needFocusChange)&&(identical(other.focusedIndex, focusedIndex) || other.focusedIndex == focusedIndex)&&(identical(other.lastUpdated, lastUpdated) || other.lastUpdated == lastUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,fileName,const DeepCollectionEquality().hash(list),const DeepCollectionEquality().hash(visibleList),oneIndent,rnd,isTapIndentChange,isEditing,isTapClear,isSaveDialogOpen,needFocusChange,focusedIndex);
+int get hashCode => Object.hash(runtimeType,fileName,const DeepCollectionEquality().hash(list),const DeepCollectionEquality().hash(visibleList),oneIndent,rnd,isTapIndentChange,isEditing,isTapClear,isSaveDialogOpen,needFocusChange,focusedIndex,lastUpdated);
 
 @override
 String toString() {
-  return 'MemoState(fileName: $fileName, list: $list, visibleList: $visibleList, oneIndent: $oneIndent, rnd: $rnd, isTapIndentChange: $isTapIndentChange, isEditing: $isEditing, isTapClear: $isTapClear, isSaveDialogOpen: $isSaveDialogOpen, needFocusChange: $needFocusChange, focusedIndex: $focusedIndex)';
+  return 'MemoState(fileName: $fileName, list: $list, visibleList: $visibleList, oneIndent: $oneIndent, rnd: $rnd, isTapIndentChange: $isTapIndentChange, isEditing: $isEditing, isTapClear: $isTapClear, isSaveDialogOpen: $isSaveDialogOpen, needFocusChange: $needFocusChange, focusedIndex: $focusedIndex, lastUpdated: $lastUpdated)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $MemoStateCopyWith<$Res>  {
   factory $MemoStateCopyWith(MemoState value, $Res Function(MemoState) _then) = _$MemoStateCopyWithImpl;
 @useResult
 $Res call({
- String fileName, List<MemoLineState> list, List<MemoLineState> visibleList, double oneIndent, String rnd, bool isTapIndentChange, bool isEditing, bool isTapClear, bool isSaveDialogOpen, bool needFocusChange, int focusedIndex
+ String fileName, List<MemoLineState> list, List<MemoLineState> visibleList, double oneIndent, String rnd, bool isTapIndentChange, bool isEditing, bool isTapClear, bool isSaveDialogOpen, bool needFocusChange, int focusedIndex, String lastUpdated
 });
 
 
@@ -65,7 +65,7 @@ class _$MemoStateCopyWithImpl<$Res>
 
 /// Create a copy of MemoState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? fileName = null,Object? list = null,Object? visibleList = null,Object? oneIndent = null,Object? rnd = null,Object? isTapIndentChange = null,Object? isEditing = null,Object? isTapClear = null,Object? isSaveDialogOpen = null,Object? needFocusChange = null,Object? focusedIndex = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? fileName = null,Object? list = null,Object? visibleList = null,Object? oneIndent = null,Object? rnd = null,Object? isTapIndentChange = null,Object? isEditing = null,Object? isTapClear = null,Object? isSaveDialogOpen = null,Object? needFocusChange = null,Object? focusedIndex = null,Object? lastUpdated = null,}) {
   return _then(_self.copyWith(
 fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
 as String,list: null == list ? _self.list : list // ignore: cast_nullable_to_non_nullable
@@ -78,7 +78,8 @@ as bool,isTapClear: null == isTapClear ? _self.isTapClear : isTapClear // ignore
 as bool,isSaveDialogOpen: null == isSaveDialogOpen ? _self.isSaveDialogOpen : isSaveDialogOpen // ignore: cast_nullable_to_non_nullable
 as bool,needFocusChange: null == needFocusChange ? _self.needFocusChange : needFocusChange // ignore: cast_nullable_to_non_nullable
 as bool,focusedIndex: null == focusedIndex ? _self.focusedIndex : focusedIndex // ignore: cast_nullable_to_non_nullable
-as int,
+as int,lastUpdated: null == lastUpdated ? _self.lastUpdated : lastUpdated // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -163,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String fileName,  List<MemoLineState> list,  List<MemoLineState> visibleList,  double oneIndent,  String rnd,  bool isTapIndentChange,  bool isEditing,  bool isTapClear,  bool isSaveDialogOpen,  bool needFocusChange,  int focusedIndex)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String fileName,  List<MemoLineState> list,  List<MemoLineState> visibleList,  double oneIndent,  String rnd,  bool isTapIndentChange,  bool isEditing,  bool isTapClear,  bool isSaveDialogOpen,  bool needFocusChange,  int focusedIndex,  String lastUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MemoState() when $default != null:
-return $default(_that.fileName,_that.list,_that.visibleList,_that.oneIndent,_that.rnd,_that.isTapIndentChange,_that.isEditing,_that.isTapClear,_that.isSaveDialogOpen,_that.needFocusChange,_that.focusedIndex);case _:
+return $default(_that.fileName,_that.list,_that.visibleList,_that.oneIndent,_that.rnd,_that.isTapIndentChange,_that.isEditing,_that.isTapClear,_that.isSaveDialogOpen,_that.needFocusChange,_that.focusedIndex,_that.lastUpdated);case _:
   return orElse();
 
 }
@@ -184,10 +185,10 @@ return $default(_that.fileName,_that.list,_that.visibleList,_that.oneIndent,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String fileName,  List<MemoLineState> list,  List<MemoLineState> visibleList,  double oneIndent,  String rnd,  bool isTapIndentChange,  bool isEditing,  bool isTapClear,  bool isSaveDialogOpen,  bool needFocusChange,  int focusedIndex)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String fileName,  List<MemoLineState> list,  List<MemoLineState> visibleList,  double oneIndent,  String rnd,  bool isTapIndentChange,  bool isEditing,  bool isTapClear,  bool isSaveDialogOpen,  bool needFocusChange,  int focusedIndex,  String lastUpdated)  $default,) {final _that = this;
 switch (_that) {
 case _MemoState():
-return $default(_that.fileName,_that.list,_that.visibleList,_that.oneIndent,_that.rnd,_that.isTapIndentChange,_that.isEditing,_that.isTapClear,_that.isSaveDialogOpen,_that.needFocusChange,_that.focusedIndex);case _:
+return $default(_that.fileName,_that.list,_that.visibleList,_that.oneIndent,_that.rnd,_that.isTapIndentChange,_that.isEditing,_that.isTapClear,_that.isSaveDialogOpen,_that.needFocusChange,_that.focusedIndex,_that.lastUpdated);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +205,10 @@ return $default(_that.fileName,_that.list,_that.visibleList,_that.oneIndent,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String fileName,  List<MemoLineState> list,  List<MemoLineState> visibleList,  double oneIndent,  String rnd,  bool isTapIndentChange,  bool isEditing,  bool isTapClear,  bool isSaveDialogOpen,  bool needFocusChange,  int focusedIndex)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String fileName,  List<MemoLineState> list,  List<MemoLineState> visibleList,  double oneIndent,  String rnd,  bool isTapIndentChange,  bool isEditing,  bool isTapClear,  bool isSaveDialogOpen,  bool needFocusChange,  int focusedIndex,  String lastUpdated)?  $default,) {final _that = this;
 switch (_that) {
 case _MemoState() when $default != null:
-return $default(_that.fileName,_that.list,_that.visibleList,_that.oneIndent,_that.rnd,_that.isTapIndentChange,_that.isEditing,_that.isTapClear,_that.isSaveDialogOpen,_that.needFocusChange,_that.focusedIndex);case _:
+return $default(_that.fileName,_that.list,_that.visibleList,_that.oneIndent,_that.rnd,_that.isTapIndentChange,_that.isEditing,_that.isTapClear,_that.isSaveDialogOpen,_that.needFocusChange,_that.focusedIndex,_that.lastUpdated);case _:
   return null;
 
 }
@@ -219,7 +220,7 @@ return $default(_that.fileName,_that.list,_that.visibleList,_that.oneIndent,_tha
 @JsonSerializable()
 
 class _MemoState extends MemoState {
-  const _MemoState({this.fileName = "", final  List<MemoLineState> list = const [], final  List<MemoLineState> visibleList = const [], this.oneIndent = 20.0, this.rnd = "0", this.isTapIndentChange = false, this.isEditing = false, this.isTapClear = false, this.isSaveDialogOpen = false, this.needFocusChange = false, this.focusedIndex = 0}): _list = list,_visibleList = visibleList,super._();
+  const _MemoState({this.fileName = "", final  List<MemoLineState> list = const [], final  List<MemoLineState> visibleList = const [], this.oneIndent = 20.0, this.rnd = "0", this.isTapIndentChange = false, this.isEditing = false, this.isTapClear = false, this.isSaveDialogOpen = false, this.needFocusChange = false, this.focusedIndex = 0, this.lastUpdated = ""}): _list = list,_visibleList = visibleList,super._();
   factory _MemoState.fromJson(Map<String, dynamic> json) => _$MemoStateFromJson(json);
 
 @override@JsonKey() final  String fileName;
@@ -245,6 +246,7 @@ class _MemoState extends MemoState {
 @override@JsonKey() final  bool isSaveDialogOpen;
 @override@JsonKey() final  bool needFocusChange;
 @override@JsonKey() final  int focusedIndex;
+@override@JsonKey() final  String lastUpdated;
 
 /// Create a copy of MemoState
 /// with the given fields replaced by the non-null parameter values.
@@ -259,16 +261,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MemoState&&(identical(other.fileName, fileName) || other.fileName == fileName)&&const DeepCollectionEquality().equals(other._list, _list)&&const DeepCollectionEquality().equals(other._visibleList, _visibleList)&&(identical(other.oneIndent, oneIndent) || other.oneIndent == oneIndent)&&(identical(other.rnd, rnd) || other.rnd == rnd)&&(identical(other.isTapIndentChange, isTapIndentChange) || other.isTapIndentChange == isTapIndentChange)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.isTapClear, isTapClear) || other.isTapClear == isTapClear)&&(identical(other.isSaveDialogOpen, isSaveDialogOpen) || other.isSaveDialogOpen == isSaveDialogOpen)&&(identical(other.needFocusChange, needFocusChange) || other.needFocusChange == needFocusChange)&&(identical(other.focusedIndex, focusedIndex) || other.focusedIndex == focusedIndex));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MemoState&&(identical(other.fileName, fileName) || other.fileName == fileName)&&const DeepCollectionEquality().equals(other._list, _list)&&const DeepCollectionEquality().equals(other._visibleList, _visibleList)&&(identical(other.oneIndent, oneIndent) || other.oneIndent == oneIndent)&&(identical(other.rnd, rnd) || other.rnd == rnd)&&(identical(other.isTapIndentChange, isTapIndentChange) || other.isTapIndentChange == isTapIndentChange)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.isTapClear, isTapClear) || other.isTapClear == isTapClear)&&(identical(other.isSaveDialogOpen, isSaveDialogOpen) || other.isSaveDialogOpen == isSaveDialogOpen)&&(identical(other.needFocusChange, needFocusChange) || other.needFocusChange == needFocusChange)&&(identical(other.focusedIndex, focusedIndex) || other.focusedIndex == focusedIndex)&&(identical(other.lastUpdated, lastUpdated) || other.lastUpdated == lastUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,fileName,const DeepCollectionEquality().hash(_list),const DeepCollectionEquality().hash(_visibleList),oneIndent,rnd,isTapIndentChange,isEditing,isTapClear,isSaveDialogOpen,needFocusChange,focusedIndex);
+int get hashCode => Object.hash(runtimeType,fileName,const DeepCollectionEquality().hash(_list),const DeepCollectionEquality().hash(_visibleList),oneIndent,rnd,isTapIndentChange,isEditing,isTapClear,isSaveDialogOpen,needFocusChange,focusedIndex,lastUpdated);
 
 @override
 String toString() {
-  return 'MemoState(fileName: $fileName, list: $list, visibleList: $visibleList, oneIndent: $oneIndent, rnd: $rnd, isTapIndentChange: $isTapIndentChange, isEditing: $isEditing, isTapClear: $isTapClear, isSaveDialogOpen: $isSaveDialogOpen, needFocusChange: $needFocusChange, focusedIndex: $focusedIndex)';
+  return 'MemoState(fileName: $fileName, list: $list, visibleList: $visibleList, oneIndent: $oneIndent, rnd: $rnd, isTapIndentChange: $isTapIndentChange, isEditing: $isEditing, isTapClear: $isTapClear, isSaveDialogOpen: $isSaveDialogOpen, needFocusChange: $needFocusChange, focusedIndex: $focusedIndex, lastUpdated: $lastUpdated)';
 }
 
 
@@ -279,7 +281,7 @@ abstract mixin class _$MemoStateCopyWith<$Res> implements $MemoStateCopyWith<$Re
   factory _$MemoStateCopyWith(_MemoState value, $Res Function(_MemoState) _then) = __$MemoStateCopyWithImpl;
 @override @useResult
 $Res call({
- String fileName, List<MemoLineState> list, List<MemoLineState> visibleList, double oneIndent, String rnd, bool isTapIndentChange, bool isEditing, bool isTapClear, bool isSaveDialogOpen, bool needFocusChange, int focusedIndex
+ String fileName, List<MemoLineState> list, List<MemoLineState> visibleList, double oneIndent, String rnd, bool isTapIndentChange, bool isEditing, bool isTapClear, bool isSaveDialogOpen, bool needFocusChange, int focusedIndex, String lastUpdated
 });
 
 
@@ -296,7 +298,7 @@ class __$MemoStateCopyWithImpl<$Res>
 
 /// Create a copy of MemoState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? fileName = null,Object? list = null,Object? visibleList = null,Object? oneIndent = null,Object? rnd = null,Object? isTapIndentChange = null,Object? isEditing = null,Object? isTapClear = null,Object? isSaveDialogOpen = null,Object? needFocusChange = null,Object? focusedIndex = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? fileName = null,Object? list = null,Object? visibleList = null,Object? oneIndent = null,Object? rnd = null,Object? isTapIndentChange = null,Object? isEditing = null,Object? isTapClear = null,Object? isSaveDialogOpen = null,Object? needFocusChange = null,Object? focusedIndex = null,Object? lastUpdated = null,}) {
   return _then(_MemoState(
 fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
 as String,list: null == list ? _self._list : list // ignore: cast_nullable_to_non_nullable
@@ -309,7 +311,8 @@ as bool,isTapClear: null == isTapClear ? _self.isTapClear : isTapClear // ignore
 as bool,isSaveDialogOpen: null == isSaveDialogOpen ? _self.isSaveDialogOpen : isSaveDialogOpen // ignore: cast_nullable_to_non_nullable
 as bool,needFocusChange: null == needFocusChange ? _self.needFocusChange : needFocusChange // ignore: cast_nullable_to_non_nullable
 as bool,focusedIndex: null == focusedIndex ? _self.focusedIndex : focusedIndex // ignore: cast_nullable_to_non_nullable
-as int,
+as int,lastUpdated: null == lastUpdated ? _self.lastUpdated : lastUpdated // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

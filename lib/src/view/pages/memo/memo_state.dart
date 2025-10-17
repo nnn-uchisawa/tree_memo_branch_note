@@ -21,6 +21,7 @@ abstract class MemoState with _$MemoState {
     @Default(false) bool isSaveDialogOpen,
     @Default(false) bool needFocusChange,
     @Default(0) int focusedIndex,
+    @Default("") String lastUpdated,
   }) = _MemoState;
 
   factory MemoState.fromJson(Map<String, dynamic> json) =>

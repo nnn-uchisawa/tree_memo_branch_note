@@ -113,6 +113,9 @@ class FileService {
     // 表示名をJSON内のfileNameとして設定
     var j = memoState.toJson();
     j['fileName'] = displayName;
+    
+    // last_updatedを現在時刻に設定
+    j['lastUpdated'] = DateTime.now().toIso8601String();
 
     // JSONエンコードのチェック
     String jsonString;
@@ -246,11 +249,11 @@ class FileService {
     return newFileName;
   }
 
-  /// すべての表示名を取得
+  /// すべての表示名を取得（last_updated順でソート）
   static Future<List<String>> getAllDisplayNames() async {
     var dir = await getApplicationDocumentsDirectory();
 
-    List<String> fileNames = [];
+    List<Map<String, dynamic>> fileData = [];
 
     // tmsonファイルを取得
     final tmsonFiles = dir
@@ -270,21 +273,45 @@ class FileService {
             jsonData.containsKey('fileName')) {
           final fileName = jsonData['fileName'] as String?;
           if (fileName != null && fileName.isNotEmpty) {
-            fileNames.add(fileName);
+            final lastUpdated = jsonData['lastUpdated'] as String? ?? '';
+            fileData.add({
+              'fileName': fileName,
+              'lastUpdated': lastUpdated,
+            });
           }
         }
       } catch (e) {
         // JSONパースエラーの場合、ファイル名から拡張子を除いたものを使用
         final fileName = file.uri.pathSegments.last;
         if (fileName.endsWith('.tmson')) {
-          fileNames.add(
-            fileName.substring(0, fileName.length - 6),
-          ); // .tmsonを除去
+          final displayName = fileName.substring(0, fileName.length - 6);
+          fileData.add({
+            'fileName': displayName,
+            'lastUpdated': '',
+          });
         }
       }
     }
 
-    return fileNames;
+    // last_updated順でソート（新しい順）
+    fileData.sort((a, b) {
+      final aTime = a['lastUpdated'] as String;
+      final bTime = b['lastUpdated'] as String;
+      
+      if (aTime.isEmpty && bTime.isEmpty) return 0;
+      if (aTime.isEmpty) return 1; // last_updatedがないファイルは後ろに
+      if (bTime.isEmpty) return -1;
+      
+      try {
+        final aDateTime = DateTime.parse(aTime);
+        final bDateTime = DateTime.parse(bTime);
+        return bDateTime.compareTo(aDateTime); // 新しい順
+      } catch (_) {
+        return 0;
+      }
+    });
+
+    return fileData.map((data) => data['fileName'] as String).toList();
   }
 
   /// 既存ファイルのマイグレーション処理
@@ -302,6 +329,33 @@ class FileService {
         '',
       );
       await ensureFileNameInJson(physicalFileName);
+      await ensureLastUpdatedInJson(physicalFileName);
+    }
+  }
+
+  /// JSON内のlastUpdatedが正しく設定されているか確認・修正
+  static Future<void> ensureLastUpdatedInJson(String physicalFileName) async {
+    var dir = await getApplicationDocumentsDirectory();
+    var filePath = '${dir.path}/$physicalFileName.tmson';
+    var file = File(filePath);
+
+    if (!await file.exists()) {
+      return;
+    }
+
+    try {
+      final content = await file.readAsString();
+      final jsonData = json.decode(content);
+
+      // lastUpdatedが存在しないか空の場合、現在時刻を設定
+      if (!jsonData.containsKey('lastUpdated') ||
+          jsonData['lastUpdated'] == null ||
+          (jsonData['lastUpdated'] as String).isEmpty) {
+        jsonData['lastUpdated'] = DateTime.now().toIso8601String();
+        await file.writeAsString(json.encode(jsonData));
+      }
+    } catch (_) {
+      // JSONパースエラーの場合は何もしない
     }
   }
 }

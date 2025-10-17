@@ -1,10 +1,7 @@
-import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/app_router.dart';
@@ -789,29 +786,9 @@ class MemoNotifier extends _$MemoNotifier {
         throw Exception("ファイル名が空です");
       }
 
-      var j = state.toJson();
-      var dir = await getApplicationDocumentsDirectory();
-      var path = '${dir.path}/$fileName.tmson';
-      var file = File(path);
-
-      // JSONエンコードのチェック
-      String jsonString;
-      try {
-        jsonString = json.encode(j);
-      } catch (e) {
-        throw Exception("データのJSONエンコードに失敗しました: $e");
-      }
-
-      // ファイル書き込み
-      await file.writeAsString(jsonString);
-
-      // ファイルが正常に書き込まれたかチェック
-      if (!await file.exists()) {
-        throw Exception("ファイルの作成に失敗しました");
-      }
-
+      await FileService.saveMemoStateWithDisplayName(state, fileName);
       await ref.read(homeProvider.notifier).updateFileNames();
-      log('ファイル保存成功: $path');
+      log('ファイル保存成功: $fileName');
     } catch (e) {
       log('_saveJsonToFile エラー: $e');
       throw Exception("ファイル保存エラー: $e");
