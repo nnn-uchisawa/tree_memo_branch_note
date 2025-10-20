@@ -26,6 +26,33 @@ class MemoNotifier extends _$MemoNotifier {
 
   List<FocusNode> get focusNodes => _focusNodes;
 
+  @override
+  MemoState build() {
+    var home = ref.watch(homeProvider);
+    var memo = home.memoState;
+    memo ??= MemoState(
+      list: [MemoLineState(index: 0)],
+      visibleList: [MemoLineState(index: 0)],
+    );
+    baseState = memo.copyWith();
+    return memo;
+  }
+
+  @override
+  bool updateShouldNotify(MemoState previous, MemoState next) {
+    return !state.isEditing &&
+        !state.isSaveDialogOpen &&
+        super.updateShouldNotify(previous, next);
+  }
+
+  void setBaseState({bool setFocusIndex = false}) {
+    if (setFocusIndex) {
+      baseState = state.copyWith(focusedIndex: -1);
+    } else {
+      baseState = state.copyWith();
+    }
+  }
+
   /// TextEditingControllerを取得または作成
   TextEditingController getTextController(int index) {
     if (!_textControllers.containsKey(index)) {
@@ -54,33 +81,6 @@ class MemoNotifier extends _$MemoNotifier {
     }
     _textControllers.clear();
     _dividerKeys.clear();
-  }
-
-  @override
-  MemoState build() {
-    var home = ref.watch(homeProvider);
-    var memo = home.memoState;
-    memo ??= MemoState(
-      list: [MemoLineState(index: 0)],
-      visibleList: [MemoLineState(index: 0)],
-    );
-    baseState = memo.copyWith();
-    return memo;
-  }
-
-  @override
-  bool updateShouldNotify(MemoState previous, MemoState next) {
-    return !state.isEditing &&
-        !state.isSaveDialogOpen &&
-        super.updateShouldNotify(previous, next);
-  }
-
-  void setBaseState({bool setFocusIndex = false}) {
-    if (setFocusIndex) {
-      baseState = state.copyWith(focusedIndex: -1);
-    } else {
-      baseState = state.copyWith();
-    }
   }
 
   /// メモの行の値が含まれたStateObjectの配列から閉じている行を再帰的に探して不可視な行を削除し返却する（プライベート）
@@ -296,7 +296,11 @@ class MemoNotifier extends _$MemoNotifier {
         List.from(newList),
         0,
       );
-      state = state.copyWith(list: list, visibleList: visibleList);
+      state = state.copyWith(
+        list: list,
+        visibleList: visibleList,
+        isEditing: false,
+      );
     };
   }
 
