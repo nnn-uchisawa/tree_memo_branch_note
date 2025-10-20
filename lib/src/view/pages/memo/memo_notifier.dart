@@ -656,7 +656,7 @@ class MemoNotifier extends _$MemoNotifier {
       }
 
       // ファイル名が変更された場合の処理（fileNameパラメータを使用）
-      if (newFileName.isNotEmpty && fileName != newFileName) {
+      if (fileName.isNotEmpty && fileName != newFileName) {
         // 保存直前にターゲット名を決定（競合時はユニーク名に）
         final fileRepository = ref.read(fileRepositoryProvider);
         final existingFileNames = await fileRepository.getAllDisplayNames();
