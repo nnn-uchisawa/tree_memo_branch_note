@@ -94,23 +94,20 @@ class MemoNotifier extends _$MemoNotifier {
     var nextParent = parentIndex + 1;
 
     if (list[parentIndex].isFolding) {
-      for (
-        int targetIndex = parentIndex + 1;
-        targetIndex < list.length;
-        targetIndex++, nextParent++
-      ) {
-        if (targetIndex < list.length) {
-          if (list[targetIndex].indent > list[parentIndex].indent) {
-            list.removeAt(targetIndex);
-            //for loopで++されると1行飛ばしてしまうので巻き戻す
-            targetIndex--;
-          } else {
-            nextParent = targetIndex;
-            break;
-          }
+      // 削除対象のインデックスを特定
+      final indicesToRemove = <int>[];
+      for (int i = parentIndex + 1; i < list.length; i++) {
+        if (list[i].indent > list[parentIndex].indent) {
+          indicesToRemove.add(i);
         } else {
+          nextParent = i;
           break;
         }
+      }
+
+      // 逆順で削除（インデックスのずれを防ぐ）
+      for (int i = indicesToRemove.length - 1; i >= 0; i--) {
+        list.removeAt(indicesToRemove[i]);
       }
     }
 
@@ -125,27 +122,22 @@ class MemoNotifier extends _$MemoNotifier {
     if (list.isEmpty) {
       return -1;
     }
-    var next = start + 1;
     var end = start;
     if (list[start].isFolding) {
-      for (
-        int targetIndex = start + 1;
-        targetIndex < list.length;
-        targetIndex++, next++
-      ) {
-        if (targetIndex < list.length) {
-          if (list[targetIndex].indent > list[start].indent) {
-            list.removeAt(targetIndex);
-            //for loopで++されると1行飛ばしてしまうので巻き戻す
-            end++;
-            targetIndex--;
-          } else {
-            // next = targetIndex;
-            break;
-          }
+      // 削除対象のインデックスを特定
+      final indicesToRemove = <int>[];
+      for (int i = start + 1; i < list.length; i++) {
+        if (list[i].indent > list[start].indent) {
+          indicesToRemove.add(i);
         } else {
           break;
         }
+      }
+
+      // 逆順で削除（インデックスのずれを防ぐ）
+      for (int i = indicesToRemove.length - 1; i >= 0; i--) {
+        list.removeAt(indicesToRemove[i]);
+        end++;
       }
     }
     return end + 1;
@@ -161,35 +153,31 @@ class MemoNotifier extends _$MemoNotifier {
     List<MemoLineState> list = List.from(state.list);
     final startIndent = list[fromIndex].indent;
     var destination = fromIndex;
-    var count = 0;
     final foldingEnd = list[fromIndex].isFolding
         ? _getFoldingEnd(fromIndex)
         : fromIndex + 1;
     if (foldingEnd == list.length && visibleDistance > 0) return fromIndex;
     var subList = list.sublist(fromIndex, foldingEnd);
     if (0 > visibleDistance && fromIndex + visibleDistance >= 0) {
-      for (var s in list.sublist(0, fromIndex).reversed) {
-        if (count++ == 0 && s.indent <= startIndent && !s.isFolding) {
-          destination = fromIndex - 1;
-          break;
-        } else if (s.indent > startIndent) {
-          continue;
-        } else if (s.isFolding) {
-          destination = s.index;
-          break;
-        } else {
-          destination = fromIndex - 1;
-          break;
-        }
-      }
+      final reversedList = list.sublist(0, fromIndex).reversed.toList();
+      final targetItem = reversedList.firstWhere(
+        (s) => s.indent <= startIndent && !s.isFolding,
+        orElse: () => reversedList.firstWhere(
+          (s) => s.isFolding,
+          orElse: () => reversedList.first,
+        ),
+      );
+      destination = targetItem.index;
 
       list.removeRange(fromIndex, foldingEnd);
       var destIndex = list.indexWhere((s) => s.index == destination);
       destIndex = destIndex == -1 ? fromIndex - 1 : destIndex;
       list.insertAll(destIndex, subList);
-      for (var i = 0; i < list.length; i++) {
-        list[i] = list[i].copyWith(index: i);
-      }
+      list = list
+          .asMap()
+          .entries
+          .map((e) => e.value.copyWith(index: e.key))
+          .toList();
       final newVisibleList = _getFoldingLineList(List.from(list), 0);
       state = state.copyWith(list: list, visibleList: newVisibleList);
       return destIndex;
@@ -203,9 +191,11 @@ class MemoNotifier extends _$MemoNotifier {
       list.removeRange(fromIndex, foldingEnd);
       final destIndex = list.indexWhere((s) => s.index == destination) + 1;
       list.insertAll(destIndex, subList);
-      for (var i = 0; i < list.length; i++) {
-        list[i] = list[i].copyWith(index: i);
-      }
+      list = list
+          .asMap()
+          .entries
+          .map((e) => e.value.copyWith(index: e.key))
+          .toList();
       final newVisibleList = _getFoldingLineList(List.from(list), 0);
       state = state.copyWith(list: list, visibleList: newVisibleList);
       return destIndex;
@@ -239,9 +229,10 @@ class MemoNotifier extends _$MemoNotifier {
   void addLineToNext(int index) {
     var next = index + 1;
     List<MemoLineState> list = List.from(state.list);
-    for (int i = next; i < list.length; i++) {
-      list[i] = list[i].copyWith(index: list[i].index + 1);
-    }
+    list = [
+      ...list.sublist(0, next),
+      ...list.sublist(next).map((item) => item.copyWith(index: item.index + 1)),
+    ];
     List<MemoLineState> front = index == 0
         ? [list[0]]
         : [...list.sublist(0, index + 1)];
@@ -400,11 +391,11 @@ class MemoNotifier extends _$MemoNotifier {
     if (state.list.length - 1 < index) return;
     List<MemoLineState> list = List.from(state.list);
     list.removeAt(index);
-    for (int i = 0; i < list.length; i++) {
-      if (i == index) {
-        list[i] = list[i].copyWith(index: i);
-      }
-    }
+    list = list
+        .asMap()
+        .entries
+        .map((e) => e.value.copyWith(index: e.key))
+        .toList();
     removeFocusNode(index);
     if (list.isNotEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
@@ -507,9 +498,7 @@ class MemoNotifier extends _$MemoNotifier {
   void syncFocusNodesWithList() {
     if (state.list.length != _focusNodes.length) {
       _focusNodes.clear();
-      for (int i = 0; i < state.list.length; i++) {
-        _focusNodes.add(FocusNode());
-      }
+      _focusNodes.addAll(List.generate(state.list.length, (_) => FocusNode()));
     }
   }
 
