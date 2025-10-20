@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:tree/app_router.dart';
 import 'package:tree/gen/assets.gen.dart';
 import 'package:tree/src/util/app_utils.dart';
@@ -13,12 +12,18 @@ import 'package:tree/src/view/pages/home/home_notifier.dart';
 import 'package:tree/src/view/pages/home/widgets/cloud_download_button.dart';
 import 'package:tree/src/view/widgets/safe_appbar_view.dart';
 
-class HomeView extends ConsumerWidget {
+class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends ConsumerState<HomeView> {
+  @override
+  Widget build(BuildContext context) {
     final homeState = ref.watch(homeProvider);
+
     return SafeAppBarView(
       appBar: AppBar(
         title: Text('Tree', style: TextStyle(color: Colors.white)),
@@ -149,11 +154,9 @@ class HomeView extends ConsumerWidget {
                                   );
                                   break;
                                 case 'share':
-                                  var dir =
-                                      await getApplicationDocumentsDirectory();
-                                  var _ = await AppUtils.shareFile(
-                                    '${dir.path}/$fileName.tmson',
-                                  );
+                                  await ref
+                                      .read(homeProvider.notifier)
+                                      .shareFile(fileName);
                                   break;
                                 case 'export':
                                   await ref
@@ -173,7 +176,7 @@ class HomeView extends ConsumerWidget {
                                   });
                                   break;
                                 case 'delete':
-                                  AppUtils.showYesNoDialogAlternative(
+                                  AppUtils.showYesNoDialogAlternativeDestructive(
                                     const Text('削除の確認'),
                                     Text('"$fileName" を削除しますか？'),
                                     () async {

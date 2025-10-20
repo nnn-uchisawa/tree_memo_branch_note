@@ -105,7 +105,7 @@ class CloudDownloadButton extends ConsumerWidget {
                                   ).pop();
                                 }
                                 // 確認ダイアログ（共通UIに合わせる）
-                                AppUtils.showYesNoDialogAlternative(
+                                AppUtils.showYesNoDialogAlternativeDestructive(
                                   const Text('削除の確認'),
                                   Text('クラウドから "$name" を削除しますか？'),
                                   () async {

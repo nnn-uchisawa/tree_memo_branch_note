@@ -18,56 +18,58 @@ class WalkThroughView extends StatelessWidget {
       description: "ページ上部にあるボタンで直感的に操作できます",
     ),
     OnBoardingPage(
-      image: Assets.images.tutorial.a3.image(width: 534, height: 300),
+      image: Assets.images.tutorial.a3.image(width: 600, height: 236),
       title: "テンプレート運用も可能",
       description: "コピー機能を活用すればテンプレート運用も可能です",
     ),
     OnBoardingPage(
-      image: Assets.images.tutorial.a4.image(width: 300, height: 300),
+      image: Assets.images.tutorial.a4.image(width: 300, height: 400),
       title: "データシェアも簡単",
       description: "データを独自形式や.txt形式で簡単にシェアできます",
     ),
     OnBoardingPage(
-      image: null,
-      title: "さあ、始めましょう！",
-      description: "",
+      image: Assets.images.tutorial.a5.image(width: 300, height: 400),
+      title: "クラウドに保存も可能",
+      description: "データをクラウドに保存することで、他のデバイスからもアクセスできます\n(ログイン情報は保持しません)",
     ),
+    OnBoardingPage(image: null, title: "さあ、始めましょう！", description: ""),
   ];
 
-  WalkThroughView({
-    super.key,
-  });
+  WalkThroughView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(builder: (context, ref, widget) {
-      return OnBoardingSlider(
-        headerBackgroundColor: Colors.blue,
-        pageBackgroundColor: Colors.blue,
-        controllerColor: Colors.white,
-        speed: 0,
-        totalPage: 5,
-        centerBackground: true,
-        background: [...list.map((e) => const OnBoardingPageBackground())],
-        pageBodies: [...list],
-        onFinish: () {
-          const HomeRoute().replace(context);
-          // context.go(HomeView.routeName);
-        },
-        finishButtonText: "使用を開始する",
-        finishButtonStyle: const FinishButtonStyle(
+    return Consumer(
+      builder: (context, ref, widget) {
+        return OnBoardingSlider(
+          headerBackgroundColor: Colors.blue,
+          pageBackgroundColor: Colors.blue,
+          controllerColor: Colors.white,
+          speed: 0,
+          totalPage: 6,
+          centerBackground: true,
+          background: [...list.map((e) => const OnBoardingPageBackground())],
+          pageBodies: [...list],
+          onFinish: () {
+            const HomeRoute().replace(context);
+            // context.go(HomeView.routeName);
+          },
+          finishButtonText: "使用を開始する",
+          finishButtonStyle: const FinishButtonStyle(
             hoverColor: Colors.blue,
             focusColor: Colors.blue,
             splashColor: Colors.blue,
-            backgroundColor: Colors.blue),
-        indicatorPosition: 20,
-        indicatorAbove: true,
-        hasSkip: true,
-        skipTextButton: const Text(
-          "skip",
-          style: TextStyle(color: Colors.white),
-        ),
-      );
-    });
+            backgroundColor: Colors.blue,
+          ),
+          indicatorPosition: 20,
+          indicatorAbove: true,
+          hasSkip: true,
+          skipTextButton: const Text(
+            "skip",
+            style: TextStyle(color: Colors.white),
+          ),
+        );
+      },
+    );
   }
 }

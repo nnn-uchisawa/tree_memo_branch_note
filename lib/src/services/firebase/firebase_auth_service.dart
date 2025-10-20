@@ -152,6 +152,30 @@ class FirebaseAuthService {
   /// ユーザーメールアドレスを取得
   static String? get email => currentUser?.email;
 
+  /// トークンの有効性をチェック（Firebase に実リクエストを送って確認）
+  static Future<bool> validateToken() async {
+    try {
+      final user = currentUser;
+      if (user == null) return false;
+      
+      // ネットワークエラーを考慮してタイムアウトを設定
+      await user.getIdToken(true).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Token validation timeout');
+        },
+      );
+      return true;
+    } on FirebaseAuthException {
+      // トークン切れや認証エラー
+      return false;
+    } catch (e) {
+      // ネットワークエラーやタイムアウトの場合は既存セッションを維持
+      // ログアウトは行わない
+      return true;
+    }
+  }
+
   /// Apple サインイン（nonceあり版 - デバッグ用）
   static Future<UserCredential?> signInWithAppleWithNonce() async {
     try {

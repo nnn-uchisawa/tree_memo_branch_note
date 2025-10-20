@@ -29,40 +29,50 @@ class SharedPreference {
         false;
   }
 
-  // 認証関連のキー
+  // 認証関連のキー（セッション永続化用）
   static const String _isLoggedInKey = 'is_logged_in';
-  static const String _userIdKey = 'user_id';
-  static const String _userEmailKey = 'user_email';
-  static const String _userDisplayNameKey = 'user_display_name';
-  static const String _authProviderKey = 'auth_provider'; // 'google' or 'apple'
+  static const String _sessionTimestampKey = 'session_timestamp';
+  static const String _lastLoginProviderKey = 'last_login_provider';
 
-  /// ログイン状態を保存
-  static Future<void> saveLoginState({
-    required String userId,
-    required String email,
-    required String displayName,
-    required String authProvider,
-  }) async {
+  /// ログイン状態を保存（セッション情報も保存）
+  static Future<void> saveLoginState({String? provider}) async {
     await prefs.setBool(_isLoggedInKey, true);
-    await prefs.setString(_userIdKey, userId);
-    await prefs.setString(_userEmailKey, email);
-    await prefs.setString(_userDisplayNameKey, displayName);
-    await prefs.setString(_authProviderKey, authProvider);
+    await prefs.setInt(
+      _sessionTimestampKey,
+      DateTime.now().millisecondsSinceEpoch,
+    );
+    if (provider != null) {
+      await prefs.setString(_lastLoginProviderKey, provider);
+    }
   }
 
   /// ログイン状態をクリア
   static Future<void> clearLoginState() async {
     await prefs.setBool(_isLoggedInKey, false);
-    await prefs.remove(_userIdKey);
-    await prefs.remove(_userEmailKey);
-    await prefs.remove(_userDisplayNameKey);
-    await prefs.remove(_authProviderKey);
+    await prefs.remove(_sessionTimestampKey);
+    await prefs.remove(_lastLoginProviderKey);
   }
 
   /// ログイン状態を取得
   static bool get isLoggedIn => prefs.getBool(_isLoggedInKey) ?? false;
-  static String? get userId => prefs.getString(_userIdKey);
-  static String? get userEmail => prefs.getString(_userEmailKey);
-  static String? get userDisplayName => prefs.getString(_userDisplayNameKey);
-  static String? get authProvider => prefs.getString(_authProviderKey);
+
+  /// セッションのタイムスタンプを取得
+  static int? get sessionTimestamp => prefs.getInt(_sessionTimestampKey);
+
+  /// 最後のログインプロバイダーを取得
+  static String? get lastLoginProvider =>
+      prefs.getString(_lastLoginProviderKey);
+
+  /// セッションが有効かチェック（24時間以内）
+  static bool get isSessionValid {
+    final timestamp = sessionTimestamp;
+    if (timestamp == null) return false;
+
+    final sessionTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final now = DateTime.now();
+    final difference = now.difference(sessionTime);
+
+    // 24時間以内のセッションは有効
+    return difference.inHours < 24;
+  }
 }

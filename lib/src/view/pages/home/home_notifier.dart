@@ -4,11 +4,11 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
-// ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tree/src/services/firebase/firebase_auth_service.dart';
+import 'package:tree/src/repositories/repository_providers.dart';
 import 'package:tree/src/services/firebase/firebase_storage_service.dart';
 import 'package:tree/src/util/app_utils.dart';
+import 'package:tree/src/view/pages/auth/auth_notifier.dart';
 import 'package:tree/src/view/pages/home/home_state.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
 import 'package:tree/src/view/pages/memo/memo_state.dart';
@@ -27,6 +27,10 @@ class HomeNotifier extends _$HomeNotifier {
   Future<void> updateFileNames() async {
     final fileNames = await getFileNameList();
     state = state.copyWith(fileNames: fileNames);
+
+    // 既存ファイルのマイグレーション処理
+    final fileRepository = ref.read(fileRepositoryProvider);
+    await fileRepository.migrateExistingFiles();
   }
 
   /// txtファイルの内容をMemoStateに変換する（プライベート）
@@ -194,31 +198,20 @@ class HomeNotifier extends _$HomeNotifier {
     );
   }
 
-  Future<MemoState> getMemoState(String fileName) async {
-    var dir = await getApplicationDocumentsDirectory();
-
-    File file = dir.listSync().whereType<File>().where((File f) {
-      return f.uri.pathSegments.last == '$fileName.tmson';
-    }).first;
-    String jsonString = await file.readAsString();
-    Map<String, dynamic> j = json.decode(jsonString);
-    var memoState = MemoState.fromJson(j);
+  Future<MemoState> getMemoState(String displayName) async {
+    final fileRepository = ref.read(fileRepositoryProvider);
+    final memoState = await fileRepository.loadMemoStateFromDisplayName(
+      displayName,
+    );
+    if (memoState == null) {
+      throw Exception('ファイルが見つかりません: $displayName');
+    }
     return memoState;
   }
 
   Future<List<String>> getFileNameList() async {
-    var dir = await getApplicationDocumentsDirectory();
-
-    List<String> fileNames = dir
-        .listSync()
-        .whereType<File>()
-        .map((File f) => f.uri.pathSegments.last)
-        .where((String s) {
-          return s.split('.').last == "tmson";
-        })
-        .map((String s) => s.split('.').first)
-        .toList();
-    return fileNames;
+    final fileRepository = ref.read(fileRepositoryProvider);
+    return await fileRepository.getAllDisplayNames();
   }
 
   void saveFileToDocuments(File file) async {
@@ -281,85 +274,31 @@ class HomeNotifier extends _$HomeNotifier {
     state = state.copyWith(memoState: memoState);
   }
 
-  Future<void> deleteFileFromName(String fileName) async {
-    var dir = await getApplicationDocumentsDirectory();
-    var path = '${dir.path}/$fileName.tmson';
-    var file = File(path);
-    await file.delete();
-    // ファイルリストを更新
-    await updateFileNames();
+  Future<void> deleteFileFromName(String displayName) async {
+    try {
+      final fileRepository = ref.read(fileRepositoryProvider);
+      await fileRepository.deleteFileByDisplayName(displayName);
+      // ファイルリストを更新
+      await updateFileNames();
+    } catch (e) {
+      AppUtils.showSnackBar('ファイルが見つかりません: $displayName');
+    }
   }
 
-  Future<void> copyFile(String fileName) async {
+  Future<void> copyFile(String displayName) async {
     try {
-      var dir = await getApplicationDocumentsDirectory();
-      var originalPath = '${dir.path}/$fileName.tmson';
-      var originalFile = File(originalPath);
-
-      if (!await originalFile.exists()) {
-        AppUtils.showSnackBar('コピー元のファイルが存在しません');
-        return;
-      }
-
-      // 新しいファイル名を生成（重複チェック付き）
-      String newFileName = await _generateUniqueFileName(fileName);
-      var newPath = '${dir.path}/$newFileName.tmson';
-      var newFile = File(newPath);
-
-      // ファイルの内容を読み取ってコピー
-      String content = await originalFile.readAsString();
-      await newFile.writeAsString(content);
+      final fileRepository = ref.read(fileRepositoryProvider);
+      await fileRepository.copyFileByDisplayName(displayName);
 
       // ファイルリストを更新
       await updateFileNames();
 
-      AppUtils.showSnackBar('ファイルをコピーしました: $newFileName');
-      log('ファイルコピー成功: $fileName -> $newFileName');
+      AppUtils.showSnackBar('ファイルをコピーしました');
+      log('ファイルコピー成功: $displayName');
     } catch (e) {
       log('copyFile エラー: $e');
       AppUtils.showSnackBar('ファイルのコピーに失敗しました');
     }
-  }
-
-  /// ユニークなファイル名を生成する（プライベート）
-  Future<String> _generateUniqueFileName(String originalFileName) async {
-    String baseFileName = originalFileName;
-    String newFileName = baseFileName;
-    int counter = 1;
-
-    // 既存のファイル名をすべて取得
-    List<String> existingFileNames = await getFileNameList();
-
-    // 元のファイル名に(n)が既に付いている場合の処理
-    RegExp regExp = RegExp(r'^(.+)\((\d+)\)$');
-    Match? match = regExp.firstMatch(originalFileName);
-    if (match != null) {
-      baseFileName = match.group(1)!;
-      // 既存の番号は無視して、新しい番号を付ける
-    }
-
-    // ユニークなファイル名を生成
-    while (existingFileNames.contains(newFileName)) {
-      newFileName = '$baseFileName($counter)';
-      counter++;
-    }
-
-    return newFileName;
-  }
-
-  /// ファイル名からMemoStateを読み込む共通処理
-  Future<MemoState> _loadMemoStateFromFile(String fileName) async {
-    var dir = await getApplicationDocumentsDirectory();
-    var filePath = '${dir.path}/$fileName.tmson';
-    var file = File(filePath);
-
-    if (!await file.exists()) {
-      throw Exception('ファイルが存在しません');
-    }
-
-    String jsonString = await file.readAsString();
-    Map<String, dynamic> j = json.decode(jsonString);
-    return MemoState.fromJson(j);
   }
 
   /// MemoStateをテキスト形式に変換する共通処理
@@ -379,24 +318,30 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   /// ファイル名からテキスト形式に変換する共通処理
-  Future<String> _convertFileToText(String fileName) async {
-    final memoState = await _loadMemoStateFromFile(fileName);
+  Future<String> _convertFileToText(String displayName) async {
+    final fileRepository = ref.read(fileRepositoryProvider);
+    final memoState = await fileRepository.loadMemoStateFromDisplayName(
+      displayName,
+    );
+    if (memoState == null) {
+      throw Exception('ファイルが見つかりません: $displayName');
+    }
     return _convertMemoStateToText(memoState);
   }
 
-  Future<void> exportFileAsTxt(String fileName) async {
+  Future<void> exportFileAsTxt(String displayName) async {
     try {
       // ファイルをテキストに変換
-      String txtContent = await _convertFileToText(fileName);
+      String txtContent = await _convertFileToText(displayName);
 
       // tmpディレクトリにtxtファイル作成
       final tmpDir = await getTemporaryDirectory();
-      final txtPath = '${tmpDir.path}/$fileName.txt';
+      final txtPath = '${tmpDir.path}/$displayName.txt';
       final txtFile = File(txtPath);
       await txtFile.writeAsString(txtContent);
 
       // Share起動
-      await AppUtils.shareFile(txtFile.path, fileName: '$fileName.txt');
+      await AppUtils.shareFile(txtFile.path, fileName: '$displayName.txt');
     } on Exception catch (e) {
       log('exportFileAsTxt エラー: $e');
       AppUtils.showSnackBar('エクスポート元のファイルが存在しません');
@@ -406,10 +351,10 @@ class HomeNotifier extends _$HomeNotifier {
     }
   }
 
-  Future<void> copyToClipboard(String fileName) async {
+  Future<void> copyToClipboard(String displayName) async {
     try {
       // ファイルをテキストに変換
-      String txtContent = await _convertFileToText(fileName);
+      String txtContent = await _convertFileToText(displayName);
 
       // クリップボードにコピー
       await AppUtils.copyToClipboard(txtContent);
@@ -420,6 +365,27 @@ class HomeNotifier extends _$HomeNotifier {
     } catch (e) {
       log('copyToClipboard エラー: $e');
       AppUtils.showSnackBar('クリップボードへのコピーに失敗しました');
+    }
+  }
+
+  /// ファイルを共有
+  Future<void> shareFile(String displayName) async {
+    try {
+      final fileRepository = ref.read(fileRepositoryProvider);
+      final physicalFileName = await fileRepository.getPhysicalFileName(
+        displayName,
+      );
+      if (physicalFileName == null) {
+        AppUtils.showSnackBar('ファイルが見つかりません: $displayName');
+        return;
+      }
+
+      final dir = await getApplicationDocumentsDirectory();
+      final filePath = '${dir.path}/$physicalFileName.tmson';
+      await AppUtils.shareFile(filePath);
+    } catch (e) {
+      log('shareFile エラー: $e');
+      AppUtils.showSnackBar('ファイルの共有に失敗しました');
     }
   }
 
@@ -442,6 +408,11 @@ class HomeNotifier extends _$HomeNotifier {
       final dir = await getApplicationDocumentsDirectory();
       final localPath = '${dir.path}/$fileName.tmson';
       await FirebaseStorageService.downloadMemo(fileName, localPath);
+
+      // ダウンロード後にfileNameが正しく設定されているか確認・修正
+      final fileRepository = ref.read(fileRepositoryProvider);
+      await fileRepository.ensureFileNameInJson(fileName);
+
       await updateFileNames();
       AppUtils.showSnackBar('ダウンロードしました: $fileName');
     } catch (e) {
@@ -456,6 +427,10 @@ class HomeNotifier extends _$HomeNotifier {
       for (final name in fileNames) {
         final localPath = '${dir.path}/$name.tmson';
         await FirebaseStorageService.downloadMemo(name, localPath);
+
+        // ダウンロード後にfileNameが正しく設定されているか確認・修正
+        final fileRepository = ref.read(fileRepositoryProvider);
+        await fileRepository.ensureFileNameInJson(name);
       }
       await updateFileNames();
       AppUtils.showSnackBar('一括ダウンロードが完了しました');
@@ -475,22 +450,32 @@ class HomeNotifier extends _$HomeNotifier {
   }
 
   /// ローカルのメモをクラウドへアップロード
-  Future<void> uploadMemoToCloud(String fileName) async {
+  Future<void> uploadMemoToCloud(String displayName) async {
     try {
-      if (!FirebaseAuthService.isSignedIn) {
+      final authState = ref.read(authProvider);
+      if (!authState.isSignedIn) {
         AppUtils.showSnackBar('ログインが必要です');
         return;
       }
 
+      final fileRepository = ref.read(fileRepositoryProvider);
+      final physicalFileName = await fileRepository.getPhysicalFileName(
+        displayName,
+      );
+      if (physicalFileName == null) {
+        AppUtils.showSnackBar('ファイルが見つかりません: $displayName');
+        return;
+      }
+
       final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/$fileName.tmson');
+      final file = File('${dir.path}/$physicalFileName.tmson');
 
       if (!await file.exists()) {
         AppUtils.showSnackBar('ファイルが見つかりません');
         return;
       }
 
-      await FirebaseStorageService.uploadMemo(fileName, file);
+      await FirebaseStorageService.uploadMemo(physicalFileName, file);
       AppUtils.showSnackBar('クラウドに保存しました');
     } catch (e) {
       AppUtils.showSnackBar('クラウド保存に失敗しました: $e');

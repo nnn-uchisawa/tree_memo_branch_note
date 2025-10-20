@@ -118,21 +118,25 @@ class $AssetsImagesTutorialGen {
   /// File path: assets/images/tutorial/3.png
   AssetGenImage get a3 => const AssetGenImage('assets/images/tutorial/3.png');
 
-  /// File path: assets/images/tutorial/4.PNG
-  AssetGenImage get a4 => const AssetGenImage('assets/images/tutorial/4.PNG');
+  /// File path: assets/images/tutorial/4.png
+  AssetGenImage get a4 => const AssetGenImage('assets/images/tutorial/4.png');
+
+  /// File path: assets/images/tutorial/5.png
+  AssetGenImage get a5 => const AssetGenImage('assets/images/tutorial/5.png');
 
   /// List of all assets
-  List<AssetGenImage> get values => [a1, a2, a3, a4];
+  List<AssetGenImage> get values => [a1, a2, a3, a4, a5];
 }
 
 class Assets {
   const Assets._();
 
-  static const String tree = 'assets/Treeの使い方.tmson';
   static const $AssetsImagesGen images = $AssetsImagesGen();
+  static const String usageOfCloud = 'assets/usage_of_cloud.tmson';
+  static const String usageOfTree = 'assets/usage_of_tree.tmson';
 
   /// List of all assets
-  static List<String> get values => [tree];
+  static List<String> get values => [usageOfCloud, usageOfTree];
 }
 
 class AssetGenImage {

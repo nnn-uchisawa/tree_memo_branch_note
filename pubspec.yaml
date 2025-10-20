@@ -136,7 +136,8 @@ flutter:
     - assets/images/tutorial/1.png
     - assets/images/tutorial/2.png
     - assets/images/tutorial/3.png
-    - assets/images/tutorial/4.PNG
+    - assets/images/tutorial/4.png
+    - assets/images/tutorial/5.png
     - assets/images/change-font-size.svg
     - assets/images/change-indent-width.svg
     - assets/images/decrease-indent.svg
@@ -158,10 +159,9 @@ flutter:
     - assets/images/line-up.svg
     - assets/images/line-down.svg
     - assets/images/profile.png
-    - assets/Treeの使い方.tmson
+    - assets/usage_of_tree.tmson
+    - assets/usage_of_cloud.tmson
     - .env
-    - .env.android
-    - .env.ios
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
@@ -193,5 +193,3 @@ flutter_gen:
   assets:
     exclude:
       - .env
-      - .env.android
-      - .env.ios
