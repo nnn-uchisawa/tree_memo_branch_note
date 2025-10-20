@@ -268,6 +268,18 @@ class AuthNotifier extends _$AuthNotifier {
           errorMessage: 'サインインがキャンセルされました',
         );
       }
+    } on Exception catch (e) {
+      String errorMessage;
+      if (e.toString().contains('network_error')) {
+        errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+      } else if (e.toString().contains('sign_in_failed')) {
+        errorMessage = 'サインインに失敗しました。もう一度お試しください。';
+      } else {
+        errorMessage = 'ログインに失敗しました: ${e.toString()}';
+      }
+
+      state = state.copyWith(isLoading: false, errorMessage: errorMessage);
+      AppUtils.showSnackBar(errorMessage);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,

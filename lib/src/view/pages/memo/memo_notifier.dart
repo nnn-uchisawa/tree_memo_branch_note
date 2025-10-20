@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/app_router.dart';
 import 'package:tree/src/repositories/repository_providers.dart';
+import 'package:tree/src/services/file/file_service.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
@@ -549,6 +550,41 @@ class MemoNotifier extends _$MemoNotifier {
     );
   }
 
+  void _showRenameOverwriteConfirmDialog(
+    String newFileName,
+    String oldFileName,
+    Function handler,
+  ) {
+    final context = AppRouter.navigatorKey.currentContext;
+    if (context == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('上書き確認'),
+        content: Text('ファイル名を変更して保存します\n（元のファイルは削除されます）'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await _performRenameOverwrite(newFileName, oldFileName);
+              handler();
+              setBaseState();
+              AppUtils.showSnackBar("ファイルをリネームしました");
+            },
+            child: const Text('上書き'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// 上書き処理を実行
   Future<void> _performOverwrite(
     String newFileName,
@@ -558,7 +594,7 @@ class MemoNotifier extends _$MemoNotifier {
     try {
       // ファイル名が変更された場合の処理
       if (currentFileName.isNotEmpty && currentFileName != newFileName) {
-        await renameFile(currentFileName, newFileName);
+        await _performRenameOverwrite(newFileName, currentFileName);
       } else {
         // 同じファイル名での保存（上書き）
         final fileRepository = ref.read(fileRepositoryProvider);
@@ -572,6 +608,28 @@ class MemoNotifier extends _$MemoNotifier {
     } catch (e) {
       log('_performOverwrite エラー: $e');
       AppUtils.showSnackBar("上書き保存に失敗しました: ${e.toString()}");
+    }
+  }
+
+  /// リネーム上書き処理を実行
+  Future<void> _performRenameOverwrite(
+    String newFileName,
+    String oldFileName,
+  ) async {
+    try {
+      // 新しいファイル名で現在の状態を保存
+      await _saveJsonToFileWithName(newFileName);
+
+      // 古いファイルを削除
+      final fileRepository = ref.read(fileRepositoryProvider);
+      await fileRepository.deleteFileByDisplayName(oldFileName);
+
+      await ref.read(homeProvider.notifier).updateFileNames();
+      AppUtils.showSnackBar("ファイルをリネームしました");
+      log('ファイルリネーム成功: $oldFileName -> $newFileName');
+    } catch (e) {
+      log('_performRenameOverwrite エラー: $e');
+      AppUtils.showSnackBar("リネームに失敗しました: ${e.toString()}");
     }
   }
 
@@ -597,22 +655,30 @@ class MemoNotifier extends _$MemoNotifier {
         return;
       }
 
-      // 既存ファイル名かどうかをチェック
-      final fileRepository = ref.read(fileRepositoryProvider);
-      final existingFileNames = await fileRepository.getAllDisplayNames();
-      final isOverwriting =
-          existingFileNames.contains(newFileName) && fileName != newFileName;
+      // ファイル名が変更された場合の処理（fileNameパラメータを使用）
+      if (newFileName.isNotEmpty && fileName != newFileName) {
+        // 保存直前にターゲット名を決定（競合時はユニーク名に）
+        final fileRepository = ref.read(fileRepositoryProvider);
+        final existingFileNames = await fileRepository.getAllDisplayNames();
+        final String targetName = existingFileNames.contains(newFileName)
+            ? await FileService.generateUniqueDisplayName(newFileName)
+            : newFileName;
 
-      if (isOverwriting) {
-        // 上書き確認ダイアログを表示
-        _showOverwriteConfirmDialog(newFileName, fileName, handler);
+        // リネーム確認ダイアログを常に表示
+        _showRenameOverwriteConfirmDialog(targetName, fileName, handler);
         return;
-      }
-
-      // ファイル名が変更された場合の処理
-      if (fileName.isNotEmpty && fileName != newFileName) {
-        await renameFile(fileName, newFileName);
       } else {
+        // 既存ファイル名かどうかをチェック（新規作成・上書き保存の場合のみ）
+        final fileRepository = ref.read(fileRepositoryProvider);
+        final existingFileNames = await fileRepository.getAllDisplayNames();
+        final isOverwriting = existingFileNames.contains(newFileName);
+
+        if (isOverwriting) {
+          // 上書き確認ダイアログを表示
+          _showOverwriteConfirmDialog(newFileName, fileName, handler);
+          return;
+        }
+
         // 新規作成または同じファイル名での保存
         await _saveJsonToFile(tec);
       }
@@ -882,37 +948,6 @@ class MemoNotifier extends _$MemoNotifier {
     }
   }
 
-  Future<void> renameFile(String oldDisplayName, String newDisplayName) async {
-    try {
-      if (oldDisplayName.trim().isEmpty || newDisplayName.trim().isEmpty) {
-        throw Exception("ファイル名が空です");
-      }
-
-      // 古いファイルが存在するかチェック
-      final fileRepository = ref.read(fileRepositoryProvider);
-      try {
-        await fileRepository.loadMemoStateFromDisplayName(oldDisplayName);
-      } catch (e) {
-        throw Exception("古いファイルが見つかりません: $oldDisplayName");
-      }
-
-      // コピーしてから古いファイルを削除する方式でリネーム
-      await fileRepository.copyFileByDisplayName(oldDisplayName);
-
-      // 新しいファイル名で保存
-      await _saveJsonToFileWithName(newDisplayName);
-
-      // 古いファイルを削除
-      await fileRepository.deleteFileByDisplayName(oldDisplayName);
-
-      await ref.read(homeProvider.notifier).updateFileNames();
-      log('ファイルリネーム成功: $oldDisplayName -> $newDisplayName');
-    } catch (e) {
-      log('renameFile エラー: $e');
-      throw Exception("ファイルリネームエラー: $e");
-    }
-  }
-
   Future<void> _saveJsonToFileWithName(String displayName) async {
     try {
       final fileRepository = ref.read(fileRepositoryProvider);
@@ -934,9 +969,6 @@ class MemoNotifier extends _$MemoNotifier {
     );
     var content = AdaptiveTextField(
       placeholder: "ファイル名",
-      onChanged: (String text) {
-        state = state.copyWith(fileName: text);
-      },
       controller: textEditingController,
     );
 
