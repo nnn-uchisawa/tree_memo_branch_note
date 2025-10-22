@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:tree/src/exceptions/authentication_exception.dart';
 import 'package:tree/src/repositories/repository_providers.dart';
 import 'package:tree/src/services/firebase/firebase_storage_service.dart';
 import 'package:tree/src/util/app_utils.dart';
@@ -396,6 +397,11 @@ class HomeNotifier extends _$HomeNotifier {
     try {
       final names = await FirebaseStorageService.getMemoFileNames();
       return names;
+    } on AuthenticationException catch (e) {
+      log('クラウド通信エラーでログアウト: ${e.message}');
+      await ref.read(authProvider.notifier).signOut();
+      AppUtils.showSnackBar('クラウド通信エラーが発生したためログアウトしました');
+      return [];
     } catch (e) {
       AppUtils.showSnackBar('クラウド一覧の取得に失敗しました: $e');
       return [];
@@ -415,6 +421,10 @@ class HomeNotifier extends _$HomeNotifier {
 
       await updateFileNames();
       AppUtils.showSnackBar('ダウンロードしました: $fileName');
+    } on AuthenticationException catch (e) {
+      log('クラウド通信エラーでログアウト: ${e.message}');
+      await ref.read(authProvider.notifier).signOut();
+      AppUtils.showSnackBar('クラウド通信エラーが発生したためログアウトしました');
     } catch (e) {
       AppUtils.showSnackBar('ダウンロードに失敗しました: $e');
     }
@@ -434,6 +444,10 @@ class HomeNotifier extends _$HomeNotifier {
       }
       await updateFileNames();
       AppUtils.showSnackBar('一括ダウンロードが完了しました');
+    } on AuthenticationException catch (e) {
+      log('クラウド通信エラーでログアウト: ${e.message}');
+      await ref.read(authProvider.notifier).signOut();
+      AppUtils.showSnackBar('クラウド通信エラーが発生したためログアウトしました');
     } catch (e) {
       AppUtils.showSnackBar('一括ダウンロードに失敗しました: $e');
     }
@@ -444,6 +458,10 @@ class HomeNotifier extends _$HomeNotifier {
     try {
       await FirebaseStorageService.deleteMemo(fileName);
       AppUtils.showSnackBar('クラウドから削除しました: $fileName');
+    } on AuthenticationException catch (e) {
+      log('クラウド通信エラーでログアウト: ${e.message}');
+      await ref.read(authProvider.notifier).signOut();
+      AppUtils.showSnackBar('クラウド通信エラーが発生したためログアウトしました');
     } catch (e) {
       AppUtils.showSnackBar('クラウド削除に失敗しました: $e');
     }
@@ -477,6 +495,10 @@ class HomeNotifier extends _$HomeNotifier {
 
       await FirebaseStorageService.uploadMemo(physicalFileName, file);
       AppUtils.showSnackBar('クラウドに保存しました');
+    } on AuthenticationException catch (e) {
+      log('クラウド通信エラーでログアウト: ${e.message}');
+      await ref.read(authProvider.notifier).signOut();
+      AppUtils.showSnackBar('クラウド通信エラーが発生したためログアウトしました');
     } catch (e) {
       AppUtils.showSnackBar('クラウド保存に失敗しました: $e');
     }

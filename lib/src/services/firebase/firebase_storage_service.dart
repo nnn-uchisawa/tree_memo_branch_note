@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:tree/src/exceptions/authentication_exception.dart';
 import 'package:tree/src/services/firebase/firebase_auth_service.dart';
 import 'package:tree/src/services/firebase/firebase_service.dart';
 
@@ -33,6 +34,9 @@ class FirebaseStorageService {
       final ref = _storage.ref().child(path);
 
       await ref.putFile(file);
+    } on FirebaseException catch (e) {
+      log('メモアップロードFirebaseエラー: ${e.code} - ${e.message}');
+      throw AuthenticationException('クラウド通信エラーが発生しました', code: e.code);
     } catch (e) {
       log('メモアップロードエラー: $e');
       rethrow;
@@ -56,6 +60,9 @@ class FirebaseStorageService {
       final file = File(localPath);
       await ref.writeToFile(file);
       return file;
+    } on FirebaseException catch (e) {
+      log('メモダウンロードFirebaseエラー: ${e.code} - ${e.message}');
+      throw AuthenticationException('クラウド通信エラーが発生しました', code: e.code);
     } catch (e) {
       log('メモダウンロードエラー: $e');
       rethrow;
@@ -79,6 +86,9 @@ class FirebaseStorageService {
       return result.items
           .map((item) => item.name.replaceAll('.tmson', ''))
           .toList();
+    } on FirebaseException catch (e) {
+      log('メモファイル一覧取得Firebaseエラー: ${e.code} - ${e.message}');
+      throw AuthenticationException('クラウド通信エラーが発生しました', code: e.code);
     } catch (e) {
       log('メモファイル一覧取得エラー: $e');
       rethrow;
@@ -100,6 +110,9 @@ class FirebaseStorageService {
       final ref = _storage.ref().child(path);
 
       await ref.delete();
+    } on FirebaseException catch (e) {
+      log('メモファイル削除Firebaseエラー: ${e.code} - ${e.message}');
+      throw AuthenticationException('クラウド通信エラーが発生しました', code: e.code);
     } catch (e) {
       log('メモファイル削除エラー: $e');
       rethrow;
