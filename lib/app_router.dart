@@ -7,6 +7,7 @@ import 'package:tree/src/util/shared_preference.dart';
 import 'package:tree/src/view/pages/home/home_view.dart';
 import 'package:tree/src/view/pages/memo/memo_state.dart';
 import 'package:tree/src/view/pages/memo/memo_view.dart';
+import 'package:tree/src/view/pages/settings/settings_view.dart';
 import 'package:tree/src/view/pages/walk_through/walk_through_view.dart';
 
 part 'app_router.g.dart';
@@ -94,4 +95,12 @@ class MemoRoute extends GoRouteData with $MemoRoute {
   const MemoRoute();
   @override
   Widget build(BuildContext context, GoRouterState state) => const MemoView();
+}
+
+@TypedGoRoute<SettingsRoute>(path: '/settings')
+class SettingsRoute extends GoRouteData with $SettingsRoute {
+  const SettingsRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SettingsView();
 }

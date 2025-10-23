@@ -102,6 +102,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
               color: Colors.white,
             ),
           ),
+          IconButton(
+            onPressed: () {
+              const SettingsRoute().push(context);
+            },
+            icon: const Icon(Icons.settings, size: 25, color: Colors.white),
+          ),
         ],
       ),
       body: ListView.builder(
