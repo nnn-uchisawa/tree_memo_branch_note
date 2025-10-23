@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:math' show Random;
 
 import 'package:crypto/crypto.dart';
@@ -143,6 +144,25 @@ class FirebaseAuthService {
     }
   }
 
+  /// 認証状態を完全にクリア（アカウント削除後用）
+  static Future<void> clearAuthState() async {
+    try {
+      // Firebase認証からサインアウト
+      await _auth.signOut();
+
+      // Google Sign-inからもサインアウト
+      await _googleSignIn.signOut();
+
+      // Google Sign-inのキャッシュをクリア
+      await _googleSignIn.disconnect();
+
+      log('認証状態を完全にクリアしました');
+    } catch (e) {
+      log('認証状態クリアエラー: $e');
+      // エラーが発生しても処理を続行
+    }
+  }
+
   /// ユーザーIDを取得
   static String? get userId => currentUser?.uid;
 
@@ -157,14 +177,16 @@ class FirebaseAuthService {
     try {
       final user = currentUser;
       if (user == null) return false;
-      
+
       // ネットワークエラーを考慮してタイムアウトを設定
-      await user.getIdToken(true).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Token validation timeout');
-        },
-      );
+      await user
+          .getIdToken(true)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw Exception('Token validation timeout');
+            },
+          );
       return true;
     } on FirebaseAuthException {
       // トークン切れや認証エラー
@@ -173,6 +195,156 @@ class FirebaseAuthService {
       // ネットワークエラーやタイムアウトの場合は既存セッションを維持
       // ログアウトは行わない
       return true;
+    }
+  }
+
+  /// アカウント削除
+  static Future<void> deleteAccount() async {
+    try {
+      final user = currentUser;
+      if (user == null) {
+        throw Exception('ユーザーが認証されていません');
+      }
+
+      log('アカウント削除開始: ${user.uid}');
+
+      try {
+        // アカウント削除を実行
+        await user.delete();
+
+        log('アカウント削除完了: ${user.uid}');
+
+        // 削除後の確認（少し待ってから確認）
+        await Future.delayed(const Duration(seconds: 1));
+
+        // 削除が成功したか確認
+        final currentUserAfterDelete = currentUser;
+        if (currentUserAfterDelete != null) {
+          log('警告: アカウント削除後もユーザーが存在します: ${currentUserAfterDelete.uid}');
+        } else {
+          log('アカウント削除確認: ユーザーが正常に削除されました');
+        }
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'requires-recent-login') {
+          log('再認証が必要です。自動で再認証を実行します。');
+          await _reauthenticateUser(user);
+
+          // 再認証後、再度削除を試行
+          log('再認証後、アカウント削除を再試行');
+          await user.delete();
+
+          log('再認証後のアカウント削除完了: ${user.uid}');
+        } else {
+          rethrow;
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      log('Firebase認証エラー: ${e.code} - ${e.message}');
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'ユーザーが見つかりません。既に削除されている可能性があります。';
+          break;
+        case 'invalid-user-token':
+          errorMessage = '認証トークンが無効です。再度ログインしてください。';
+          break;
+        case 'user-token-expired':
+          errorMessage = '認証トークンが期限切れです。再度ログインしてください。';
+          break;
+        case 'network-request-failed':
+          errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+          break;
+        default:
+          errorMessage = 'アカウント削除に失敗しました: ${e.code} - ${e.message}';
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      log('アカウント削除エラー: $e');
+      rethrow;
+    }
+  }
+
+  /// ユーザーの再認証
+  static Future<void> _reauthenticateUser(User user) async {
+    try {
+      // ユーザーのプロバイダー情報を取得
+      final providerData = user.providerData;
+
+      for (final provider in providerData) {
+        try {
+          if (provider.providerId == 'google.com') {
+            log('Google再認証を実行');
+            await _reauthenticateWithGoogle();
+            return;
+          } else if (provider.providerId == 'apple.com') {
+            log('Apple再認証を実行');
+            await _reauthenticateWithApple();
+            return;
+          }
+        } catch (e) {
+          log('${provider.providerId}再認証エラー: $e');
+          continue;
+        }
+      }
+
+      throw Exception('再認証に失敗しました。対応する認証プロバイダーが見つかりません。');
+    } catch (e) {
+      log('再認証エラー: $e');
+      rethrow;
+    }
+  }
+
+  /// Google再認証
+  static Future<void> _reauthenticateWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        throw Exception('Google再認証がキャンセルされました');
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await FirebaseAuth.instance.currentUser?.reauthenticateWithCredential(
+        credential,
+      );
+      log('Google再認証完了');
+    } catch (e) {
+      log('Google再認証エラー: $e');
+      rethrow;
+    }
+  }
+
+  /// Apple再認証
+  static Future<void> _reauthenticateWithApple() async {
+    try {
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      if (appleCredential.identityToken == null) {
+        throw Exception('Apple認証でidentityTokenが取得できませんでした');
+      }
+
+      final oauthCredential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        accessToken: appleCredential.authorizationCode,
+      );
+
+      await FirebaseAuth.instance.currentUser?.reauthenticateWithCredential(
+        oauthCredential,
+      );
+      log('Apple再認証完了');
+    } catch (e) {
+      log('Apple再認証エラー: $e');
+      rethrow;
     }
   }
 

@@ -139,4 +139,29 @@ class FirebaseStorageService {
       return false;
     }
   }
+
+  /// 指定したユーザーIDの全メモを削除
+  static Future<void> deleteAllMemosForUser(String userId) async {
+    try {
+      if (!FirebaseService.isInitialized) {
+        await FirebaseService.initialize();
+      }
+
+      final path = 'users/$userId/memos';
+      final ref = _storage.ref().child(path);
+      final result = await ref.listAll();
+
+      for (final item in result.items) {
+        await item.delete();
+      }
+
+      log('ユーザー $userId の全メモを削除しました');
+    } on FirebaseException catch (e) {
+      log('ユーザー $userId のメモ削除Firebaseエラー: ${e.code} - ${e.message}');
+      throw AuthenticationException('クラウド通信エラーが発生しました', code: e.code);
+    } catch (e) {
+      log('ユーザー $userId のメモ削除エラー: $e');
+      rethrow;
+    }
+  }
 }
