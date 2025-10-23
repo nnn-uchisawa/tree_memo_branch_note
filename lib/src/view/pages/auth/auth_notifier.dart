@@ -3,8 +3,10 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:tree/src/repositories/repository_providers.dart';
 import 'package:tree/src/services/firebase/firebase_auth_service.dart';
 import 'package:tree/src/services/firebase/firebase_service.dart';
+import 'package:tree/src/services/firebase/firebase_storage_service.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/util/shared_preference.dart';
 
@@ -21,6 +23,9 @@ class AuthNotifier extends _$AuthNotifier {
 
     // SharedPreferences を初期化
     SharedPreference.init();
+
+    // 既存ユーザー向けのマイグレーション処理
+    SharedPreference.migrateFromOldProviderFlags();
 
     // 認証状態の監視を開始
     _listenToAuthState();
@@ -151,6 +156,19 @@ class AuthNotifier extends _$AuthNotifier {
       }
 
       await SharedPreference.saveLoginState(provider: provider);
+
+      log('ログイン時のUID保存: ${user.uid}');
+
+      // プロバイダー連携フラグを設定（後方互換性のため）
+      if (provider == 'apple') {
+        await SharedPreference.setAppleLinked(true);
+        await SharedPreference.addAppleLinkedUserId(user.uid);
+        log('Apple UIDを保存: ${user.uid}');
+      } else if (provider == 'google') {
+        await SharedPreference.setGoogleLinked(true);
+        await SharedPreference.addGoogleLinkedUserId(user.uid);
+        log('Google UIDを保存: ${user.uid}');
+      }
     } catch (e) {
       log('ログイン状態保存エラー: $e');
     }
@@ -409,6 +427,196 @@ class AuthNotifier extends _$AuthNotifier {
       final errorMessage = '登録を完了できませんでした（nonceあり）: ${e.toString()}';
       state = state.copyWith(isLoading: false, errorMessage: errorMessage);
       AppUtils.showSnackBar(errorMessage);
+    }
+  }
+
+  /// 個別アカウントを削除（認証→削除）
+  Future<void> deleteIndividualAccount(String provider) async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+
+      log('個別アカウント削除開始: $provider');
+
+      // 現在の認証状態を確認
+      final isCurrentlySignedIn = FirebaseAuthService.isSignedIn;
+      log('現在の認証状態: $isCurrentlySignedIn');
+
+      if (!isCurrentlySignedIn) {
+        // ログアウト状態の場合は、まずログインを促す
+        throw Exception('アカウント削除にはログインが必要です。先にログインしてください。');
+      }
+
+      // 現在のユーザーIDを取得
+      final currentUserId = FirebaseAuthService.userId;
+      if (currentUserId == null) {
+        throw Exception('ユーザーIDが取得できません');
+      }
+
+      log('現在のユーザーID: $currentUserId');
+
+      // SharedPreferenceに保存されているUIDを確認
+      final savedAppleIds = await SharedPreference.getAppleLinkedUserIds();
+      final savedGoogleIds = await SharedPreference.getGoogleLinkedUserIds();
+      log('SharedPreferenceに保存されているUID:');
+      log('- Apple: $savedAppleIds');
+      log('- Google: $savedGoogleIds');
+
+      // 現在のユーザーIDがリストに含まれているか確認
+      bool isCurrentUserInList = false;
+      if (provider.toLowerCase() == 'apple') {
+        isCurrentUserInList = savedAppleIds.contains(currentUserId);
+      } else if (provider.toLowerCase() == 'google') {
+        isCurrentUserInList = savedGoogleIds.contains(currentUserId);
+      }
+
+      if (!isCurrentUserInList) {
+        throw Exception('現在のアカウントが連携リストに含まれていません');
+      }
+
+      // 1. 現在のアカウントのクラウドメモを削除
+      log('現在のアカウントのクラウドメモ削除開始');
+      await _deleteAllCloudMemos();
+      log('現在のアカウントのクラウドメモ削除完了');
+
+      // 2. 現在のアカウントを削除（再認証が必要な場合は自動で実行される）
+      await FirebaseAuthService.deleteAccount();
+      log('個別アカウント削除完了: $provider');
+
+      // 3. 認証状態を完全にクリア（自動ログインを防ぐため）
+      await FirebaseAuthService.clearAuthState();
+      log('認証状態を完全にクリアしました');
+
+      await _clearLoginState();
+
+      // 4. 現在のユーザーIDをリストから削除
+      if (provider.toLowerCase() == 'apple') {
+        await SharedPreference.removeAppleLinkedUserId(currentUserId);
+        // リストが空になったらフラグもクリア
+        final remainingIds = await SharedPreference.getAppleLinkedUserIds();
+        if (remainingIds.isEmpty) {
+          await SharedPreference.setAppleLinked(false);
+        }
+        log('Apple連携から現在のユーザーIDを削除');
+      } else if (provider.toLowerCase() == 'google') {
+        await SharedPreference.removeGoogleLinkedUserId(currentUserId);
+        // リストが空になったらフラグもクリア
+        final remainingIds = await SharedPreference.getGoogleLinkedUserIds();
+        if (remainingIds.isEmpty) {
+          await SharedPreference.setGoogleLinked(false);
+        }
+        log('Google連携から現在のユーザーIDを削除');
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        isSignedIn: false,
+        userId: null,
+        displayName: null,
+        email: null,
+      );
+
+      AppUtils.showSnackBar('$provider認証を解除しました（このアカウントのクラウドメモは削除されました）');
+    } catch (e) {
+      log('個別アカウント削除エラー: $e');
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: '認証解除に失敗しました: ${e.toString()}',
+      );
+      AppUtils.showSnackBar('認証解除に失敗しました: ${e.toString()}');
+      rethrow;
+    }
+  }
+
+  /// 現在のアカウントのクラウドメモを削除
+  Future<void> _deleteAllCloudMemos() async {
+    try {
+      final cloudFileNames = await FirebaseStorageService.getMemoFileNames();
+      for (final fileName in cloudFileNames) {
+        await FirebaseStorageService.deleteMemo(fileName);
+      }
+    } catch (e) {
+      log('クラウドメモ削除エラー: $e');
+      // クラウド削除エラーは致命的ではないため、続行
+    }
+  }
+
+  /// アカウントとメモを完全削除（現在のアカウントのみ）
+  Future<void> deleteAccountWithMemos() async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+
+      log('アカウント完全削除開始');
+
+      // 現在のアカウントのクラウドメモを削除
+      log('現在のアカウントのクラウドメモ削除開始');
+      await _deleteAllCloudMemos();
+      log('現在のアカウントのクラウドメモ削除完了');
+
+      // ローカルのメモを全て削除
+      log('ローカルメモ削除開始');
+      await _deleteAllLocalMemos();
+      log('ローカルメモ削除完了');
+
+      // Firebaseアカウントを削除
+      log('Firebaseアカウント削除開始');
+      await FirebaseAuthService.deleteAccount();
+      log('Firebaseアカウント削除完了');
+
+      await _clearLoginState();
+
+      // 現在のユーザーIDを全プロバイダーから削除
+      final currentUserId = state.userId;
+      if (currentUserId != null) {
+        await SharedPreference.removeAppleLinkedUserId(currentUserId);
+        await SharedPreference.removeGoogleLinkedUserId(currentUserId);
+
+        // 各プロバイダーのリストが空になったらフラグもクリア
+        final remainingAppleIds =
+            await SharedPreference.getAppleLinkedUserIds();
+        final remainingGoogleIds =
+            await SharedPreference.getGoogleLinkedUserIds();
+
+        if (remainingAppleIds.isEmpty) {
+          await SharedPreference.setAppleLinked(false);
+        }
+        if (remainingGoogleIds.isEmpty) {
+          await SharedPreference.setGoogleLinked(false);
+        }
+      }
+      log('プロバイダー連携から現在のユーザーIDを削除');
+
+      state = state.copyWith(
+        isLoading: false,
+        isSignedIn: false,
+        userId: null,
+        displayName: null,
+        email: null,
+      );
+
+      AppUtils.showSnackBar('アカウントとメモを完全削除しました');
+      log('アカウント完全削除完了');
+    } catch (e) {
+      log('アカウント完全削除エラー: $e');
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'アカウント削除に失敗しました: ${e.toString()}',
+      );
+      AppUtils.showSnackBar('アカウント削除に失敗しました: ${e.toString()}');
+      rethrow;
+    }
+  }
+
+  /// ローカルのメモを全て削除
+  Future<void> _deleteAllLocalMemos() async {
+    try {
+      final fileRepository = ref.read(fileRepositoryProvider);
+      final fileNames = await fileRepository.getAllDisplayNames();
+      for (final fileName in fileNames) {
+        await fileRepository.deleteFileByDisplayName(fileName);
+      }
+    } catch (e) {
+      log('ローカルメモ削除エラー: $e');
+      // ローカル削除エラーは致命的ではないため、続行
     }
   }
 
