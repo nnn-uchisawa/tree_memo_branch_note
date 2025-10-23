@@ -30,7 +30,7 @@ class WalkThroughView extends StatelessWidget {
     OnBoardingPage(
       image: Assets.images.tutorial.a5.image(width: 300, height: 400),
       title: "クラウドに保存も可能",
-      description: "データをクラウドに保存することで、他のデバイスからもアクセスできます(ログイン情報は保持しません)",
+      description: "データをクラウドに保存することで、他のデバイスからもアクセスできます",
     ),
     OnBoardingPage(image: null, title: "さあ、始めましょう！", description: ""),
   ];
