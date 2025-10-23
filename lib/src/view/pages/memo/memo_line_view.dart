@@ -40,15 +40,20 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
   }
 
   @override
-  void didUpdateWidget(covariant MemoLineView oldWidget) async {
+  void didUpdateWidget(covariant MemoLineView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
     // テキスト変更によって高さが変わる可能性があるので先にテキストを更新しておく
     if (controller.text != widget.memoLineState.text) {
       controller.text = widget.memoLineState.text;
     }
+
     // 高さを再取得するために120ms待つ（50msで足りなかった多分処理能力によって変わる）
-    await Future.delayed(const Duration(milliseconds: 120));
-    super.didUpdateWidget(oldWidget);
-    setTextFieldHeight();
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (mounted) {
+        setTextFieldHeight();
+      }
+    });
   }
 
   void setTextFieldHeight() {
