@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tree/app_router.dart';
-import 'package:tree/src/util/app_utils.dart';
-import 'package:tree/src/util/shared_preference.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
-import 'package:tree/src/view/pages/auth/auth_state.dart';
+import 'package:tree/src/view/pages/settings/settings_notifier.dart';
 import 'package:tree/src/view/pages/settings/theme_notifier.dart';
 
 class SettingsView extends ConsumerWidget {
@@ -107,7 +104,8 @@ class SettingsView extends ConsumerWidget {
     return Column(
       children: [
         // プロバイダー別アカウント情報と個別削除
-        if (_hasAppleProvider(authState) || _hasGoogleProvider(authState)) ...[
+        if (ref.read(settingsProvider.notifier).hasAppleProvider() ||
+            ref.read(settingsProvider.notifier).hasGoogleProvider()) ...[
           Text(
             '認証アカウント管理',
             style: Theme.of(
@@ -117,29 +115,33 @@ class SettingsView extends ConsumerWidget {
           const SizedBox(height: 12),
         ],
 
-        if (_hasAppleProvider(authState)) ...[
+        if (ref.read(settingsProvider.notifier).hasAppleProvider()) ...[
           _buildProviderAccountInfo(
             context,
             ref,
             provider: 'Apple',
-            onDelete: () => _showIndividualDeleteDialog(context, ref, 'Apple'),
+            onDelete: () => ref
+                .read(settingsProvider.notifier)
+                .showIndividualDeleteDialog(context, ref, 'Apple'),
           ),
           const SizedBox(height: 12),
         ],
 
-        if (_hasGoogleProvider(authState)) ...[
+        if (ref.read(settingsProvider.notifier).hasGoogleProvider()) ...[
           _buildProviderAccountInfo(
             context,
             ref,
             provider: 'Google',
-            onDelete: () => _showIndividualDeleteDialog(context, ref, 'Google'),
+            onDelete: () => ref
+                .read(settingsProvider.notifier)
+                .showIndividualDeleteDialog(context, ref, 'Google'),
           ),
         ],
 
         // ログインしていない場合のメッセージ
         if (!authState.isSignedIn &&
-            !_hasAppleProvider(authState) &&
-            !_hasGoogleProvider(authState)) ...[
+            !ref.read(settingsProvider.notifier).hasAppleProvider() &&
+            !ref.read(settingsProvider.notifier).hasGoogleProvider()) ...[
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -174,8 +176,8 @@ class SettingsView extends ConsumerWidget {
       builder: (context, ref, child) {
         return FutureBuilder<int>(
           future: provider == 'Apple'
-              ? SharedPreference.getAppleLinkedAccountCount()
-              : SharedPreference.getGoogleLinkedAccountCount(),
+              ? ref.read(settingsProvider.notifier).getAppleAccountCount()
+              : ref.read(settingsProvider.notifier).getGoogleAccountCount(),
           builder: (context, snapshot) {
             final accountCount = snapshot.data ?? 0;
             return Container(
@@ -286,49 +288,5 @@ class SettingsView extends ConsumerWidget {
         );
       },
     );
-  }
-
-  void _showIndividualDeleteDialog(
-    BuildContext context,
-    WidgetRef ref,
-    String provider,
-  ) {
-    AppUtils.showYesNoDialogAlternative(
-      Text('$provider認証の削除'),
-      Text(
-        '現在ログイン中の$providerアカウントを削除しますか？\n\n'
-        'このアカウントのクラウドメモは削除されますが、ローカルメモは保持されます。\n'
-        '削除時は再認証が必要です。\n\n'
-        'この操作は取り消せません。',
-      ),
-      () async {
-        try {
-          await ref
-              .read(authProvider.notifier)
-              .deleteIndividualAccount(provider);
-          AppUtils.showSnackBar('$provider認証を削除しました');
-          // 画面を再構築してアカウント数を更新
-          if (context.mounted) {
-            Navigator.of(context).pop(); // 設定画面を閉じて再オープン
-            const SettingsRoute().push(context);
-          }
-        } catch (e) {
-          AppUtils.showSnackBar('認証削除に失敗しました: $e');
-        }
-      },
-      null,
-    );
-  }
-
-  bool _hasAppleProvider(AuthState authState) {
-    // 新しいユーザーIDリスト管理でApple連携アカウントを確認
-    // 非同期メソッドのため、同期的にチェックするために既存のフラグも確認
-    return SharedPreference.isAppleLinked;
-  }
-
-  bool _hasGoogleProvider(AuthState authState) {
-    // 新しいユーザーIDリスト管理でGoogle連携アカウントを確認
-    // 非同期メソッドのため、同期的にチェックするために既存のフラグも確認
-    return SharedPreference.isGoogleLinked;
   }
 }
