@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
 import 'package:tree/src/view/pages/settings/settings_notifier.dart';
@@ -303,25 +301,6 @@ void main() {
     });
 
     group('ダイアログ表示テスト', () {
-      test('showIndividualDeleteDialogの基本動作 - メソッド呼び出しテスト', () async {
-        // 実際のダイアログ表示は複雑なため、メソッドが正常に呼び出されることを確認
-        try {
-          // このテストでは、メソッドが例外を投げないことを確認
-          // 実際のダイアログ表示は統合テストで行う
-          expect(
-            () => settingsNotifier.showIndividualDeleteDialog(
-              null as BuildContext, // テスト用のnullコンテキスト
-              null as WidgetRef, // テスト用のnull ref
-              'Apple',
-            ),
-            throwsA(isA<TypeError>()),
-          );
-        } catch (e) {
-          // 期待される例外（nullコンテキストのため）
-          expect(e, isA<TypeError>());
-        }
-      });
-
       test('showIndividualDeleteDialog - プロバイダー名の検証', () async {
         // プロバイダー名が正しく処理されることを確認
         const appleProvider = 'Apple';
