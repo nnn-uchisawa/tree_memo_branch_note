@@ -17,7 +17,7 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>jp.nnn.tree</key>
-        <string>tree</string>
+        <string>tree-profile</string>
     </dict>
 </dict>
 </plist>
