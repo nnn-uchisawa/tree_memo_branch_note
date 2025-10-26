@@ -59,9 +59,6 @@ jobs:
       - name: コード生成
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
-      - name: アセット生成
-        run: flutter pub run flutter_gen_runner
-
       - name: Podのインストール
         run: |
           cd ios
