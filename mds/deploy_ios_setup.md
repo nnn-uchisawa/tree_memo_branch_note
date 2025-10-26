@@ -24,7 +24,8 @@
 
 | Secret名 | 説明 | 取得方法 |
 |---------|------|---------|
-| `GOOGLE_SERVICE_INFO_PLIST` | GoogleService-Info.plistの内容 | 下記手順参照 |
+| `GOOGLE_SERVICE_INFO_PLIST` | iOS用GoogleService-Info.plistの内容 | 下記手順参照 |
+| `GOOGLE_SERVICES_JSON` | Android用google-services.jsonの内容 | 下記手順参照 |
 
 ### 3. Apple証明書関連
 
@@ -107,6 +108,42 @@ Secret: （GoogleService-Info.plistの内容全体を貼り付け）
 - ファイル全体（`<?xml version...`から`</plist>`まで）をコピー
 - 改行も含めてすべてコピーすること
 - このファイルにはGoogle Sign-Inに必要な`CLIENT_ID`などが含まれています
+
+#### google-services.json（Android）の準備
+
+Androidアプリでも同様にGoogle Services設定ファイルが必要です。
+
+**ファイルの取得：**
+
+1. [Firebaseコンソール](https://console.firebase.google.com/)にアクセス
+2. プロジェクトを選択 > ⚙️（設定）> プロジェクト設定
+3. 「マイアプリ」セクションでAndroidアプリを選択
+4. **google-services.json**ボタンをクリックしてダウンロード
+
+または、ローカルにある場合：
+```bash
+# プロジェクトのファイルを使用
+cat android/app/google-services.json
+```
+
+**GitHub Secretsに登録：**
+
+ファイルの**内容全体**をそのままコピーしてGitHub Secretsに登録します：
+
+```bash
+# クリップボードにコピー
+cat android/app/google-services.json | pbcopy
+```
+
+GitHub Secrets:
+```
+Name: GOOGLE_SERVICES_JSON
+Secret: （google-services.jsonの内容全体を貼り付け）
+```
+
+**⚠️ 注意：**
+- JSON全体（`{`から`}`まで）をコピー
+- 改行も含めてすべてコピーすること
 
 ### Step 3: 署名証明書（.p12）を準備
 

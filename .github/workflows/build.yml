@@ -53,6 +53,40 @@ jobs:
       - name: コード生成
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
+      - name: google-services.jsonの作成（ダミー）
+        run: |
+          cat << 'EOF' > android/app/google-services.json
+          {
+            "project_info": {
+              "project_number": "123456789",
+              "project_id": "dummy-project",
+              "storage_bucket": "dummy-project.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:123456789:android:dummy",
+                  "android_client_info": {
+                    "package_name": "com.nnn.tree"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [
+                  {
+                    "current_key": "dummy-api-key"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+
       - name: Android APKビルド（開発版）
         run: flutter build apk --debug --flavor dev
         continue-on-error: true

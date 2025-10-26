@@ -49,16 +49,24 @@ Firebaseコンソール → プロジェクト設定 → iOS から以下を取�
 
 （Android版も同様に取得）
 
-### Step 4: GoogleService-Info.plistを取得
+### Step 4: Google Services設定ファイルを取得
 
+**iOS:**
 ```bash
 # ローカルにある場合、クリップボードにコピー
 cat ios/Runner/GoogleService-Info.plist | pbcopy
 # → GOOGLE_SERVICE_INFO_PLIST として GitHub Secrets に登録
-
-# または、Firebaseコンソールからダウンロード
-# Firebaseコンソール → プロジェクト設定 → iOSアプリ → GoogleService-Info.plist
 ```
+
+**Android:**
+```bash
+# ローカルにある場合、クリップボードにコピー
+cat android/app/google-services.json | pbcopy
+# → GOOGLE_SERVICES_JSON として GitHub Secrets に登録
+```
+
+または、Firebaseコンソールからダウンロード：
+- Firebaseコンソール → プロジェクト設定 → 該当アプリ → 設定ファイルをダウンロード
 
 ### Step 5: App Store Connectの認証情報
 
@@ -111,10 +119,11 @@ IOS_STORAGE_BUCKET
 IOS_BUNDLE_ID
 ```
 
-### Google Sign-In（1個）
+### Google Services（2個）
 
 ```
-GOOGLE_SERVICE_INFO_PLIST
+GOOGLE_SERVICE_INFO_PLIST        # iOS用（Step 4で取得）
+GOOGLE_SERVICES_JSON             # Android用（Step 4で取得）
 ```
 
 ### Apple証明書（4個）
@@ -134,7 +143,7 @@ APP_SPECIFIC_PASSWORD            # Step 5-2で取得
 TEAM_ID                          # Step 5-3で取得
 ```
 
-**合計：19個のSecrets**
+**合計：20個のSecrets**
 
 ---
 
