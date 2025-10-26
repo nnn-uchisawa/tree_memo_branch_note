@@ -1,0 +1,77 @@
+name: PR Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  quick-check:
+    name: クイックチェック
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Flutterのセットアップ
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.0'
+          channel: 'stable'
+          cache: true
+
+      - name: 依存関係のインストール
+        run: flutter pub get
+
+      - name: コード生成
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: フォーマットチェック
+        id: format
+        run: |
+          dart format --set-exit-if-changed . > format_output.txt 2>&1 || echo "FORMAT_FAILED=true" >> $GITHUB_OUTPUT
+          cat format_output.txt
+
+      - name: 静的解析
+        id: analyze
+        run: |
+          flutter analyze > analyze_output.txt 2>&1 || echo "ANALYZE_FAILED=true" >> $GITHUB_OUTPUT
+          cat analyze_output.txt
+
+      - name: 基本テスト
+        id: test
+        run: |
+          flutter test --no-coverage > test_output.txt 2>&1 || echo "TEST_FAILED=true" >> $GITHUB_OUTPUT
+          cat test_output.txt
+
+      - name: チェック結果のサマリー
+        if: always()
+        run: |
+          echo "## 🔍 PR チェック結果" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.format.outputs.FORMAT_FAILED }}" == "true" ]; then
+            echo "- ❌ **フォーマット**: 失敗" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ **フォーマット**: 成功" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ steps.analyze.outputs.ANALYZE_FAILED }}" == "true" ]; then
+            echo "- ❌ **静的解析**: 失敗" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ **静的解析**: 成功" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ steps.test.outputs.TEST_FAILED }}" == "true" ]; then
+            echo "- ❌ **テスト**: 失敗" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ **テスト**: 成功" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: チェック失敗時の終了
+        if: steps.format.outputs.FORMAT_FAILED == 'true' || steps.analyze.outputs.ANALYZE_FAILED == 'true' || steps.test.outputs.TEST_FAILED == 'true'
+        run: exit 1
+

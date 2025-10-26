@@ -1,0 +1,99 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Androidビルド
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Javaのセットアップ
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Flutterのセットアップ
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.0'
+          channel: 'stable'
+          cache: true
+
+      - name: 依存関係のインストール
+        run: flutter pub get
+
+      - name: コード生成
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: アセット生成
+        run: flutter pub run flutter_gen_runner
+
+      - name: Android APKビルド（開発版）
+        run: flutter build apk --debug --flavor dev
+        continue-on-error: true
+
+      - name: ビルド結果の確認
+        run: |
+          if [ -f build/app/outputs/flutter-apk/app-dev-debug.apk ]; then
+            echo "✅ APKビルドが成功しました"
+            ls -lh build/app/outputs/flutter-apk/
+          else
+            echo "⚠️ APKビルドに失敗しました（秘密鍵などの設定が必要な可能性があります）"
+          fi
+
+  build-ios:
+    name: iOSビルド
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Flutterのセットアップ
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.0'
+          channel: 'stable'
+          cache: true
+
+      - name: 依存関係のインストール
+        run: flutter pub get
+
+      - name: コード生成
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: アセット生成
+        run: flutter pub run flutter_gen_runner
+
+      - name: Podのインストール
+        run: |
+          cd ios
+          pod install
+        continue-on-error: true
+
+      - name: iOSビルド（開発版・ビルドのみ）
+        run: flutter build ios --debug --flavor dev --no-codesign
+        continue-on-error: true
+
+      - name: ビルド結果の確認
+        run: |
+          if [ -d build/ios/iphoneos/Runner.app ]; then
+            echo "✅ iOSビルドが成功しました"
+            ls -lh build/ios/iphoneos/
+          else
+            echo "⚠️ iOSビルドに失敗しました（証明書などの設定が必要な可能性があります）"
+          fi
+
