@@ -20,7 +20,13 @@
 | `IOS_STORAGE_BUCKET` | iOS Firebase ストレージバケット | 同上 |
 | `IOS_BUNDLE_ID` | iOSバンドルID | `com.example.tree` など |
 
-### 2. Apple証明書関連
+### 2. Google Sign-In関連
+
+| Secret名 | 説明 | 取得方法 |
+|---------|------|---------|
+| `GOOGLE_SERVICE_INFO_PLIST` | GoogleService-Info.plistの内容 | 下記手順参照 |
+
+### 3. Apple証明書関連
 
 | Secret名 | 説明 | 取得方法 |
 |---------|------|---------|
@@ -29,7 +35,7 @@
 | `BUILD_PROVISION_PROFILE_BASE64` | プロビジョニングプロファイル（Base64エンコード） | 下記手順参照 |
 | `KEYCHAIN_PASSWORD` | キーチェーンのパスワード | 任意の強固なパスワード（20文字以上推奨） |
 
-### 3. App Store Connect関連
+### 4. App Store Connect関連
 
 | Secret名 | 説明 | 取得方法 |
 |---------|------|---------|
@@ -65,7 +71,44 @@ IOS_STORAGE_BUCKET=your-project-id.appspot.com
 IOS_BUNDLE_ID=com.example.tree
 ```
 
-### Step 2: 署名証明書（.p12）を準備
+### Step 2: GoogleService-Info.plistを準備
+
+Google Sign-Inを使用するため、iOSの`GoogleService-Info.plist`が必要です。
+
+#### ファイルの取得
+
+1. [Firebaseコンソール](https://console.firebase.google.com/)にアクセス
+2. プロジェクトを選択 > ⚙️（設定）> プロジェクト設定
+3. 「マイアプリ」セクションでiOSアプリを選択
+4. **GoogleService-Info.plist**ボタンをクリックしてダウンロード
+
+または、ローカルにある場合：
+```bash
+# プロジェクトのファイルを使用
+cat ios/Runner/GoogleService-Info.plist
+```
+
+#### GitHub Secretsに登録
+
+ファイルの**内容全体**をそのままコピーしてGitHub Secretsに登録します：
+
+```bash
+# クリップボードにコピー
+cat ios/Runner/GoogleService-Info.plist | pbcopy
+```
+
+GitHub Secrets:
+```
+Name: GOOGLE_SERVICE_INFO_PLIST
+Secret: （GoogleService-Info.plistの内容全体を貼り付け）
+```
+
+**⚠️ 注意：**
+- ファイル全体（`<?xml version...`から`</plist>`まで）をコピー
+- 改行も含めてすべてコピーすること
+- このファイルにはGoogle Sign-Inに必要な`CLIENT_ID`などが含まれています
+
+### Step 3: 署名証明書（.p12）を準備
 
 #### Macの「キーチェーンアクセス」から証明書をエクスポート
 
@@ -87,7 +130,7 @@ base64 -i certificate.p12 | pbcopy
 
 この文字列を`BUILD_CERTIFICATE_BASE64`に設定します。
 
-### Step 3: プロビジョニングプロファイルを準備
+### Step 4: プロビジョニングプロファイルを準備
 
 #### Apple Developer Portalからダウンロード
 
@@ -105,7 +148,7 @@ base64 -i YourApp.mobileprovision | pbcopy
 
 この文字列を`BUILD_PROVISION_PROFILE_BASE64`に設定します。
 
-### Step 4: App Storeアップロード用のパスワードを取得
+### Step 5: App Storeアップロード用のパスワードを取得
 
 #### アプリ用パスワードの生成
 
@@ -117,13 +160,13 @@ base64 -i YourApp.mobileprovision | pbcopy
 
 これが`APP_SPECIFIC_PASSWORD`になります。
 
-### Step 5: Team IDを取得
+### Step 6: Team IDを取得
 
 1. [Apple Developer](https://developer.apple.com/)にログイン
 2. **Membership**を選択
 3. **Team ID**をコピー（例：`AB12CD34EF`）
 
-### Step 6: GitHub Secretsに登録
+### Step 7: GitHub Secretsに登録
 
 1. GitHubリポジトリページへアクセス
 2. **Settings** → **Secrets and variables** → **Actions**
