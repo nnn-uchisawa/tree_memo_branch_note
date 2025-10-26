@@ -65,17 +65,28 @@ jobs:
             "client": [
               {
                 "client_info": {
-                  "mobilesdk_app_id": "1:123456789:android:dummy",
+                  "mobilesdk_app_id": "1:123456789:android:dummy1",
                   "android_client_info": {
                     "package_name": "com.nnn.tree"
                   }
                 },
                 "oauth_client": [],
-                "api_key": [
-                  {
-                    "current_key": "dummy-api-key"
+                "api_key": [{"current_key": "dummy-api-key"}],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
                   }
-                ],
+                }
+              },
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:123456789:android:dummy2",
+                  "android_client_info": {
+                    "package_name": "com.nnn.tree.debug"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [{"current_key": "dummy-api-key"}],
                 "services": {
                   "appinvite_service": {
                     "other_platform_oauth_client": []
