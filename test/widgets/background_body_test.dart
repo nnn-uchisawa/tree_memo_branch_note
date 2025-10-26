@@ -12,13 +12,10 @@ void main() {
       pageController = MockPageController();
     });
 
-    testWidgets('should display PageView with correct number of pages',
-        (WidgetTester tester) async {
-      final testBodies = [
-        Text('Page 1'),
-        Text('Page 2'),
-        Text('Page 3'),
-      ];
+    testWidgets('should display PageView with correct number of pages', (
+      WidgetTester tester,
+    ) async {
+      final testBodies = [Text('Page 1'), Text('Page 2'), Text('Page 3')];
 
       await tester.pumpWidget(
         wrapWithMaterialApp(
@@ -38,8 +35,9 @@ void main() {
       expect(find.text('Page 1'), findsOneWidget);
     });
 
-    testWidgets('should call function when page changes',
-        (WidgetTester tester) async {
+    testWidgets('should call function when page changes', (
+      WidgetTester tester,
+    ) async {
       int? calledWithPage;
 
       final testBodies = [
@@ -67,11 +65,10 @@ void main() {
       expect(calledWithPage, 1);
     });
 
-    testWidgets('should have ClampingScrollPhysics',
-        (WidgetTester tester) async {
-      final testBodies = [
-        Text('Page 1'),
-      ];
+    testWidgets('should have ClampingScrollPhysics', (
+      WidgetTester tester,
+    ) async {
+      final testBodies = [Text('Page 1')];
 
       await tester.pumpWidget(
         wrapWithMaterialApp(
@@ -89,9 +86,7 @@ void main() {
     });
 
     testWidgets('should use provided controller', (WidgetTester tester) async {
-      final testBodies = [
-        Text('Page 1'),
-      ];
+      final testBodies = [Text('Page 1')];
 
       await tester.pumpWidget(
         wrapWithMaterialApp(
@@ -108,13 +103,12 @@ void main() {
       expect(pageView.controller, pageController);
     });
 
-    testWidgets('should assert bodies length equals totalPage',
-        (WidgetTester tester) async {
+    testWidgets('should assert bodies length equals totalPage', (
+      WidgetTester tester,
+    ) async {
       // アサーションはデバッグモードでのみ有効
       // 長さが正しい場合は正常に動作することを確認
-      final testBodies = [
-        Text('Page 1'),
-      ];
+      final testBodies = [Text('Page 1')];
 
       await tester.pumpWidget(
         wrapWithMaterialApp(

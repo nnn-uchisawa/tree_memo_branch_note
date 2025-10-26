@@ -52,40 +52,38 @@ class OnBoardingNavigationBar extends StatelessWidget
       middle: middle,
       trailing: currentPage == totalPage - 1
           ? finishButton == null
-              ? Container(
-                  width: double.infinity,
-                  height: 44.0,
-                  color: headerBackgroundColor,
-                )
-              : Container(
-                  color: headerBackgroundColor,
-                  child: TextButton(
-                    onPressed: () => onFinish?.call(),
-                    child: finishButton!,
-                  ),
-                )
+                ? Container(
+                    width: double.infinity,
+                    height: 44.0,
+                    color: headerBackgroundColor,
+                  )
+                : Container(
+                    color: headerBackgroundColor,
+                    child: TextButton(
+                      onPressed: () => onFinish?.call(),
+                      child: finishButton!,
+                    ),
+                  )
           : skipTextButton == null
-              ? Container(
-                  width: double.infinity,
-                  height: 44.0,
-                  color: headerBackgroundColor,
-                )
-              : Container(
-                  color: headerBackgroundColor,
-                  child: TextButton(
-                    onPressed: () {
-                      if (skipFunctionOverride == null) {
-                        onSkip();
-                      } else {
-                        skipFunctionOverride!();
-                      }
-                    },
-                    child: skipTextButton!,
-                  ),
-                ),
-      border: Border(
-        bottom: BorderSide(color: headerBackgroundColor),
-      ),
+          ? Container(
+              width: double.infinity,
+              height: 44.0,
+              color: headerBackgroundColor,
+            )
+          : Container(
+              color: headerBackgroundColor,
+              child: TextButton(
+                onPressed: () {
+                  if (skipFunctionOverride == null) {
+                    onSkip();
+                  } else {
+                    skipFunctionOverride!();
+                  }
+                },
+                child: skipTextButton!,
+              ),
+            ),
+      border: Border(bottom: BorderSide(color: headerBackgroundColor)),
       backgroundColor: headerBackgroundColor,
     );
   }

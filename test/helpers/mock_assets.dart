@@ -81,7 +81,7 @@ class MockAssetBundle extends CachingAssetBundle {
         0x45,
         0x4E,
         0x44,
-        0xAE
+        0xAE,
       ]);
       return ByteData.view(bytes.buffer);
     }

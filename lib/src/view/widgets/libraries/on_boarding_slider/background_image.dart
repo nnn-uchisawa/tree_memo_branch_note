@@ -25,19 +25,22 @@ class BackgroundImage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(pageOffsetProvider(pageController));
-    return Stack(children: [
-      Positioned(
-        top: imageVerticalOffset,
-        left: MediaQuery.of(context).size.width * ((id - 1) * speed) -
-            speed * state.offset +
-            (centerBackground ? 0 : imageHorizontalOffset),
-        child: centerBackground
-            ? SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: background,
-              )
-            : background,
-      ),
-    ]);
+    return Stack(
+      children: [
+        Positioned(
+          top: imageVerticalOffset,
+          left:
+              MediaQuery.of(context).size.width * ((id - 1) * speed) -
+              speed * state.offset +
+              (centerBackground ? 0 : imageHorizontalOffset),
+          child: centerBackground
+              ? SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: background,
+                )
+              : background,
+        ),
+      ],
+    );
   }
 }

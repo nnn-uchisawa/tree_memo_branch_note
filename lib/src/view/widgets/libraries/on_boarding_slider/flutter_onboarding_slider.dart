@@ -148,10 +148,7 @@ class OnBoardingSlider extends StatefulWidget {
       fontSize: 20,
       color: Colors.white,
     ),
-    this.skipIcon = const Icon(
-      Icons.arrow_forward,
-      color: Colors.white,
-    ),
+    this.skipIcon = const Icon(Icons.arrow_forward, color: Colors.white),
     this.indicatorAbove = false,
     this.indicatorPosition = 90,
     this.skipFunctionOverride,
@@ -218,29 +215,30 @@ class OnBoardingSliderState extends State<OnBoardingSlider> {
               totalPage: widget.totalPage,
               pageController: _pageController,
               child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: BackgroundBody(
-                        controller: _pageController,
-                        function: slide,
-                        totalPage: widget.totalPage,
-                        bodies: widget.pageBodies,
-                      ),
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: BackgroundBody(
+                      controller: _pageController,
+                      function: slide,
+                      totalPage: widget.totalPage,
+                      bodies: widget.pageBodies,
                     ),
-                    widget.addController
-                        ? BackgroundController(
-                            backgroundColor: widget.pageBackgroundColor,
-                            hasFloatingButton: widget.hasFloatingButton,
-                            indicatorPosition: widget.indicatorPosition,
-                            indicatorAbove: widget.indicatorAbove,
-                            currentPage: currentPage,
-                            totalPage: widget.totalPage,
-                            controllerColor: widget.controllerColor,
-                          )
-                        : SizedBox.shrink(),
-                  ]),
+                  ),
+                  widget.addController
+                      ? BackgroundController(
+                          backgroundColor: widget.pageBackgroundColor,
+                          hasFloatingButton: widget.hasFloatingButton,
+                          indicatorPosition: widget.indicatorPosition,
+                          indicatorAbove: widget.indicatorAbove,
+                          currentPage: currentPage,
+                          totalPage: widget.totalPage,
+                          controllerColor: widget.controllerColor,
+                        )
+                      : SizedBox.shrink(),
+                ],
+              ),
             ),
           ),
         ),

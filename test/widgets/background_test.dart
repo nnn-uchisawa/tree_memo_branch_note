@@ -41,13 +41,12 @@ void main() {
       expect(background.totalPage, 2);
     });
 
-    testWidgets('should assert background length equals totalPage',
-        (WidgetTester tester) async {
+    testWidgets('should assert background length equals totalPage', (
+      WidgetTester tester,
+    ) async {
       // アサーションのテスト - 長さが一致する場合の確認
       const testChild = Text('Test Child');
-      final backgrounds = [
-        Container(key: Key('bg1'), color: Colors.red),
-      ];
+      final backgrounds = [Container(key: Key('bg1'), color: Colors.red)];
 
       final background = Background(
         imageVerticalOffset: 0.0,
@@ -63,8 +62,9 @@ void main() {
       expect(background.totalPage, backgrounds.length);
     });
 
-    testWidgets('should create correct number of BackgroundImage widgets',
-        (WidgetTester tester) async {
+    testWidgets('should create correct number of BackgroundImage widgets', (
+      WidgetTester tester,
+    ) async {
       const testChild = Text('Test Child');
       final backgrounds = [
         Container(key: Key('bg1'), color: Colors.red),
@@ -89,9 +89,7 @@ void main() {
 
     testWidgets('should pass correct parameters', (WidgetTester tester) async {
       const testChild = Text('Test Child');
-      final backgrounds = [
-        Container(key: Key('bg1'), color: Colors.red),
-      ];
+      final backgrounds = [Container(key: Key('bg1'), color: Colors.red)];
 
       final background = Background(
         imageVerticalOffset: 10.0,

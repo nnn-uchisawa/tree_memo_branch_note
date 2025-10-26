@@ -135,44 +135,51 @@ class AdaptiveTextField extends StatelessWidget {
         placeholder: placeholder,
         contextMenuBuilder:
             (BuildContext ctx, EditableTextState editableTextState) {
-          // editableTextState には:
-          //  - contextMenuAnchors : アンカー位置 (primary/secondary)
-          //  - contextMenuButtonItems : デフォルトのボタン情報 (cut/copy/paste 等)
-          //
-          // AdaptiveTextSelectionToolbar.getAdaptiveButtons を使うと、
-          // 現在のプラットフォーム向けのボタン Widgets を作ってくれます。
-          final anchors = editableTextState.contextMenuAnchors;
-          final items = editableTextState.contextMenuButtonItems; // <- これを直
+              // editableTextState には:
+              //  - contextMenuAnchors : アンカー位置 (primary/secondary)
+              //  - contextMenuButtonItems : デフォルトのボタン情報 (cut/copy/paste 等)
+              //
+              // AdaptiveTextSelectionToolbar.getAdaptiveButtons を使うと、
+              // 現在のプラットフォーム向けのボタン Widgets を作ってくれます。
+              final anchors = editableTextState.contextMenuAnchors;
+              final items = editableTextState.contextMenuButtonItems; // <- これを直
 
-          // 必要であればボタンを追加・差し替えできます:
-          // defaultButtons.insert(0, yourCustomButtonWidget);
+              // 必要であればボタンを追加・差し替えできます:
+              // defaultButtons.insert(0, yourCustomButtonWidget);
 
-          // ここでラップして枠線や背景を変更
-          return Container(
-            // 透明部分を残したければ color: Colors.transparent でも可
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              border: Border.all(color: Colors.blue, width: 2), // ← ボーダー色をここで変更
-              borderRadius: BorderRadius.circular(2),
-              boxShadow: const [
-                BoxShadow(
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                    blurStyle: BlurStyle.normal,
-                    spreadRadius: 0)
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-              // AdaptiveTextSelectionToolbar.buttonItems はアンカー指定で
-              // プラットフォームに応じた位置合わせをしてくれます。
-              child: AdaptiveTextSelectionToolbar.buttonItems(
-                anchors: anchors,
-                buttonItems: items,
-              ),
-            ),
-          );
-        },
+              // ここでラップして枠線や背景を変更
+              return Container(
+                // 透明部分を残したければ color: Colors.transparent でも可
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(
+                    color: Colors.blue,
+                    width: 2,
+                  ), // ← ボーダー色をここで変更
+                  borderRadius: BorderRadius.circular(2),
+                  boxShadow: const [
+                    BoxShadow(
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                      blurStyle: BlurStyle.normal,
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 6,
+                    horizontal: 4,
+                  ),
+                  // AdaptiveTextSelectionToolbar.buttonItems はアンカー指定で
+                  // プラットフォームに応じた位置合わせをしてくれます。
+                  child: AdaptiveTextSelectionToolbar.buttonItems(
+                    anchors: anchors,
+                    buttonItems: items,
+                  ),
+                ),
+              );
+            },
       );
     } else {
       return TextField(
@@ -220,44 +227,51 @@ class AdaptiveTextField extends StatelessWidget {
         decoration: decoration ?? InputDecoration(labelText: placeholder),
         contextMenuBuilder:
             (BuildContext ctx, EditableTextState editableTextState) {
-          // editableTextState には:
-          //  - contextMenuAnchors : アンカー位置 (primary/secondary)
-          //  - contextMenuButtonItems : デフォルトのボタン情報 (cut/copy/paste 等)
-          //
-          // AdaptiveTextSelectionToolbar.getAdaptiveButtons を使うと、
-          // 現在のプラットフォーム向けのボタン Widgets を作ってくれます。
-          final anchors = editableTextState.contextMenuAnchors;
-          final items = editableTextState.contextMenuButtonItems; // <- これを直
+              // editableTextState には:
+              //  - contextMenuAnchors : アンカー位置 (primary/secondary)
+              //  - contextMenuButtonItems : デフォルトのボタン情報 (cut/copy/paste 等)
+              //
+              // AdaptiveTextSelectionToolbar.getAdaptiveButtons を使うと、
+              // 現在のプラットフォーム向けのボタン Widgets を作ってくれます。
+              final anchors = editableTextState.contextMenuAnchors;
+              final items = editableTextState.contextMenuButtonItems; // <- これを直
 
-          // 必要であればボタンを追加・差し替えできます:
-          // defaultButtons.insert(0, yourCustomButtonWidget);
+              // 必要であればボタンを追加・差し替えできます:
+              // defaultButtons.insert(0, yourCustomButtonWidget);
 
-          // ここでラップして枠線や背景を変更
-          return Container(
-            // 透明部分を残したければ color: Colors.transparent でも可
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              border: Border.all(color: Colors.blue, width: 2), // ← ボーダー色をここで変更
-              borderRadius: BorderRadius.circular(2),
-              boxShadow: const [
-                BoxShadow(
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                    blurStyle: BlurStyle.normal,
-                    spreadRadius: 0)
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-              // AdaptiveTextSelectionToolbar.buttonItems はアンカー指定で
-              // プラットフォームに応じた位置合わせをしてくれます。
-              child: AdaptiveTextSelectionToolbar.buttonItems(
-                anchors: anchors,
-                buttonItems: items,
-              ),
-            ),
-          );
-        },
+              // ここでラップして枠線や背景を変更
+              return Container(
+                // 透明部分を残したければ color: Colors.transparent でも可
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(
+                    color: Colors.blue,
+                    width: 2,
+                  ), // ← ボーダー色をここで変更
+                  borderRadius: BorderRadius.circular(2),
+                  boxShadow: const [
+                    BoxShadow(
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                      blurStyle: BlurStyle.normal,
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 6,
+                    horizontal: 4,
+                  ),
+                  // AdaptiveTextSelectionToolbar.buttonItems はアンカー指定で
+                  // プラットフォームに応じた位置合わせをしてくれます。
+                  child: AdaptiveTextSelectionToolbar.buttonItems(
+                    anchors: anchors,
+                    buttonItems: items,
+                  ),
+                ),
+              );
+            },
       );
     }
   }

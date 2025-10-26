@@ -17,9 +17,7 @@ class FinishButtonStyle {
 
   const FinishButtonStyle({
     this.shape = const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(
-        Radius.circular(5.0),
-      ),
+      borderRadius: BorderRadius.all(Radius.circular(5.0)),
     ),
     this.elevation = 0,
     this.focusElevation,
@@ -64,76 +62,73 @@ class BackgroundFinalButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return addButton
         ? hasSkip
-            ? AnimatedContainer(
-                padding: currentPage == totalPage - 1
-                    ? EdgeInsets.symmetric(horizontal: 30)
-                    : EdgeInsets.all(0),
-                width: currentPage == totalPage - 1
-                    ? MediaQuery.of(context).size.width - 30
-                    : 60,
-                duration: Duration(milliseconds: 100),
-                child: currentPage == totalPage - 1
-                    ? FloatingActionButton.extended(
-                        shape: finishButtonStyle?.shape,
-                        elevation: finishButtonStyle?.elevation,
-                        focusElevation: finishButtonStyle?.focusElevation,
-                        hoverElevation: finishButtonStyle?.hoverElevation,
-                        highlightElevation:
-                            finishButtonStyle?.highlightElevation,
-                        disabledElevation: finishButtonStyle?.disabledElevation,
-                        foregroundColor: finishButtonStyle?.foregroundColor,
-                        backgroundColor: finishButtonStyle?.backgroundColor,
-                        focusColor: finishButtonStyle?.focusColor,
-                        hoverColor: finishButtonStyle?.hoverColor,
-                        splashColor: finishButtonStyle?.splashColor,
-                        onPressed: () => onPageFinish?.call(),
-                        label: buttonText == null
-                            ? SizedBox.shrink()
-                            : Text(
-                                buttonText!,
-                                style: buttonTextStyle,
-                              ),
-                      )
-                    : FloatingActionButton(
-                        shape: finishButtonStyle?.shape,
-                        elevation: finishButtonStyle?.elevation,
-                        focusElevation: finishButtonStyle?.focusElevation,
-                        hoverElevation: finishButtonStyle?.hoverElevation,
-                        highlightElevation:
-                            finishButtonStyle?.highlightElevation,
-                        disabledElevation: finishButtonStyle?.disabledElevation,
-                        foregroundColor: finishButtonStyle?.foregroundColor,
-                        backgroundColor: finishButtonStyle?.backgroundColor,
-                        focusColor: finishButtonStyle?.focusColor,
-                        hoverColor: finishButtonStyle?.hoverColor,
-                        splashColor: finishButtonStyle?.splashColor,
-                        onPressed: () => _goToNextPage(context),
-                        child: skipIcon,
-                      ),
-              )
-            : Container(
-                padding: EdgeInsets.symmetric(horizontal: 30),
-                width: MediaQuery.of(context).size.width - 30,
-                child: FloatingActionButton.extended(
-                  shape: finishButtonStyle?.shape,
-                  elevation: finishButtonStyle?.elevation,
-                  focusElevation: finishButtonStyle?.focusElevation,
-                  hoverElevation: finishButtonStyle?.hoverElevation,
-                  highlightElevation: finishButtonStyle?.highlightElevation,
-                  disabledElevation: finishButtonStyle?.disabledElevation,
-                  foregroundColor: finishButtonStyle?.foregroundColor,
-                  backgroundColor: finishButtonStyle?.backgroundColor,
-                  focusColor: finishButtonStyle?.focusColor,
-                  hoverColor: finishButtonStyle?.hoverColor,
-                  splashColor: finishButtonStyle?.splashColor,
-                  onPressed: () => onPageFinish?.call(),
-                  label: buttonText == null
-                      ? SizedBox.shrink()
-                      : Text(
-                          buttonText!,
-                          style: buttonTextStyle,
+              ? AnimatedContainer(
+                  padding: currentPage == totalPage - 1
+                      ? EdgeInsets.symmetric(horizontal: 30)
+                      : EdgeInsets.all(0),
+                  width: currentPage == totalPage - 1
+                      ? MediaQuery.of(context).size.width - 30
+                      : 60,
+                  duration: Duration(milliseconds: 100),
+                  child: currentPage == totalPage - 1
+                      ? FloatingActionButton.extended(
+                          shape: finishButtonStyle?.shape,
+                          elevation: finishButtonStyle?.elevation,
+                          focusElevation: finishButtonStyle?.focusElevation,
+                          hoverElevation: finishButtonStyle?.hoverElevation,
+                          highlightElevation:
+                              finishButtonStyle?.highlightElevation,
+                          disabledElevation:
+                              finishButtonStyle?.disabledElevation,
+                          foregroundColor: finishButtonStyle?.foregroundColor,
+                          backgroundColor: finishButtonStyle?.backgroundColor,
+                          focusColor: finishButtonStyle?.focusColor,
+                          hoverColor: finishButtonStyle?.hoverColor,
+                          splashColor: finishButtonStyle?.splashColor,
+                          onPressed: () => onPageFinish?.call(),
+                          label: buttonText == null
+                              ? SizedBox.shrink()
+                              : Text(buttonText!, style: buttonTextStyle),
+                        )
+                      : FloatingActionButton(
+                          shape: finishButtonStyle?.shape,
+                          elevation: finishButtonStyle?.elevation,
+                          focusElevation: finishButtonStyle?.focusElevation,
+                          hoverElevation: finishButtonStyle?.hoverElevation,
+                          highlightElevation:
+                              finishButtonStyle?.highlightElevation,
+                          disabledElevation:
+                              finishButtonStyle?.disabledElevation,
+                          foregroundColor: finishButtonStyle?.foregroundColor,
+                          backgroundColor: finishButtonStyle?.backgroundColor,
+                          focusColor: finishButtonStyle?.focusColor,
+                          hoverColor: finishButtonStyle?.hoverColor,
+                          splashColor: finishButtonStyle?.splashColor,
+                          onPressed: () => _goToNextPage(context),
+                          child: skipIcon,
                         ),
-                ))
+                )
+              : Container(
+                  padding: EdgeInsets.symmetric(horizontal: 30),
+                  width: MediaQuery.of(context).size.width - 30,
+                  child: FloatingActionButton.extended(
+                    shape: finishButtonStyle?.shape,
+                    elevation: finishButtonStyle?.elevation,
+                    focusElevation: finishButtonStyle?.focusElevation,
+                    hoverElevation: finishButtonStyle?.hoverElevation,
+                    highlightElevation: finishButtonStyle?.highlightElevation,
+                    disabledElevation: finishButtonStyle?.disabledElevation,
+                    foregroundColor: finishButtonStyle?.foregroundColor,
+                    backgroundColor: finishButtonStyle?.backgroundColor,
+                    focusColor: finishButtonStyle?.focusColor,
+                    hoverColor: finishButtonStyle?.hoverColor,
+                    splashColor: finishButtonStyle?.splashColor,
+                    onPressed: () => onPageFinish?.call(),
+                    label: buttonText == null
+                        ? SizedBox.shrink()
+                        : Text(buttonText!, style: buttonTextStyle),
+                  ),
+                )
         : SizedBox.shrink();
   }
 

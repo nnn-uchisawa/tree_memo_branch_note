@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 class SafeAppBarView extends StatelessWidget {
-  const SafeAppBarView(
-      {super.key, required this.appBar, required this.body, this.bottom});
+  const SafeAppBarView({
+    super.key,
+    required this.appBar,
+    required this.body,
+    this.bottom,
+  });
 
   final AppBar appBar;
   final Widget body;
@@ -13,9 +17,7 @@ class SafeAppBarView extends StatelessWidget {
     return Scaffold(
       appBar: appBar,
       bottomSheet: bottom,
-      body: SafeArea(
-        child: body,
-      ),
+      body: SafeArea(child: body),
     );
   }
 }

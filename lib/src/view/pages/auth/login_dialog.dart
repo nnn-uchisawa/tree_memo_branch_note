@@ -41,9 +41,7 @@ class LoginDialog extends ConsumerWidget {
                   onPressed: () async {
                     Navigator.pop(context);
                     try {
-                      await ref
-                          .read(authProvider.notifier)
-                          .signInWithApple();
+                      await ref.read(authProvider.notifier).signInWithApple();
                     } catch (e) {
                       AppUtils.showSnackBar('Appleでのログインに失敗しました: $e');
                     }

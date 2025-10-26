@@ -32,8 +32,9 @@ void main() {
     });
 
     test('should be a Notifier', () {
-      final notifier =
-          container.read(pageOffsetProvider(pageController).notifier);
+      final notifier = container.read(
+        pageOffsetProvider(pageController).notifier,
+      );
       expect(notifier, isA<PageOffsetNotifier>());
     });
 

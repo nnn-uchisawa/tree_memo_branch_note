@@ -26,8 +26,9 @@ void main() {
       expect(find.byType(Row), findsOneWidget);
     });
 
-    testWidgets('should handle indicatorAbove = false',
-        (WidgetTester tester) async {
+    testWidgets('should handle indicatorAbove = false', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -47,8 +48,9 @@ void main() {
       expect(find.byType(BackgroundController), findsOneWidget);
     });
 
-    testWidgets('should handle last page with floating button',
-        (WidgetTester tester) async {
+    testWidgets('should handle last page with floating button', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -91,7 +93,9 @@ void main() {
       // 背景色が正しく設定されているかを確認
       final containers = tester.widgetList<Container>(find.byType(Container));
       expect(
-          containers.any((container) => container.color == Colors.blue), true);
+        containers.any((container) => container.color == Colors.blue),
+        true,
+      );
     });
   });
 }

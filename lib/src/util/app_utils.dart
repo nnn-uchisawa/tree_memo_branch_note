@@ -23,13 +23,14 @@ class AppUtils {
     return 1920.0;
   }
 
-  static String getRandomString({int length = 64}) =>
-      String.fromCharCodes(Iterable.generate(length, (_) {
-        const chars =
-            'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-        Random rnd = Random();
-        return chars.codeUnitAt(rnd.nextInt(chars.length));
-      }));
+  static String getRandomString({int length = 64}) => String.fromCharCodes(
+    Iterable.generate(length, (_) {
+      const chars =
+          'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+      Random rnd = Random();
+      return chars.codeUnitAt(rnd.nextInt(chars.length));
+    }),
+  );
 
   static void showYesNoDialogAlternative(
     Widget title,
@@ -120,11 +121,12 @@ class AppUtils {
   }
 
   static void showYesNoDialogAlternativeTECArg(
-      Widget title,
-      Widget content,
-      Function(TextEditingController) yesCallBack,
-      Function(TextEditingController)? noCallBack,
-      TextEditingController arg) {
+    Widget title,
+    Widget content,
+    Function(TextEditingController) yesCallBack,
+    Function(TextEditingController)? noCallBack,
+    TextEditingController arg,
+  ) {
     final context = AppRouter.navigatorKey.currentContext;
     if (context == null || !context.mounted) return;
     showAdaptiveDialog(
@@ -139,9 +141,7 @@ class AppUtils {
               if (noCallBack != null) noCallBack(arg);
               Navigator.of(dialogContext, rootNavigator: true).pop();
             },
-            child: const Text(
-              "キャンセル",
-            ),
+            child: const Text("キャンセル"),
           ),
           adaptiveAction(
             context: dialogContext,
@@ -149,10 +149,8 @@ class AppUtils {
               yesCallBack(arg);
               Navigator.of(dialogContext, rootNavigator: true).pop();
             },
-            child: const Text(
-              "はい",
-            ),
-          )
+            child: const Text("はい"),
+          ),
         ],
       ),
     );
@@ -170,16 +168,19 @@ class AppUtils {
       case TargetPlatform.linux:
       case TargetPlatform.windows:
         return TextButton(
-            onPressed: onPressed,
-            style: TextButton.styleFrom(
-                foregroundColor: theme.colorScheme.onSurface),
-            child: child);
+          onPressed: onPressed,
+          style: TextButton.styleFrom(
+            foregroundColor: theme.colorScheme.onSurface,
+          ),
+          child: child,
+        );
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
         return CupertinoDialogAction(
-            onPressed: onPressed,
-            textStyle: TextStyle(color: Color.fromARGB(255, 0, 122, 255)),
-            child: child);
+          onPressed: onPressed,
+          textStyle: TextStyle(color: Color.fromARGB(255, 0, 122, 255)),
+          child: child,
+        );
     }
   }
 
@@ -195,16 +196,19 @@ class AppUtils {
       case TargetPlatform.linux:
       case TargetPlatform.windows:
         return TextButton(
-            onPressed: onPressed,
-            style: TextButton.styleFrom(
-                foregroundColor: theme.colorScheme.onSurface),
-            child: child);
+          onPressed: onPressed,
+          style: TextButton.styleFrom(
+            foregroundColor: theme.colorScheme.onSurface,
+          ),
+          child: child,
+        );
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
         return CupertinoDialogAction(
-            onPressed: onPressed,
-            textStyle: TextStyle(color: Color.fromARGB(255, 255, 59, 48)),
-            child: child);
+          onPressed: onPressed,
+          textStyle: TextStyle(color: Color.fromARGB(255, 255, 59, 48)),
+          child: child,
+        );
     }
   }
 
@@ -214,8 +218,9 @@ class AppUtils {
       content: Text(text),
       clipBehavior: Clip.antiAliasWithSaveLayer,
     );
-    ScaffoldMessenger.of(AppRouter.navigatorKey.currentContext!)
-        .showSnackBar(bar);
+    ScaffoldMessenger.of(
+      AppRouter.navigatorKey.currentContext!,
+    ).showSnackBar(bar);
   }
 
   static Future<void> shareFile(String filePath, {String? fileName}) async {
