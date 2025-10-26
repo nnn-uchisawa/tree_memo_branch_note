@@ -75,8 +75,29 @@ jobs:
           if [ -f coverage/lcov.info ]; then
             echo "✅ カバレッジファイルが生成されました"
             echo "📊 カバレッジサマリー:"
-            lcov --summary coverage/lcov.info 2>&1 | grep -E "lines\.*:|functions\.*:" || echo "lcovがインストールされていません（オプション）"
+            
+            # 簡易サマリーを表示
+            total_lines=$(grep -c "^DA:" coverage/lcov.info || echo "0")
+            covered_lines=$(grep "^DA:" coverage/lcov.info | grep -v ",0$" | wc -l || echo "0")
+            
+            if [ "$total_lines" -gt 0 ]; then
+              coverage_percent=$(awk "BEGIN {printf \"%.2f\", ($covered_lines / $total_lines) * 100}")
+              echo "カバレッジ: ${coverage_percent}% (${covered_lines}/${total_lines} 行)"
+            fi
+            
+            # lcovがあればより詳細なサマリー
+            if command -v lcov &> /dev/null; then
+              lcov --summary coverage/lcov.info 2>&1 | grep -E "lines\.*:|functions\.*:"
+            fi
           else
             echo "⚠️ カバレッジファイルが見つかりません"
           fi
+
+      - name: カバレッジレポートのアップロード（アーティファクト）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/lcov.info
+          retention-days: 30
 
