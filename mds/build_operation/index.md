@@ -26,7 +26,7 @@ $ flutter pub get && flutter pub run build_runner build
 ```
 
 ```
-$ flutter run
+$ flutter run --flavor prod
 ```
 
 4. デバッグ実行したい場合は以下のコマンドを実行
@@ -36,5 +36,5 @@ $ flutter pub get && flutter pub run build_runner build
 ```
 
 ```
-$ flutter run --debug
+$ flutter run  --flavor prod --debug
 ```
