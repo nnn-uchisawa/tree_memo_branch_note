@@ -32,7 +32,7 @@ dependencies:
     sdk: flutter
 
   # 🏗️ 状態管理・アーキテクチャ
-  flutter_riverpod: ^3.0.3          # 主要状態管理ライブラリ
+  flutter_riverpod: ^3.0.3         # 主要状態管理ライブラリ
   provider: ^6.1.5+1               # 補助的な状態管理
 
   # 🛣️ ナビゲーション・ルーティング
@@ -69,7 +69,7 @@ dependencies:
   quiver: ^3.2.2                   # ユーティリティ関数
 
   # 🔥 Firebase
-  firebase_core: ^4.2.0           # Firebase初期化
+  firebase_core: ^4.2.0            # Firebase初期化
   firebase_auth: ^6.1.1            # Firebase認証
   firebase_storage: ^13.0.3        # Firebaseストレージ
   google_sign_in: ^6.3.0           # Googleサインイン（既存実装互換）
