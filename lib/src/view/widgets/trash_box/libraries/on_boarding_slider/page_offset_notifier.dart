@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 // ignore: depend_on_referenced_packages
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tree/src/view/widgets/libraries/on_boarding_slider/page_offset_state.dart';
+import 'package:tree/src/view/widgets/trash_box/libraries/on_boarding_slider/page_offset_state.dart';
 
 part 'page_offset_notifier.g.dart';
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_onboarding_slider/flutter_onboarding_slider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tree/app_router.dart';
 import 'package:tree/gen/assets.gen.dart';
-import 'package:tree/src/view/widgets/libraries/on_boarding_slider/flutter_onboarding_slider.dart';
 import 'package:tree/src/view/widgets/on_boarding_page.dart';
 
 class WalkThroughView extends StatelessWidget {

@@ -133,10 +133,10 @@ packages:
     dependency: transitive
     description:
       name: build_daemon
-      sha256: "8e928697a82be082206edb0b9c99c5a4ad6bc31c9e9b8b2f291ae65cd4a25daa"
+      sha256: "409002f1adeea601018715d613115cfaf0e31f512cb80ae4534c79867ae2363d"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.4"
+    version: "4.1.0"
   build_resolvers:
     dependency: transitive
     description:
@@ -522,18 +522,27 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_native_splash
-      sha256: "8321a6d11a8d13977fa780c89de8d257cce3d841eecfb7a4cadffcc4f12d82dc"
+      sha256: "4fb9f4113350d3a80841ce05ebf1976a36de622af7d19aca0ca9a9911c7ff002"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.6"
+    version: "2.4.7"
+  flutter_onboarding_slider:
+    dependency: "direct main"
+    description:
+      path: "packages/flutter_onboarding_slider"
+      ref: "refactor/riverpod-migration"
+      resolved-ref: a4cba537de8646f98712cc81993dc67685ec9917
+      url: "https://github.com/nnn-uchisawa/flutter_onboarding_slider_fix/"
+    source: git
+    version: "1.0.11"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
       name: flutter_plugin_android_lifecycle
-      sha256: c2fe1001710127dfa7da89977a08d591398370d099aacdaa6d44da7eb14b8476
+      sha256: "306f0596590e077338312f38837f595c04f28d6cdeeac392d3d74df2f0003687"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.31"
+    version: "2.0.32"
   flutter_riverpod:
     dependency: "direct main"
     description:
@@ -572,10 +581,10 @@ packages:
     dependency: "direct main"
     description:
       name: font_awesome_flutter
-      sha256: "27af5982e6c510dec1ba038eff634fa284676ee84e3fd807225c80c4ad869177"
+      sha256: b9011df3a1fa02993630b8fb83526368cf2206a711259830325bab2f1d2a4eb0
       url: "https://pub.dev"
     source: hosted
-    version: "10.10.0"
+    version: "10.12.0"
   freezed:
     dependency: "direct dev"
     description:
@@ -612,18 +621,18 @@ packages:
     dependency: "direct main"
     description:
       name: go_router
-      sha256: c752e2d08d088bf83742cb05bf83003f3e9d276ff1519b5c92f9d5e60e5ddd23
+      sha256: d8f590a69729f719177ea68eb1e598295e8dbc41bbc247fed78b2c8a25660d7c
       url: "https://pub.dev"
     source: hosted
-    version: "16.2.4"
+    version: "16.3.0"
   go_router_builder:
     dependency: "direct dev"
     description:
       name: go_router_builder
-      sha256: "43a109ccf4f804c486f7f7c0e2e11345142ecf456b4cc265f75b33c7e6fe4684"
+      sha256: e0646fb5586e04e1df92678f539059f38e4314848f06dd4f3cd87fed434e16b5
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.0"
+    version: "4.1.1"
   google_identity_services_web:
     dependency: transitive
     description:
@@ -844,10 +853,10 @@ packages:
     dependency: transitive
     description:
       name: macos_ui
-      sha256: "0a4ed386fdf7ef3269330cd869c9ed1d97deb73c1930f21d54a300e65e5f0508"
+      sha256: "09fb51d65b6a2d328ba5aa429ba0f7aabad5bc770193ea6e49da9f29bf95d835"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "2.2.2"
   macos_window_utils:
     dependency: transitive
     description:
@@ -972,18 +981,18 @@ packages:
     dependency: transitive
     description:
       name: path_provider_android
-      sha256: "3b4c1fc3aa55ddc9cd4aa6759984330d5c8e66aa7702a6223c61540dc6380c37"
+      sha256: e122c5ea805bb6773bb12ce667611265980940145be920cd09a4b0ec0285cb16
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.19"
+    version: "2.2.20"
   path_provider_foundation:
     dependency: transitive
     description:
       name: path_provider_foundation
-      sha256: "16eef174aacb07e09c351502740fa6254c165757638eba1e9116b0a781201bbd"
+      sha256: efaec349ddfc181528345c56f8eda9d6cccd71c177511b132c6a0ddaefaa2738
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.2"
+    version: "2.4.3"
   path_provider_linux:
     dependency: transitive
     description:
@@ -1116,10 +1125,10 @@ packages:
     dependency: "direct main"
     description:
       name: share_plus
-      sha256: "3424e9d5c22fd7f7590254ba09465febd6f8827c8b19a44350de4ac31d92d3a6"
+      sha256: "14c8860d4de93d3a7e53af51bff479598c4e999605290756bbbe45cf65b37840"
       url: "https://pub.dev"
     source: hosted
-    version: "12.0.0"
+    version: "12.0.1"
   share_plus_platform_interface:
     dependency: transitive
     description:
@@ -1148,10 +1157,10 @@ packages:
     dependency: transitive
     description:
       name: shared_preferences_foundation
-      sha256: "6a52cfcdaeac77cad8c97b539ff688ccfc458c007b4db12be584fbe5c0e49e03"
+      sha256: "1c33a907142607c40a7542768ec9badfd16293bac51da3a4482623d15845f88b"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.4"
+    version: "2.5.5"
   shared_preferences_linux:
     dependency: transitive
     description:
@@ -1417,10 +1426,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_ios
-      sha256: d80b3f567a617cb923546034cc94bfe44eb15f989fe670b37f26abdb9d939cb7
+      sha256: "6b63f1441e4f653ae799166a72b50b1767321ecc263a57aadf825a7a2a5477d9"
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.4"
+    version: "6.3.5"
   url_launcher_linux:
     dependency: transitive
     description:
@@ -1433,10 +1442,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_macos
-      sha256: c043a77d6600ac9c38300567f33ef12b0ef4f4783a2c1f00231d2b1941fea13f
+      sha256: "8262208506252a3ed4ff5c0dc1e973d2c0e0ef337d0a074d35634da5d44397c9"
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.3"
+    version: "3.2.4"
   url_launcher_platform_interface:
     dependency: transitive
     description:
@@ -1513,10 +1522,10 @@ packages:
     dependency: transitive
     description:
       name: watcher
-      sha256: "5bf046f41320ac97a469d506261797f35254fa61c641741ef32dacda98b7d39c"
+      sha256: "592ab6e2892f67760543fb712ff0177f4ec76c031f02f5b4ff8d3fc5eb9fb61a"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.3"
+    version: "1.1.4"
   web:
     dependency: transitive
     description:
@@ -1582,5 +1591,5 @@ packages:
     source: hosted
     version: "3.1.3"
 sdks:
-  dart: ">=3.9.0 <4.0.0"
+  dart: ">=3.9.2 <4.0.0"
   flutter: ">=3.35.0"

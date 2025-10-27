@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tree/src/view/widgets/libraries/on_boarding_slider/background_body.dart';
+import 'package:tree/src/view/widgets/trash_box/libraries/on_boarding_slider/background_body.dart';
 
 import '../helpers/test_helpers.dart';
 

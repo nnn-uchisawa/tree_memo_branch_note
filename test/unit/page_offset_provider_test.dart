@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tree/src/view/widgets/libraries/on_boarding_slider/page_offset_notifier.dart';
-import 'package:tree/src/view/widgets/libraries/on_boarding_slider/page_offset_state.dart';
+import 'package:tree/src/view/widgets/trash_box/libraries/on_boarding_slider/page_offset_notifier.dart';
+import 'package:tree/src/view/widgets/trash_box/libraries/on_boarding_slider/page_offset_state.dart';
 
 void main() {
   group('PageOffsetNotifier Tests', () {

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_onboarding_slider/onboarding_navigation_bar.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tree/src/view/widgets/libraries/on_boarding_slider/onboarding_navigation_bar.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

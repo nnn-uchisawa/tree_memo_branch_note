@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tree/src/view/widgets/libraries/on_boarding_slider/page_offset_notifier.dart';
+import 'package:tree/src/view/widgets/trash_box/libraries/on_boarding_slider/page_offset_notifier.dart';
 
 class BackgroundImage extends ConsumerWidget {
   final int id;

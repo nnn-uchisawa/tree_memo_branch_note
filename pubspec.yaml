@@ -43,6 +43,11 @@ dependencies:
   cupertino_icons: ^1.0.8          # iOSスタイルアイコン
   font_awesome_flutter: ^10.10.0   # FontAwesomeアイコン
   icons_plus: ^5.0.0               # 追加アイコンセット
+  flutter_onboarding_slider:
+    git:
+      url: https://github.com/nnn-uchisawa/flutter_onboarding_slider_fix/
+      ref: refactor/riverpod-migration
+      path: packages/flutter_onboarding_slider
 
   # 🖼️ アセット・画像
   flutter_gen: ^5.12.0             # アセットコード生成
