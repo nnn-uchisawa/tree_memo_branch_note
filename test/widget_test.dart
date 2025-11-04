@@ -239,7 +239,7 @@ void main() {
       } catch (e) {
         // ルーティング関連のエラーはスキップ
         // テスト環境ではgo_routerが正常に動作しない
-        print('Routing error in test: $e');
+        log('Routing error in test: $e');
       }
     });
   });
@@ -276,7 +276,7 @@ void main() {
         expect(titleWidget.style?.color, Colors.white);
       } catch (e) {
         // HomeViewは複雑な依存関係があるため、エラーが発生する可能性がある
-        print('HomeView test error: $e');
+        log('HomeView test error: $e');
       }
     });
   });
