@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:tree/gen/assets.gen.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
@@ -35,7 +34,7 @@ class MemoTopBarItem extends ConsumerWidget {
                 },
                 icon: const Icon(
                   size: 25,
-                  FontAwesomeIcons.plus,
+                  Icons.add,
                   color: Colors.white,
                 ),
               ),

@@ -5,11 +5,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:tree/src/exceptions/authentication_exception.dart';
 import 'package:tree/src/repositories/repository_providers.dart';
-import 'package:tree/src/services/firebase/firebase_storage_service.dart';
 import 'package:tree/src/util/app_utils.dart';
-import 'package:tree/src/view/pages/auth/auth_notifier.dart';
 import 'package:tree/src/view/pages/home/home_state.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
 import 'package:tree/src/view/pages/memo/memo_state.dart';
@@ -387,120 +384,6 @@ class HomeNotifier extends _$HomeNotifier {
     } catch (e) {
       log('shareFile エラー: $e');
       AppUtils.showSnackBar('ファイルの共有に失敗しました');
-    }
-  }
-
-  // ===== Cloud (Firebase Storage) =====
-
-  /// クラウド上のメモ一覧を取得
-  Future<List<String>> fetchCloudMemoNames() async {
-    try {
-      final names = await FirebaseStorageService.getMemoFileNames();
-      return names;
-    } on AuthenticationException catch (e) {
-      log('クラウド通信エラーでログアウト: ${e.message}');
-      await ref.read(authProvider.notifier).signOut();
-      AppUtils.showSnackBar('クラウド通信エラーが発生したためログアウトしました');
-      return [];
-    } catch (e) {
-      AppUtils.showSnackBar('クラウド一覧の取得に失敗しました: $e');
-      return [];
-    }
-  }
-
-  /// 単一メモをクラウドからダウンロードしてローカルへ保存後、一覧更新
-  Future<void> downloadMemoFromCloud(String fileName) async {
-    try {
-      final dir = await getApplicationDocumentsDirectory();
-      final localPath = '${dir.path}/$fileName.tmson';
-      await FirebaseStorageService.downloadMemo(fileName, localPath);
-
-      // ダウンロード後にfileNameが正しく設定されているか確認・修正
-      final fileRepository = ref.read(fileRepositoryProvider);
-      await fileRepository.ensureFileNameInJson(fileName);
-
-      await updateFileNames();
-      AppUtils.showSnackBar('ダウンロードしました: $fileName');
-    } on AuthenticationException catch (e) {
-      log('クラウド通信エラーでログアウト: ${e.message}');
-      await ref.read(authProvider.notifier).signOut();
-      AppUtils.showSnackBar('クラウド通信エラーが発生したためログアウトしました');
-    } catch (e) {
-      AppUtils.showSnackBar('ダウンロードに失敗しました: $e');
-    }
-  }
-
-  /// すべてのメモをクラウドからダウンロードしてローカルへ保存後、一覧更新
-  Future<void> downloadAllMemosFromCloud(List<String> fileNames) async {
-    try {
-      final dir = await getApplicationDocumentsDirectory();
-      for (final name in fileNames) {
-        final localPath = '${dir.path}/$name.tmson';
-        await FirebaseStorageService.downloadMemo(name, localPath);
-
-        // ダウンロード後にfileNameが正しく設定されているか確認・修正
-        final fileRepository = ref.read(fileRepositoryProvider);
-        await fileRepository.ensureFileNameInJson(name);
-      }
-      await updateFileNames();
-      AppUtils.showSnackBar('一括ダウンロードが完了しました');
-    } on AuthenticationException catch (e) {
-      log('クラウド通信エラーでログアウト: ${e.message}');
-      await ref.read(authProvider.notifier).signOut();
-      AppUtils.showSnackBar('クラウド通信エラーが発生したためログアウトしました');
-    } catch (e) {
-      AppUtils.showSnackBar('一括ダウンロードに失敗しました: $e');
-    }
-  }
-
-  /// クラウド上のメモを削除
-  Future<void> deleteMemoInCloud(String fileName) async {
-    try {
-      await FirebaseStorageService.deleteMemo(fileName);
-      AppUtils.showSnackBar('クラウドから削除しました: $fileName');
-    } on AuthenticationException catch (e) {
-      log('クラウド通信エラーでログアウト: ${e.message}');
-      await ref.read(authProvider.notifier).signOut();
-      AppUtils.showSnackBar('クラウド通信エラーが発生したためログアウトしました');
-    } catch (e) {
-      AppUtils.showSnackBar('クラウド削除に失敗しました: $e');
-    }
-  }
-
-  /// ローカルのメモをクラウドへアップロード
-  Future<void> uploadMemoToCloud(String displayName) async {
-    try {
-      final authState = ref.read(authProvider);
-      if (!authState.isSignedIn) {
-        AppUtils.showSnackBar('ログインが必要です');
-        return;
-      }
-
-      final fileRepository = ref.read(fileRepositoryProvider);
-      final physicalFileName = await fileRepository.getPhysicalFileName(
-        displayName,
-      );
-      if (physicalFileName == null) {
-        AppUtils.showSnackBar('ファイルが見つかりません: $displayName');
-        return;
-      }
-
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/$physicalFileName.tmson');
-
-      if (!await file.exists()) {
-        AppUtils.showSnackBar('ファイルが見つかりません');
-        return;
-      }
-
-      await FirebaseStorageService.uploadMemo(physicalFileName, file);
-      AppUtils.showSnackBar('クラウドに保存しました');
-    } on AuthenticationException catch (e) {
-      log('クラウド通信エラーでログアウト: ${e.message}');
-      await ref.read(authProvider.notifier).signOut();
-      AppUtils.showSnackBar('クラウド通信エラーが発生したためログアウトしました');
-    } catch (e) {
-      AppUtils.showSnackBar('クラウド保存に失敗しました: $e');
     }
   }
 

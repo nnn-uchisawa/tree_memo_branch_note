@@ -8,7 +8,6 @@ import 'package:tree/src/repositories/repository_providers.dart';
 import 'package:tree/src/services/file/file_service.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
-import 'package:tree/src/view/pages/auth/auth_notifier.dart';
 import 'package:tree/src/view/pages/home/home_notifier.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
 import 'package:tree/src/view/widgets/adaptive_text_field.dart';
@@ -971,29 +970,6 @@ class MemoNotifier extends _$MemoNotifier {
       },
       textEditingController,
     );
-  }
-
-  /// クラウドに保存
-  Future<void> saveToCloud() async {
-    try {
-      final authState = ref.read(authProvider);
-      if (!authState.isSignedIn) {
-        AppUtils.showSnackBar('ログインが必要です');
-        return;
-      }
-
-      // 現在のメモをローカルに保存
-      final displayName = state.fileName;
-      if (displayName.isEmpty) {
-        AppUtils.showSnackBar('ファイル名を設定してください');
-        return;
-      }
-
-      // home_notifierのuploadMemoToCloudを使用（表示名ベース）
-      await ref.read(homeProvider.notifier).uploadMemoToCloud(displayName);
-    } catch (e) {
-      AppUtils.showSnackBar('クラウド保存に失敗しました: ${e.toString()}');
-    }
   }
 
   void resetFocusIfFocus() {

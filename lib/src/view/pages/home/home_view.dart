@@ -6,10 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tree/app_router.dart';
 import 'package:tree/gen/assets.gen.dart';
 import 'package:tree/src/util/app_utils.dart';
-import 'package:tree/src/view/pages/auth/auth_notifier.dart';
-import 'package:tree/src/view/pages/auth/login_dialog.dart';
 import 'package:tree/src/view/pages/home/home_notifier.dart';
-import 'package:tree/src/view/pages/home/widgets/cloud_download_button.dart';
 import 'package:tree/src/view/widgets/safe_appbar_view.dart';
 
 class HomeView extends ConsumerStatefulWidget {
@@ -26,40 +23,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     return SafeAppBarView(
       appBar: AppBar(
-        title: Text('Tree', style: TextStyle(color: Colors.white)),
+        title: const Text('Tree', style: TextStyle(color: Colors.white)),
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
-          const CloudDownloadButton(),
-          Consumer(
-            builder: (context, ref, child) {
-              final authState = ref.watch(authProvider);
-              return IconButton(
-                onPressed: () async {
-                  if (authState.isSignedIn) {
-                    // ログアウト確認ダイアログ
-                    AppUtils.showYesNoDialogAlternative(
-                      const Text('ログアウト'),
-                      const Text('ログアウトしますか？'),
-                      () async {
-                        await ref.read(authProvider.notifier).signOut();
-                      },
-                      null,
-                    );
-                  } else {
-                    // ログイン選択ダイアログを表示
-                    showLoginDialog(context);
-                  }
-                },
-                icon: authState.isSignedIn
-                    ? const Icon(Icons.logout, size: 25, color: Colors.white)
-                    : Assets.images.profile.image(
-                        width: 25,
-                        height: 25,
-                        color: Colors.white,
-                      ),
-              );
-            },
-          ),
           IconButton(
             onPressed: () async {
               final fileInfo = await ref
@@ -91,12 +57,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
               colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
             ),
           ),
-          TextButton(
+          IconButton(
             onPressed: () {
               ref.read(homeProvider.notifier).setMemoState(null);
               const MemoRoute().push(context);
             },
-            child: Icon(
+            icon: const Icon(
               Icons.playlist_add_rounded,
               size: 30,
               color: Colors.white,
@@ -174,13 +140,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                                       .read(homeProvider.notifier)
                                       .copyToClipboard(fileName);
                                   break;
-                                case 'cloud_save':
-                                  await _withLoading(() async {
-                                    await ref
-                                        .read(homeProvider.notifier)
-                                        .uploadMemoToCloud(fileName);
-                                  });
-                                  break;
                                 case 'delete':
                                   AppUtils.showYesNoDialogAlternativeDestructive(
                                     const Text('削除の確認'),
@@ -196,7 +155,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                               }
                             },
                             itemBuilder: (BuildContext context) {
-                              final authState = ref.watch(authProvider);
                               final items = <PopupMenuEntry<String>>[
                                 const PopupMenuItem<String>(
                                   value: 'copy',
@@ -239,22 +197,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                                   ),
                                 ),
                               ];
-
-                              // 認証済みの場合のみクラウド保存項目を追加
-                              if (authState.isSignedIn) {
-                                items.add(
-                                  const PopupMenuItem<String>(
-                                    value: 'cloud_save',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.cloud_upload, size: 20),
-                                        SizedBox(width: 8),
-                                        Text('クラウドに保存'),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }
 
                               items.add(
                                 const PopupMenuItem<String>(
@@ -320,36 +262,5 @@ class LoadingView extends ConsumerWidget {
         ),
       ),
     );
-  }
-}
-
-// クラウド関連の処理は Notifier/CloudDownloadButton へ移行
-
-Future<T> _withLoading<T>(Future<T> Function() task) async {
-  final ctx = AppRouter.navigatorKey.currentContext;
-  if (ctx == null || !ctx.mounted) {
-    return await task();
-  }
-  showDialog(
-    context: ctx,
-    barrierDismissible: false,
-    builder: (dialogCtx) {
-      return const Center(
-        child: SizedBox(
-          width: 48,
-          height: 48,
-          child: CircularProgressIndicator(),
-        ),
-      );
-    },
-  );
-  try {
-    final result = await task();
-    return result;
-  } finally {
-    final popCtx = AppRouter.navigatorKey.currentContext;
-    if (popCtx != null && popCtx.mounted) {
-      Navigator.of(popCtx, rootNavigator: true).pop();
-    }
   }
 }

@@ -41,7 +41,6 @@ dependencies:
   # 🎨 UI・デザイン
   adaptive_dialog: ^2.5.0          # プラットフォーム適応ダイアログ
   cupertino_icons: ^1.0.8          # iOSスタイルアイコン
-  font_awesome_flutter: ^10.10.0   # FontAwesomeアイコン
   icons_plus: ^5.0.0               # 追加アイコンセット
   flutter_onboarding_slider:
     git:
@@ -72,16 +71,6 @@ dependencies:
   # 🌍 国際化・ユーティリティ
   intl: ^0.20.2                    # 国際化・日付フォーマット
   quiver: ^3.2.2                   # ユーティリティ関数
-
-  # 🔥 Firebase
-  firebase_core: ^4.2.0            # Firebase初期化
-  firebase_auth: ^6.1.1            # Firebase認証
-  firebase_storage: ^13.0.3        # Firebaseストレージ
-  google_sign_in: ^6.3.0           # Googleサインイン（既存実装互換）
-  sign_in_with_apple: ^7.0.1       # Appleサインイン
-  flutter_signin_button: ^2.1.1    # サインインボタンUI
-  crypto: ^3.0.6                   # SHA-256 (Apple Sign In nonce 用)
-  flutter_dotenv: ^5.1.0           # 環境変数読み込み（FirebaseOptions用）
 
   # 🚀 アプリ配布・ビルド（開発用）
   flutter_native_splash: ^2.3.2    # スプラッシュスクリーン
@@ -165,7 +154,6 @@ flutter:
     - assets/images/profile.png
     - assets/usage_of_tree.tmson
     - assets/usage_of_cloud.tmson
-    - .env
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
@@ -192,8 +180,3 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
 
-
-flutter_gen:
-  assets:
-    exclude:
-      - .env

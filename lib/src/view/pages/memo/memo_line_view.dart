@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
@@ -119,8 +118,8 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
                       height: leftIconSize,
                       child: Icon(
                         widget.memoLineState.isFolding
-                            ? FontAwesomeIcons.angleRight
-                            : FontAwesomeIcons.angleDown,
+                            ? Icons.chevron_right
+                            : Icons.keyboard_arrow_down,
                       ),
                     ),
                   ],
