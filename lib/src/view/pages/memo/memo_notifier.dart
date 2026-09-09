@@ -86,35 +86,28 @@ class MemoNotifier extends _$MemoNotifier {
   /// メモの行の値が含まれたStateObjectの配列から閉じている行を再帰的に探して不可視な行を削除し返却する（プライベート）
   List<MemoLineState> _getFoldingLineList(
     List<MemoLineState> list,
-    int parentIndex,
+    int _,
   ) {
-    if (list.isEmpty) {
-      return [];
-    }
-    var nextParent = parentIndex + 1;
+    final visibleList = <MemoLineState>[];
+    final foldingParentIndents = <int>[];
 
-    if (list[parentIndex].isFolding) {
-      // 削除対象のインデックスを特定
-      final indicesToRemove = <int>[];
-      for (int i = parentIndex + 1; i < list.length; i++) {
-        if (list[i].indent > list[parentIndex].indent) {
-          indicesToRemove.add(i);
-        } else {
-          nextParent = i;
-          break;
-        }
+    for (final line in list) {
+      while (foldingParentIndents.isNotEmpty &&
+          line.indent <= foldingParentIndents.last) {
+        foldingParentIndents.removeLast();
       }
 
-      // 逆順で削除（インデックスのずれを防ぐ）
-      for (int i = indicesToRemove.length - 1; i >= 0; i--) {
-        list.removeAt(indicesToRemove[i]);
+      if (foldingParentIndents.isNotEmpty) {
+        continue;
+      }
+
+      visibleList.add(line);
+      if (line.isFolding) {
+        foldingParentIndents.add(line.indent);
       }
     }
 
-    if (nextParent < list.length) {
-      list = _getFoldingLineList(list, nextParent);
-    }
-    return list;
+    return visibleList;
   }
 
   int _getFoldingEnd(int start) {
