@@ -12,11 +12,7 @@ void main() {
 
     testWidgets('Complete app navigation flow', (WidgetTester tester) async {
       // アプリを起動
-      await tester.pumpWidget(
-        ProviderScope(
-          child: TreeApp(),
-        ),
-      );
+      await tester.pumpWidget(ProviderScope(child: TreeApp()));
 
       // アプリが起動することを確認
       await tester.pumpAndSettle();
@@ -29,11 +25,7 @@ void main() {
     });
 
     testWidgets('Theme switching works correctly', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: TreeApp(),
-        ),
-      );
+      await tester.pumpWidget(ProviderScope(child: TreeApp()));
 
       await tester.pumpAndSettle();
 
@@ -46,11 +38,7 @@ void main() {
     });
 
     testWidgets('App handles orientation changes', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: TreeApp(),
-        ),
-      );
+      await tester.pumpWidget(ProviderScope(child: TreeApp()));
 
       await tester.pumpAndSettle();
 
@@ -85,11 +73,7 @@ void main() {
     });
 
     testWidgets('App handles memory pressure', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: TreeApp(),
-        ),
-      );
+      await tester.pumpWidget(ProviderScope(child: TreeApp()));
 
       await tester.pumpAndSettle();
 
@@ -104,13 +88,10 @@ void main() {
       expect(find.byType(MaterialApp), findsOneWidget);
     });
 
-    testWidgets('App recovers from errors gracefully',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: TreeApp(),
-        ),
-      );
+    testWidgets('App recovers from errors gracefully', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(ProviderScope(child: TreeApp()));
 
       await tester.pumpAndSettle();
 
@@ -124,11 +105,7 @@ void main() {
     testWidgets('App startup time is reasonable', (WidgetTester tester) async {
       final stopwatch = Stopwatch()..start();
 
-      await tester.pumpWidget(
-        ProviderScope(
-          child: TreeApp(),
-        ),
-      );
+      await tester.pumpWidget(ProviderScope(child: TreeApp()));
 
       await tester.pumpAndSettle();
       stopwatch.stop();
@@ -138,11 +115,7 @@ void main() {
     });
 
     testWidgets('UI renders without frame drops', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: TreeApp(),
-        ),
-      );
+      await tester.pumpWidget(ProviderScope(child: TreeApp()));
 
       // フレームドロップなしでレンダリングされることを確認
       await tester.pumpAndSettle();

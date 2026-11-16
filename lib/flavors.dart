@@ -1,8 +1,4 @@
-enum Flavor {
-  local,
-  dev,
-  prod,
-}
+enum Flavor { local, dev, prod }
 
 class F {
   static late final Flavor appFlavor;
@@ -19,5 +15,4 @@ class F {
         return 'Tree';
     }
   }
-
 }

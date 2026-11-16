@@ -10,11 +10,11 @@ part of 'home_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(HomeNotifier)
-const homeProvider = HomeNotifierProvider._();
+final homeProvider = HomeNotifierProvider._();
 
 final class HomeNotifierProvider
     extends $NotifierProvider<HomeNotifier, HomeState> {
-  const HomeNotifierProvider._()
+  HomeNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -41,14 +41,13 @@ final class HomeNotifierProvider
   }
 }
 
-String _$homeNotifierHash() => r'84ed18dedc92a6ba64681fe8f084c30a1add39f8';
+String _$homeNotifierHash() => r'be8856bfeda801dc8bd389de3d4ec39dd38793fb';
 
 abstract class _$HomeNotifier extends $Notifier<HomeState> {
   HomeState build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<HomeState, HomeState>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$HomeNotifier extends $Notifier<HomeState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }

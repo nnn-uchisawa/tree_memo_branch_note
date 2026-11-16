@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tree/src/repositories/firebase_storage_repository.dart';
 import 'package:tree/src/repositories/local_file_repository.dart';
 import 'package:tree/src/repositories/repository_providers.dart';
 import 'package:tree/src/view/pages/auth/auth_notifier.dart';
@@ -52,7 +51,9 @@ Widget wrapWithProviderScope(Widget child) {
       homeProvider.overrideWithValue(mockHomeState),
       authProvider.overrideWithValue(mockAuthState),
       fileRepositoryProvider.overrideWithValue(LocalFileRepository()),
-      storageRepositoryProvider.overrideWithValue(FirebaseStorageRepository()),
+      storageRepositoryProvider.overrideWithValue(
+        const DisabledStorageRepository(),
+      ),
     ],
     child: MaterialApp(home: child),
   );

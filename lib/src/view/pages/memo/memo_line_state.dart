@@ -17,6 +17,8 @@ abstract class MemoLineState with _$MemoLineState {
     @Default(false) bool isEditing,
     @Default(false) bool isFolding,
     @Default(false) bool isReadOnly,
+    String? imageBase64,
+    @Default(1.0) double imageScale,
   }) = _MemoLineState;
 
   factory MemoLineState.fromJson(Map<String, dynamic> json) =>

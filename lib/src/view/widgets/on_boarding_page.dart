@@ -25,22 +25,13 @@ class OnBoardingPage extends StatelessWidget {
                   ),
                 )
               : Container(),
-          const SizedBox(
-            height: 50,
-          ),
+          const SizedBox(height: 50),
           image ?? Container(),
-          const SizedBox(
-            height: 50,
-          ),
+          const SizedBox(height: 50),
           description != null
-              ? Text(
-                  description!,
-                  style: const TextStyle(color: Colors.white),
-                )
+              ? Text(description!, style: const TextStyle(color: Colors.white))
               : Container(),
-          const SizedBox(
-            height: 50,
-          ),
+          const SizedBox(height: 50),
         ],
       ),
     );

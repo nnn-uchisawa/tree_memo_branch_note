@@ -11,7 +11,7 @@ part of 'repository_providers.dart';
 /// ファイルリポジトリプロバイダー
 
 @ProviderFor(fileRepository)
-const fileRepositoryProvider = FileRepositoryProvider._();
+final fileRepositoryProvider = FileRepositoryProvider._();
 
 /// ファイルリポジトリプロバイダー
 
@@ -19,7 +19,7 @@ final class FileRepositoryProvider
     extends $FunctionalProvider<FileRepository, FileRepository, FileRepository>
     with $Provider<FileRepository> {
   /// ファイルリポジトリプロバイダー
-  const FileRepositoryProvider._()
+  FileRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -57,7 +57,7 @@ String _$fileRepositoryHash() => r'f171032110770292fa8060860dad7db8b714b362';
 /// ストレージリポジトリプロバイダー
 
 @ProviderFor(storageRepository)
-const storageRepositoryProvider = StorageRepositoryProvider._();
+final storageRepositoryProvider = StorageRepositoryProvider._();
 
 /// ストレージリポジトリプロバイダー
 
@@ -70,7 +70,7 @@ final class StorageRepositoryProvider
         >
     with $Provider<StorageRepository> {
   /// ストレージリポジトリプロバイダー
-  const StorageRepositoryProvider._()
+  StorageRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -104,4 +104,4 @@ final class StorageRepositoryProvider
   }
 }
 
-String _$storageRepositoryHash() => r'b8261101ce269a2a3682426eafbc1691b5635a44';
+String _$storageRepositoryHash() => r'1fb6c8b512e5604e9e4fe76beba5c972e695b811';

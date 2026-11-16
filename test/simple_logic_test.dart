@@ -80,7 +80,9 @@ void main() {
     test('Exception handling should work correctly', () {
       expect(() => throw Exception('Test exception'), throwsException);
       expect(
-          () => throw ArgumentError('Invalid argument'), throwsArgumentError);
+        () => throw ArgumentError('Invalid argument'),
+        throwsArgumentError,
+      );
 
       String? result;
       try {
@@ -103,7 +105,7 @@ void main() {
           'created_by': 'user1',
           'last_modified': DateTime.now().toIso8601String(),
           'version': 1,
-        }
+        },
       };
 
       expect(memoData['id'], '123');
@@ -160,7 +162,7 @@ void main() {
           'reminder_enabled': true,
           'sound_enabled': false,
           'vibration_enabled': true,
-        }
+        },
       };
 
       expect(mockPreferences['theme'], 'system');

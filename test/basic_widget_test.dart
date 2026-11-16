@@ -109,7 +109,12 @@ void main() {
         ),
       );
 
-      final coloredBox = tester.widget<ColoredBox>(find.byType(ColoredBox));
+      final coloredBox = tester.widget<ColoredBox>(
+        find.descendant(
+          of: find.byType(OnBoardingPage),
+          matching: find.byType(ColoredBox),
+        ),
+      );
       expect(coloredBox.color, Colors.blue);
     });
   });
@@ -189,7 +194,13 @@ void main() {
       );
 
       // 基本的なウィジェット構造の確認
-      expect(find.byType(ColoredBox), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(OnBoardingPage),
+          matching: find.byType(ColoredBox),
+        ),
+        findsOneWidget,
+      );
       expect(find.byType(Column), findsOneWidget);
       expect(find.byType(SizedBox), findsWidgets);
     });

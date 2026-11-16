@@ -1,6 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
@@ -28,10 +30,94 @@ class MemoLineView extends ConsumerStatefulWidget {
 class _MemoLineViewState extends ConsumerState<MemoLineView> {
   double textFieldHeight = 0.0;
   late TextEditingController controller;
+  Uint8List? _imageBytes;
+
+  void _decodeImage() {
+    try {
+      final data = widget.memoLineState.imageBase64;
+      _imageBytes = data == null ? null : base64Decode(data);
+    } on FormatException {
+      _imageBytes = null;
+    }
+  }
+
+  void _showImage() {
+    final bytes = _imageBytes;
+    if (bytes == null) return;
+    final notifier = ref.read(memoProvider.notifier);
+    notifier.onTextChangeEnd();
+    notifier.changeFocusNodeIndex(widget.memoLineState.index);
+    showDialog<void>(
+      context: context,
+      useSafeArea: false,
+      builder: (context) => Dialog.fullscreen(
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 5,
+                child: Center(
+                  child: Image.memory(
+                    bytes,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) =>
+                        const Icon(Icons.broken_image, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.topRight,
+                child: IconButton(
+                  tooltip: '閉じる',
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmRemoveImage() async {
+    if (widget.memoLineState.isReadOnly) return;
+    final index = widget.memoLineState.index;
+    final image = widget.memoLineState.imageBase64;
+    final notifier = ref.read(memoProvider.notifier);
+    notifier.onTextChangeEnd();
+    final remove = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('画像を削除'),
+        content: const Text('この画像を削除しますか？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('削除', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || remove != true) return;
+    final lines = ref.read(memoProvider).list;
+    if (index < lines.length && lines[index].imageBase64 == image) {
+      ref.read(memoProvider.notifier).removeImage(index);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _decodeImage();
     controller = ref
         .read(memoProvider.notifier)
         .getTextController(widget.memoLineState.index);
@@ -42,10 +128,22 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
   @override
   void didUpdateWidget(covariant MemoLineView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.memoLineState.imageBase64 !=
+        widget.memoLineState.imageBase64) {
+      _decodeImage();
+    }
+
+    // テキスト変更によって高さが変わる可能性があるので先にテキストを更新しておく
     if (controller.text != widget.memoLineState.text) {
       controller.text = widget.memoLineState.text;
     }
-    setTextFieldHeight();
+
+    // 高さを再取得するために120ms待つ（50msで足りなかった多分処理能力によって変わる）
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (mounted) {
+        setTextFieldHeight();
+      }
+    });
   }
 
   void setTextFieldHeight() {
@@ -74,7 +172,14 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
     const leftIconSize = 48.0;
     const dividerWidth = 1.0;
     const leadingMarginEditText = 10.0;
-    final textFieldWidth = AppUtils.sWidth -
+    // Use roughly three text lines as the default thumbnail height.
+    final thumbnailHeight =
+        MediaQuery.textScalerOf(context).scale(widget.memoLineState.fontSize) *
+        1.5 *
+        3 *
+        widget.memoLineState.imageScale;
+    final textFieldWidth =
+        AppUtils.sWidth -
         widget.memoLineState.indent * widget.oneIndent -
         leftIconSize -
         dividerWidth -
@@ -94,150 +199,200 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
             : Theme.of(context).scaffoldBackgroundColor,
         child: SizedBox(
           width: AppUtils.sWidth,
-          child: Row(children: [
-            InkWell(
-              onTap: () {
-                ref
-                    .read(memoProvider.notifier)
-                    .toggleFoldingStatus(widget.memoLineState.index)();
-                // primaryFocus?.unfocus();
-              },
-              child: Row(children: [
-                SizedBox(
-                  width: leftIconSize,
-                  height: leftIconSize,
-                  child: Icon(
-                    widget.memoLineState.isFolding
-                        ? FontAwesomeIcons.angleRight
-                        : FontAwesomeIcons.angleDown,
-                  ),
-                ),
-              ]),
-            ),
-            GestureDetector(
-              onHorizontalDragEnd: (ded) {
-                ref
-                    .read(memoProvider.notifier)
-                    .onHorizontalSwiped(widget.memoLineState.index)(ded);
-              },
-              child: SizedBox(
-                width: AppUtils.sWidth - leftIconSize,
-                child: Column(
+          child: Row(
+            children: [
+              InkWell(
+                onTap: () {
+                  ref
+                      .read(memoProvider.notifier)
+                      .toggleFoldingStatus(widget.memoLineState.index)();
+                  // primaryFocus?.unfocus();
+                },
+                child: Row(
                   children: [
-                    Row(children: [
-                      AnimatedContainer(
-                        duration: AppConst.animateDuration,
-                        width: widget.memoLineState.indent * widget.oneIndent,
+                    SizedBox(
+                      width: leftIconSize,
+                      height: leftIconSize,
+                      child: Icon(
+                        widget.memoLineState.isFolding
+                            ? Icons.chevron_right
+                            : Icons.keyboard_arrow_down,
                       ),
-                      AnimatedContainer(
-                        duration: AppConst.animateDuration,
-                        color: Theme.of(context).dividerColor,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            return SizedBox(
-                              width: dividerWidth,
-                              height: textFieldHeight > 0 ||
-                                      constraints.maxHeight < textFieldHeight
-                                  ? textFieldHeight - dividerMarginHeight
-                                  : 0.0,
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        width: leadingMarginEditText,
-                      ),
-                      AnimatedContainer(
-                        duration: AppConst.animateDuration,
-                        alignment: Alignment.centerRight,
-                        width: textFieldWidth,
-                        child: TextSelectionTheme(
-                          data: TextSelectionThemeData(
-                            cursorColor: Colors.blueAccent,
-                            selectionColor:
-                                Colors.blueAccent.withValues(alpha: .3),
-                            selectionHandleColor: Colors.blueAccent,
-                          ),
-                          child: TextField(
-                            key: key,
-                            autofocus: false,
-                            focusNode: widget.focusNode,
-                            cursorColor: Colors.blueAccent,
-                            maxLines: null,
-                            controller: controller,
-                            readOnly: widget.memoLineState.isReadOnly,
-                            onTap: () async {
-                              if (state.focusedIndex !=
-                                  widget.memoLineState.index) {
-                                ref
-                                    .read(memoProvider.notifier)
-                                    .resetFocusIfFocus();
-                                await Future.delayed(
-                                    const Duration(milliseconds: 100));
-                                ref
-                                    .read(memoProvider.notifier)
-                                    .changeFocusNodeIndex(
-                                        widget.memoLineState.index);
-                                widget.focusNode.requestFocus();
-                              }
-                            },
-                            onSubmitted: (os) {
-                              ref.read(memoProvider.notifier).onTextChangeEnd();
-                            },
-                            onTapOutside: (oto) {
-                              ref.read(memoProvider.notifier).onTextChangeEnd();
-                            },
-                            onChanged: (text) {
-                              ref.read(memoProvider.notifier).onTextChange(
-                                  widget.memoLineState.index)(text);
-                              // 高さを再取得して更新
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                final renderBox = key.currentContext
-                                    ?.findRenderObject() as RenderBox?;
-                                if (renderBox != null && mounted) {
-                                  setState(
-                                    () {
-                                      textFieldHeight = renderBox.size.height;
-                                    },
-                                  );
-                                }
-                              });
-                            },
-                            style: TextStyle(
-                                fontSize: widget.memoLineState.fontSize,
-                                color: widget.memoLineState.isReadOnly
-                                    ? Theme.of(context).disabledColor
-                                    : null),
-                            // onTapOutside:
-                            //     mSN.onTapOutside(memoLineState.index),
-                            onEditingComplete: () {
-                              ref.read(memoProvider.notifier).resetState();
-                            },
-                            decoration: InputDecoration(
-                              enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).dividerColor),
-                              ),
-                              disabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).disabledColor),
-                              ),
-                              focusedBorder: const UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Colors.blueAccent,
-                                ),
-                              ),
-                              focusColor: Colors.blueAccent,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ]),
+                    ),
                   ],
                 ),
               ),
-            ),
-          ]),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  final notifier = ref.read(memoProvider.notifier);
+                  notifier.onTextChangeEnd();
+                  notifier.resetFocusIfFocus();
+                  notifier.changeFocusNodeIndex(widget.memoLineState.index);
+                  widget.focusNode.requestFocus();
+                },
+                onHorizontalDragEnd: (ded) async {
+                  ref
+                      .read(memoProvider.notifier)
+                      .onHorizontalSwiped(widget.memoLineState.index)(ded);
+                },
+                child: SizedBox(
+                  width: AppUtils.sWidth - leftIconSize,
+                  child: Column(
+                    children: [
+                      if (widget.memoLineState.imageBase64 != null)
+                        Padding(
+                          padding: EdgeInsets.only(
+                            left:
+                                widget.memoLineState.indent * widget.oneIndent +
+                                leadingMarginEditText +
+                                dividerWidth,
+                            top: 8,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Semantics(
+                              label: '画像を全画面表示',
+                              button: true,
+                              child: InkWell(
+                                onTap: _showImage,
+                                onLongPress: widget.memoLineState.isReadOnly
+                                    ? null
+                                    : _confirmRemoveImage,
+                                child: _imageBytes == null
+                                    ? const Icon(Icons.broken_image)
+                                    : Image.memory(
+                                        _imageBytes!,
+                                        width: (thumbnailHeight * 4 / 3)
+                                            .clamp(
+                                              1.0,
+                                              textFieldWidth > 1
+                                                  ? textFieldWidth
+                                                  : 1.0,
+                                            )
+                                            .toDouble(),
+                                        height: thumbnailHeight,
+                                        fit: BoxFit.contain,
+                                        alignment: Alignment.centerLeft,
+                                        errorBuilder: (_, _, _) =>
+                                            const Icon(Icons.broken_image),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      Row(
+                        children: [
+                          AnimatedContainer(
+                            duration: AppConst.animateDuration,
+                            width:
+                                widget.memoLineState.indent * widget.oneIndent,
+                          ),
+                          AnimatedContainer(
+                            duration: AppConst.animateDuration,
+                            color: Theme.of(context).dividerColor,
+                            height: textFieldHeight > 0
+                                ? textFieldHeight - dividerMarginHeight
+                                : 0.0,
+                            width: dividerWidth,
+                          ),
+                          const SizedBox(width: leadingMarginEditText),
+                          AnimatedContainer(
+                            duration: AppConst.animateDuration,
+                            alignment: Alignment.centerRight,
+                            width: textFieldWidth,
+                            child: TextSelectionTheme(
+                              data: TextSelectionThemeData(
+                                cursorColor: Colors.blueAccent,
+                                selectionColor: Colors.blueAccent.withValues(
+                                  alpha: .3,
+                                ),
+                                selectionHandleColor: Colors.blueAccent,
+                              ),
+                              child: TextField(
+                                key: key,
+                                autofocus: false,
+                                focusNode: widget.focusNode,
+                                cursorColor: Colors.blueAccent,
+                                maxLines: null,
+                                controller: controller,
+                                readOnly: widget.memoLineState.isReadOnly,
+                                onTap: () async {
+                                  if (state.focusedIndex !=
+                                      widget.memoLineState.index) {
+                                    ref
+                                        .read(memoProvider.notifier)
+                                        .resetFocusIfFocus();
+                                    await Future.delayed(
+                                      const Duration(milliseconds: 100),
+                                    );
+                                    ref
+                                        .read(memoProvider.notifier)
+                                        .changeFocusNodeIndex(
+                                          widget.memoLineState.index,
+                                        );
+                                    widget.focusNode.requestFocus();
+                                  }
+                                },
+                                onSubmitted: (os) {
+                                  ref
+                                      .read(memoProvider.notifier)
+                                      .onTextChangeEnd();
+                                },
+                                onTapOutside: (oto) {
+                                  ref
+                                      .read(memoProvider.notifier)
+                                      .onTextChangeEnd();
+                                },
+                                onChanged: (text) {
+                                  ref
+                                      .read(memoProvider.notifier)
+                                      .onTextChange(widget.memoLineState.index)(
+                                    text,
+                                  );
+                                  // 高さを再取得して更新
+                                  setTextFieldHeight();
+                                },
+                                style: TextStyle(
+                                  fontSize: widget.memoLineState.fontSize,
+                                  color: widget.memoLineState.isReadOnly
+                                      ? Theme.of(context).disabledColor
+                                      : null,
+                                ),
+                                // onTapOutside:
+                                //     mSN.onTapOutside(memoLineState.index),
+                                onEditingComplete: () {
+                                  ref.read(memoProvider.notifier).resetState();
+                                },
+                                decoration: InputDecoration(
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Theme.of(context).dividerColor,
+                                    ),
+                                  ),
+                                  disabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Theme.of(context).disabledColor,
+                                    ),
+                                  ),
+                                  focusedBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.blueAccent,
+                                    ),
+                                  ),
+                                  focusColor: Colors.blueAccent,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

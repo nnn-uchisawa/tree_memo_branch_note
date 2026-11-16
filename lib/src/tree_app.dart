@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tree/app_router.dart';
 import 'package:tree/gen/fonts.gen.dart';
+import 'package:tree/src/view/pages/settings/theme_notifier.dart';
 
-class TreeApp extends StatelessWidget {
-  TreeApp({
-    super.key,
-  });
+class TreeApp extends ConsumerWidget {
+  TreeApp({super.key});
 
   final themeDark = ThemeData(
     textSelectionTheme: const TextSelectionThemeData(
@@ -15,9 +15,7 @@ class TreeApp extends StatelessWidget {
     ),
     brightness: Brightness.dark,
     fontFamily: FontFamily.notoSansJPRegular,
-    colorScheme: const ColorScheme.dark(
-      primary: Colors.blue,
-    ),
+    colorScheme: const ColorScheme.dark(primary: Colors.blue),
   );
 
   final themeLight = ThemeData(
@@ -28,16 +26,16 @@ class TreeApp extends StatelessWidget {
     ),
     brightness: Brightness.light,
     fontFamily: FontFamily.notoSansJPRegular,
-    colorScheme: const ColorScheme.light(
-      primary: Colors.blue,
-    ),
+    colorScheme: const ColorScheme.light(primary: Colors.blue),
   );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeState = ref.watch(themeProvider);
+
     return MaterialApp.router(
       darkTheme: themeDark,
-      themeMode: ThemeMode.system,
+      themeMode: themeState.themeMode,
       theme: themeLight,
       title: "TREE",
       restorationScopeId: 'app',

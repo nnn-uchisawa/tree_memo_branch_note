@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  analyze-and-test:
+    name: 静的解析とテスト
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Flutterのセットアップ
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Flutterバージョンの確認
+        run: flutter --version
+
+      - name: 依存関係のインストール
+        run: flutter pub get
+
+      - name: .envファイルの作成（ダミー）
+        run: |
+          cat << EOF > .env
+          # ダミーのFirebase設定（ビルド検証用）
+          ANDROID_API_KEY=dummy_key
+          ANDROID_APP_ID=dummy_app_id
+          ANDROID_MESSAGING_SENDER_ID=dummy_sender_id
+          ANDROID_PROJECT_ID=dummy_project_id
+          ANDROID_STORAGE_BUCKET=dummy_bucket
+          IOS_API_KEY=dummy_key
+          IOS_APP_ID=dummy_app_id
+          IOS_MESSAGING_SENDER_ID=dummy_sender_id
+          IOS_PROJECT_ID=dummy_project_id
+          IOS_STORAGE_BUCKET=dummy_bucket
+          IOS_BUNDLE_ID=jp.nnn.tree.dev
+          EOF
+
+      - name: コード生成
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: google-services.jsonの作成（ダミー）
+        run: |
+          cat << 'EOF' > android/app/google-services.json
+          {
+            "project_info": {
+              "project_number": "123456789",
+              "project_id": "dummy-project",
+              "storage_bucket": "dummy-project.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:123456789:android:dummy1",
+                  "android_client_info": {
+                    "package_name": "com.nnn.tree"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [{"current_key": "dummy-api-key"}],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              },
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:123456789:android:dummy2",
+                  "android_client_info": {
+                    "package_name": "com.nnn.tree.debug"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [{"current_key": "dummy-api-key"}],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+
+      - name: フォーマットチェック
+        run: dart format --set-exit-if-changed .
+
+      - name: 静的解析
+        run: flutter analyze
+
+      - name: テストの実行
+        run: flutter test --coverage
+
+      - name: カバレッジレポートのアップロード
+        uses: codecov/codecov-action@v4
+        if: github.event_name == 'pull_request'
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+        continue-on-error: true
+
+      - name: カバレッジサマリーの表示
+        if: always()
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            echo "✅ カバレッジファイルが生成されました"
+            echo "📊 カバレッジサマリー:"
+            
+            # 簡易サマリーを表示
+            total_lines=$(grep -c "^DA:" coverage/lcov.info || echo "0")
+            covered_lines=$(grep "^DA:" coverage/lcov.info | grep -v ",0$" | wc -l || echo "0")
+            
+            if [ "$total_lines" -gt 0 ]; then
+              coverage_percent=$(awk "BEGIN {printf \"%.2f\", ($covered_lines / $total_lines) * 100}")
+              echo "カバレッジ: ${coverage_percent}% (${covered_lines}/${total_lines} 行)"
+            fi
+            
+            # lcovがあればより詳細なサマリー
+            if command -v lcov &> /dev/null; then
+              lcov --summary coverage/lcov.info 2>&1 | grep -E "lines\.*:|functions\.*:"
+            fi
+          else
+            echo "⚠️ カバレッジファイルが見つかりません"
+          fi
+
+      - name: カバレッジレポートのアップロード（アーティファクト）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/lcov.info
+          retention-days: 30
+

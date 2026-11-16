@@ -1,14 +1,15 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/app_router.dart';
 import 'package:tree/src/repositories/repository_providers.dart';
 import 'package:tree/src/services/file/file_service.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
-import 'package:tree/src/view/pages/auth/auth_notifier.dart';
 import 'package:tree/src/view/pages/home/home_notifier.dart';
 import 'package:tree/src/view/pages/memo/memo_line_state.dart';
 import 'package:tree/src/view/widgets/adaptive_text_field.dart';
@@ -25,6 +26,117 @@ class MemoNotifier extends _$MemoNotifier {
   final Map<int, GlobalKey> _dividerKeys = {};
 
   List<FocusNode> get focusNodes => _focusNodes;
+
+  bool _isPickingImage = false;
+
+  Future<void> pickImage(ImageSource source) async {
+    if (_isPickingImage) return;
+    final index = state.focusedIndex;
+    if (index >= 0 && state.list[index].isReadOnly) return;
+    // Keep the destination stable while the native picker is open.
+    final destination = index >= 0 ? state.list[index] : null;
+    _isPickingImage = true;
+    try {
+      final image = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 85,
+      );
+      if (image == null) return;
+      final bytes = await image.readAsBytes();
+      if (!ref.mounted || bytes.isEmpty) return;
+      if (destination != null &&
+          (index >= state.list.length || state.list[index] != destination)) {
+        AppUtils.showSnackBar('貼り付け先の行が変更されたため、もう一度画像を選択してください');
+        return;
+      }
+      attachImage(base64Encode(bytes), index: index);
+    } catch (e) {
+      if (ref.mounted) {
+        AppUtils.showSnackBar('画像を取得できませんでした。カメラ・写真へのアクセス許可を確認してください');
+      }
+    } finally {
+      _isPickingImage = false;
+    }
+  }
+
+  void attachImage(String imageBase64, {required int index}) {
+    if (imageBase64.isEmpty) return;
+    final list = List<MemoLineState>.from(state.list);
+    if (index < 0) {
+      index = list.length;
+      list.add(MemoLineState(index: index));
+    } else if (index >= list.length || list[index].isReadOnly) {
+      return;
+    }
+    list[index] = list[index].copyWith(
+      imageBase64: imageBase64,
+      imageScale: 1.0,
+    );
+    state = state.copyWith(
+      list: list,
+      visibleList: _getFoldingLineList(list, 0),
+      focusedIndex: index,
+      isEditing: false,
+      needFocusChange: false,
+    );
+    syncFocusNodesWithList();
+  }
+
+  void resizeImage(int index, double delta) {
+    if (index < 0 || index >= state.list.length) return;
+    final line = state.list[index];
+    if (line.imageBase64 == null || line.isReadOnly) return;
+    final list = List<MemoLineState>.from(state.list);
+    list[index] = line.copyWith(
+      imageScale: (line.imageScale + delta).clamp(0.25, 2.0).toDouble(),
+    );
+    state = state.copyWith(
+      list: list,
+      visibleList: _getFoldingLineList(list, 0),
+      isEditing: false,
+    );
+  }
+
+  void removeImage(int index) {
+    if (index < 0 || index >= state.list.length) return;
+    final line = state.list[index];
+    if (line.isReadOnly || line.imageBase64 == null) return;
+    final list = List<MemoLineState>.from(state.list);
+    list[index] = line.copyWith(imageBase64: null, imageScale: 1.0);
+    state = state.copyWith(
+      list: list,
+      visibleList: _getFoldingLineList(list, 0),
+      isEditing: false,
+    );
+  }
+
+  @override
+  MemoState build() {
+    var memo = ref.watch(homeProvider.select((home) => home.memoState));
+    memo ??= MemoState(
+      list: [MemoLineState(index: 0)],
+      visibleList: [MemoLineState(index: 0)],
+    );
+    baseState = memo.copyWith();
+    return memo;
+  }
+
+  @override
+  bool updateShouldNotify(MemoState previous, MemoState next) {
+    return !state.isEditing &&
+        !state.isSaveDialogOpen &&
+        super.updateShouldNotify(previous, next);
+  }
+
+  void setBaseState({bool setFocusIndex = false}) {
+    if (setFocusIndex) {
+      baseState = state.copyWith(focusedIndex: -1);
+    } else {
+      baseState = state.copyWith();
+    }
+  }
 
   /// TextEditingControllerを取得または作成
   TextEditingController getTextController(int index) {
@@ -56,68 +168,28 @@ class MemoNotifier extends _$MemoNotifier {
     _dividerKeys.clear();
   }
 
-  @override
-  MemoState build() {
-    var home = ref.watch(homeProvider);
-    var memo = home.memoState;
-    memo ??= MemoState(
-      list: [MemoLineState(index: 0)],
-      visibleList: [MemoLineState(index: 0)],
-    );
-    baseState = memo.copyWith();
-    return memo;
-  }
-
-  @override
-  bool updateShouldNotify(MemoState previous, MemoState next) {
-    return !state.isEditing &&
-        !state.isSaveDialogOpen &&
-        super.updateShouldNotify(previous, next);
-  }
-
-  void setBaseState({bool setFocusIndex = false}) {
-    if (setFocusIndex) {
-      baseState = state.copyWith(focusedIndex: -1);
-    } else {
-      baseState = state.copyWith();
-    }
-  }
-
   /// メモの行の値が含まれたStateObjectの配列から閉じている行を再帰的に探して不可視な行を削除し返却する（プライベート）
-  List<MemoLineState> _getFoldingLineList(
-    List<MemoLineState> list,
-    int parentIndex,
-  ) {
-    if (list.isEmpty) {
-      return [];
-    }
-    var nextParent = parentIndex + 1;
+  List<MemoLineState> _getFoldingLineList(List<MemoLineState> list, int _) {
+    final visibleList = <MemoLineState>[];
+    final foldingParentIndents = <int>[];
 
-    if (list[parentIndex].isFolding) {
-      for (
-        int targetIndex = parentIndex + 1;
-        targetIndex < list.length;
-        targetIndex++, nextParent++
-      ) {
-        if (targetIndex < list.length) {
-          if (list[targetIndex].indent > list[parentIndex].indent) {
-            list.removeAt(targetIndex);
-            //for loopで++されると1行飛ばしてしまうので巻き戻す
-            targetIndex--;
-          } else {
-            nextParent = targetIndex;
-            break;
-          }
-        } else {
-          break;
-        }
+    for (final line in list) {
+      while (foldingParentIndents.isNotEmpty &&
+          line.indent <= foldingParentIndents.last) {
+        foldingParentIndents.removeLast();
+      }
+
+      if (foldingParentIndents.isNotEmpty) {
+        continue;
+      }
+
+      visibleList.add(line);
+      if (line.isFolding) {
+        foldingParentIndents.add(line.indent);
       }
     }
 
-    if (nextParent < list.length) {
-      list = _getFoldingLineList(list, nextParent);
-    }
-    return list;
+    return visibleList;
   }
 
   int _getFoldingEnd(int start) {
@@ -125,27 +197,22 @@ class MemoNotifier extends _$MemoNotifier {
     if (list.isEmpty) {
       return -1;
     }
-    var next = start + 1;
     var end = start;
     if (list[start].isFolding) {
-      for (
-        int targetIndex = start + 1;
-        targetIndex < list.length;
-        targetIndex++, next++
-      ) {
-        if (targetIndex < list.length) {
-          if (list[targetIndex].indent > list[start].indent) {
-            list.removeAt(targetIndex);
-            //for loopで++されると1行飛ばしてしまうので巻き戻す
-            end++;
-            targetIndex--;
-          } else {
-            // next = targetIndex;
-            break;
-          }
+      // 削除対象のインデックスを特定
+      final indicesToRemove = <int>[];
+      for (int i = start + 1; i < list.length; i++) {
+        if (list[i].indent > list[start].indent) {
+          indicesToRemove.add(i);
         } else {
           break;
         }
+      }
+
+      // 逆順で削除（インデックスのずれを防ぐ）
+      for (int i = indicesToRemove.length - 1; i >= 0; i--) {
+        list.removeAt(indicesToRemove[i]);
+        end++;
       }
     }
     return end + 1;
@@ -161,35 +228,31 @@ class MemoNotifier extends _$MemoNotifier {
     List<MemoLineState> list = List.from(state.list);
     final startIndent = list[fromIndex].indent;
     var destination = fromIndex;
-    var count = 0;
     final foldingEnd = list[fromIndex].isFolding
         ? _getFoldingEnd(fromIndex)
         : fromIndex + 1;
     if (foldingEnd == list.length && visibleDistance > 0) return fromIndex;
     var subList = list.sublist(fromIndex, foldingEnd);
     if (0 > visibleDistance && fromIndex + visibleDistance >= 0) {
-      for (var s in list.sublist(0, fromIndex).reversed) {
-        if (count++ == 0 && s.indent <= startIndent && !s.isFolding) {
-          destination = fromIndex - 1;
-          break;
-        } else if (s.indent > startIndent) {
-          continue;
-        } else if (s.isFolding) {
-          destination = s.index;
-          break;
-        } else {
-          destination = fromIndex - 1;
-          break;
-        }
-      }
+      final reversedList = list.sublist(0, fromIndex).reversed.toList();
+      final targetItem = reversedList.firstWhere(
+        (s) => s.indent <= startIndent && !s.isFolding,
+        orElse: () => reversedList.firstWhere(
+          (s) => s.isFolding,
+          orElse: () => reversedList.first,
+        ),
+      );
+      destination = targetItem.index;
 
       list.removeRange(fromIndex, foldingEnd);
       var destIndex = list.indexWhere((s) => s.index == destination);
       destIndex = destIndex == -1 ? fromIndex - 1 : destIndex;
       list.insertAll(destIndex, subList);
-      for (var i = 0; i < list.length; i++) {
-        list[i] = list[i].copyWith(index: i);
-      }
+      list = list
+          .asMap()
+          .entries
+          .map((e) => e.value.copyWith(index: e.key))
+          .toList();
       final newVisibleList = _getFoldingLineList(List.from(list), 0);
       state = state.copyWith(list: list, visibleList: newVisibleList);
       return destIndex;
@@ -203,9 +266,11 @@ class MemoNotifier extends _$MemoNotifier {
       list.removeRange(fromIndex, foldingEnd);
       final destIndex = list.indexWhere((s) => s.index == destination) + 1;
       list.insertAll(destIndex, subList);
-      for (var i = 0; i < list.length; i++) {
-        list[i] = list[i].copyWith(index: i);
-      }
+      list = list
+          .asMap()
+          .entries
+          .map((e) => e.value.copyWith(index: e.key))
+          .toList();
       final newVisibleList = _getFoldingLineList(List.from(list), 0);
       state = state.copyWith(list: list, visibleList: newVisibleList);
       return destIndex;
@@ -239,9 +304,10 @@ class MemoNotifier extends _$MemoNotifier {
   void addLineToNext(int index) {
     var next = index + 1;
     List<MemoLineState> list = List.from(state.list);
-    for (int i = next; i < list.length; i++) {
-      list[i] = list[i].copyWith(index: list[i].index + 1);
-    }
+    list = [
+      ...list.sublist(0, next),
+      ...list.sublist(next).map((item) => item.copyWith(index: item.index + 1)),
+    ];
     List<MemoLineState> front = index == 0
         ? [list[0]]
         : [...list.sublist(0, index + 1)];
@@ -305,7 +371,11 @@ class MemoNotifier extends _$MemoNotifier {
         List.from(newList),
         0,
       );
-      state = state.copyWith(list: list, visibleList: visibleList);
+      state = state.copyWith(
+        list: list,
+        visibleList: visibleList,
+        isEditing: false,
+      );
     };
   }
 
@@ -400,11 +470,11 @@ class MemoNotifier extends _$MemoNotifier {
     if (state.list.length - 1 < index) return;
     List<MemoLineState> list = List.from(state.list);
     list.removeAt(index);
-    for (int i = 0; i < list.length; i++) {
-      if (i == index) {
-        list[i] = list[i].copyWith(index: i);
-      }
-    }
+    list = list
+        .asMap()
+        .entries
+        .map((e) => e.value.copyWith(index: e.key))
+        .toList();
     removeFocusNode(index);
     if (list.isNotEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
@@ -507,9 +577,7 @@ class MemoNotifier extends _$MemoNotifier {
   void syncFocusNodesWithList() {
     if (state.list.length != _focusNodes.length) {
       _focusNodes.clear();
-      for (int i = 0; i < state.list.length; i++) {
-        _focusNodes.add(FocusNode());
-      }
+      _focusNodes.addAll(List.generate(state.list.length, (_) => FocusNode()));
     }
   }
 
@@ -599,6 +667,7 @@ class MemoNotifier extends _$MemoNotifier {
         // 同じファイル名での保存（上書き）
         final fileRepository = ref.read(fileRepositoryProvider);
         await fileRepository.saveMemoStateWithDisplayName(state, newFileName);
+        state = state.copyWith(fileName: newFileName);
         await ref.read(homeProvider.notifier).updateFileNames();
       }
 
@@ -633,7 +702,7 @@ class MemoNotifier extends _$MemoNotifier {
     }
   }
 
-  void saveYes(
+  Future<void> saveYes(
     TextEditingController tec,
     String fileName,
     Function handler,
@@ -787,8 +856,24 @@ class MemoNotifier extends _$MemoNotifier {
   }
 
   void showSliderFontSizeChangeDialog() {
+    _showLineSizeChangeDialog();
+  }
+
+  void showSliderImageSizeChangeDialog() {
+    _showLineSizeChangeDialog(isImage: true);
+  }
+
+  void _showLineSizeChangeDialog({bool isImage = false}) {
     resetStateWithoutFIndex();
-    if (state.focusedIndex == -1) return;
+    final index = state.focusedIndex;
+    if (index < 0 || index >= state.list.length) return;
+    if (isImage &&
+        (state.list[index].imageBase64 == null ||
+            state.list[index].isReadOnly)) {
+      return;
+    }
+    final min = isImage ? 0.25 : AppConst.minFontSize;
+    final max = isImage ? 2.0 : AppConst.maxFontSize;
     var context = AppRouter.navigatorKey.currentContext;
     if (context == null) return;
     showDialog(
@@ -803,18 +888,24 @@ class MemoNotifier extends _$MemoNotifier {
                 height: AppUtils.sHeight / 4,
                 child: Consumer(
                   builder: (c, r, w) {
-                    var index = state.focusedIndex;
+                    final lines = r.watch(memoProvider).list;
+                    if (index >= lines.length) return const SizedBox.shrink();
+                    final line = lines[index];
                     return Slider(
                       activeColor: Colors.blue,
                       thumbColor: Colors.blueAccent,
-                      divisions:
-                          AppConst.maxFontSize.toInt() -
-                          AppConst.minFontSize.toInt(),
-                      max: AppConst.maxFontSize,
-                      min: AppConst.minFontSize,
-                      value: r.watch(memoProvider).list[index].fontSize,
+                      divisions: isImage ? 35 : (max - min).toInt(),
+                      max: max,
+                      min: min,
+                      value: (isImage ? line.imageScale : line.fontSize)
+                          .clamp(min, max)
+                          .toDouble(),
                       onChanged: (v) {
-                        onChangeFontSize(index, v);
+                        if (isImage) {
+                          resizeImage(index, v - state.list[index].imageScale);
+                        } else {
+                          onChangeFontSize(index, v);
+                        }
                       },
                     );
                   },
@@ -827,13 +918,14 @@ class MemoNotifier extends _$MemoNotifier {
                 right: 0,
                 child: Consumer(
                   builder: (c, r, w) {
-                    var index = state.focusedIndex;
-                    final currentValue = r
-                        .watch(memoProvider)
-                        .list[index]
-                        .fontSize;
-                    final stepCount = (currentValue - AppConst.minFontSize + 1)
-                        .toInt();
+                    final lines = r.watch(memoProvider).list;
+                    if (index >= lines.length) return const SizedBox.shrink();
+                    final line = lines[index];
+                    final label = isImage
+                        ? '${(line.imageScale * 100).round()}%'
+                        : (line.fontSize - AppConst.minFontSize + 1)
+                              .toInt()
+                              .toString();
                     return Center(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -848,7 +940,7 @@ class MemoNotifier extends _$MemoNotifier {
                           ),
                         ),
                         child: Text(
-                          stepCount.toString(),
+                          label,
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -865,7 +957,17 @@ class MemoNotifier extends _$MemoNotifier {
                 child: Consumer(
                   builder: (c, r, w) {
                     return TextButton(
-                      onPressed: r.read(memoProvider.notifier).resetFontSize,
+                      onPressed: () {
+                        if (index >= state.list.length) return;
+                        if (isImage) {
+                          resizeImage(
+                            index,
+                            1.0 - state.list[index].imageScale,
+                          );
+                        } else {
+                          onChangeFontSize(index, 14);
+                        }
+                      },
                       child: Text(
                         "reset",
                         style: TextStyle(color: Colors.white),
@@ -924,6 +1026,7 @@ class MemoNotifier extends _$MemoNotifier {
 
       final fileRepository = ref.read(fileRepositoryProvider);
       await fileRepository.saveMemoStateWithDisplayName(state, fileName);
+      state = state.copyWith(fileName: fileName);
       await ref.read(homeProvider.notifier).updateFileNames();
       log('ファイル保存成功: $fileName');
     } catch (e) {
@@ -952,6 +1055,7 @@ class MemoNotifier extends _$MemoNotifier {
     try {
       final fileRepository = ref.read(fileRepositoryProvider);
       await fileRepository.saveMemoStateWithDisplayName(state, displayName);
+      state = state.copyWith(fileName: displayName);
     } catch (e) {
       log('_saveJsonToFileWithName エラー: $e');
       throw Exception("ファイル保存エラー: $e");
@@ -985,29 +1089,6 @@ class MemoNotifier extends _$MemoNotifier {
       },
       textEditingController,
     );
-  }
-
-  /// クラウドに保存
-  Future<void> saveToCloud() async {
-    try {
-      final authState = ref.read(authProvider);
-      if (!authState.isSignedIn) {
-        AppUtils.showSnackBar('ログインが必要です');
-        return;
-      }
-
-      // 現在のメモをローカルに保存
-      final displayName = state.fileName;
-      if (displayName.isEmpty) {
-        AppUtils.showSnackBar('ファイル名を設定してください');
-        return;
-      }
-
-      // home_notifierのuploadMemoToCloudを使用（表示名ベース）
-      await ref.read(homeProvider.notifier).uploadMemoToCloud(displayName);
-    } catch (e) {
-      AppUtils.showSnackBar('クラウド保存に失敗しました: ${e.toString()}');
-    }
   }
 
   void resetFocusIfFocus() {

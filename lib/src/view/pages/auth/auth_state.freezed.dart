@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'auth_state.dart';
@@ -9,6 +9,7 @@ part of 'auth_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $AuthStateCopyWith<AuthState> get copyWith => _$AuthStateCopyWithImpl<AuthState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isSignedIn, isSignedIn) || other.isSignedIn == isSignedIn)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  final _this = this as AuthState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.isSignedIn, _this.isSignedIn) || other.isSignedIn == _this.isSignedIn)&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.errorMessage, _this.errorMessage) || other.errorMessage == _this.errorMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,isLoading,isSignedIn,userId,displayName,email,errorMessage);
+int get hashCode {
+  final _this = this as AuthState;
+  return Object.hash(runtimeType,_this.isLoading,_this.isSignedIn,_this.userId,_this.displayName,_this.email,_this.errorMessage);
+}
 
 @override
 String toString() {
-  return 'AuthState(isLoading: $isLoading, isSignedIn: $isSignedIn, userId: $userId, displayName: $displayName, email: $email, errorMessage: $errorMessage)';
+  final _this = this as AuthState;
+  return 'AuthState(isLoading: ${_this.isLoading}, isSignedIn: ${_this.isSignedIn}, userId: ${_this.userId}, displayName: ${_this.displayName}, email: ${_this.email}, errorMessage: ${_this.errorMessage})';
 }
 
 
@@ -66,7 +72,7 @@ class _$AuthStateCopyWithImpl<$Res>
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? isSignedIn = null,Object? userId = freezed,Object? displayName = freezed,Object? email = freezed,Object? errorMessage = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AuthState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isSignedIn: null == isSignedIn ? _self.isSignedIn : isSignedIn // ignore: cast_nullable_to_non_nullable
 as bool,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -237,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isSignedIn, isSignedIn) || other.isSignedIn == isSignedIn)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isSignedIn, isSignedIn) || other.isSignedIn == isSignedIn)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.email, email) || other.email == email)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,isLoading,isSignedIn,userId,displayName,email,errorMessage);
+int get hashCode {
+    return Object.hash(runtimeType,isLoading,isSignedIn,userId,displayName,email,errorMessage);
+}
 
 @override
 String toString() {
-  return 'AuthState(isLoading: $isLoading, isSignedIn: $isSignedIn, userId: $userId, displayName: $displayName, email: $email, errorMessage: $errorMessage)';
+    return 'AuthState(isLoading: $isLoading, isSignedIn: $isSignedIn, userId: $userId, displayName: $displayName, email: $email, errorMessage: $errorMessage)';
 }
 
 

@@ -7,6 +7,14 @@ import 'package:tree/src/view/pages/memo/memo_state.dart';
 
 /// ファイルI/O操作を管理するサービス
 class FileService {
+  static Future<bool> hasExistingMemos() async {
+    final directory = await getApplicationDocumentsDirectory();
+    await for (final entity in directory.list()) {
+      if (entity is File && entity.path.endsWith('.tmson')) return true;
+    }
+    return false;
+  }
+
   /// 表示名（JSON内のfileName）から物理ファイル名を取得
   static Future<String?> getPhysicalFileName(String displayName) async {
     var dir = await getApplicationDocumentsDirectory();

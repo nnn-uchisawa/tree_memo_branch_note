@@ -7,6 +7,7 @@ import 'package:tree/src/util/shared_preference.dart';
 import 'package:tree/src/view/pages/home/home_view.dart';
 import 'package:tree/src/view/pages/memo/memo_state.dart';
 import 'package:tree/src/view/pages/memo/memo_view.dart';
+import 'package:tree/src/view/pages/settings/settings_view.dart';
 import 'package:tree/src/view/pages/walk_through/walk_through_view.dart';
 
 part 'app_router.g.dart';
@@ -37,6 +38,11 @@ class InitRoute extends GoRouteData with $InitRoute {
   Future<String?> redirect(BuildContext context, GoRouterState state) async {
     final isNI = await SharedPreference.isNotInitial();
     if (!isNI) {
+      // Existing memos take precedence even when the first-run flag is missing.
+      if (await FileService.hasExistingMemos()) {
+        await SharedPreference.setIsNotInitial();
+        return const HomeRoute().location;
+      }
       // アセットファイルを読み込み
       final jsonStringJp = await DefaultAssetBundle.of(
         // 特定のファイルの読み込みのみなので非同期処理を許可
@@ -94,4 +100,12 @@ class MemoRoute extends GoRouteData with $MemoRoute {
   const MemoRoute();
   @override
   Widget build(BuildContext context, GoRouterState state) => const MemoView();
+}
+
+@TypedGoRoute<SettingsRoute>(path: '/settings')
+class SettingsRoute extends GoRouteData with $SettingsRoute {
+  const SettingsRoute();
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SettingsView();
 }

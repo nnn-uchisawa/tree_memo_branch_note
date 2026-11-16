@@ -1,0 +1,133 @@
+name: Deploy iOS
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'デプロイ環境'
+        required: true
+        default: 'testflight'
+        type: choice
+        options:
+          - testflight
+          - production
+
+jobs:
+  deploy-ios:
+    name: iOSデプロイ
+    runs-on: macos-latest
+    timeout-minutes: 60
+    environment:
+      name: production
+      url: https://appstoreconnect.apple.com
+
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Flutterのセットアップ
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: .envファイルの作成
+        run: |
+          cat << EOF > .env
+          IOS_API_KEY=${{ secrets.IOS_API_KEY }}
+          IOS_APP_ID=${{ secrets.IOS_APP_ID }}
+          IOS_MESSAGING_SENDER_ID=${{ secrets.IOS_MESSAGING_SENDER_ID }}
+          IOS_PROJECT_ID=${{ secrets.IOS_PROJECT_ID }}
+          IOS_STORAGE_BUCKET=${{ secrets.IOS_STORAGE_BUCKET }}
+          IOS_BUNDLE_ID=${{ secrets.IOS_BUNDLE_ID }}
+          EOF
+
+      - name: 依存関係のインストール
+        run: flutter pub get
+
+      - name: コード生成
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: GoogleService-Info.plistの作成
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" > ios/Runner/GoogleService-Info.plist
+
+      - name: Podのインストール
+        run: |
+          cd ios
+          pod install
+
+      - name: 証明書とプロビジョニングプロファイルのインポート
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # 証明書とプロファイルをファイルに保存
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # Base64デコード
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+
+          # キーチェーン作成
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # 証明書をキーチェーンにインポート
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # プロビジョニングプロファイルをインストール
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+
+      - name: iOSビルド（Release）
+        run: |
+          flutter build ipa \
+            --release \
+            --flavor prod \
+            --export-options-plist=ios/ExportOptions.plist
+
+      - name: TestFlightへアップロード
+        if: github.event.inputs.environment == 'testflight' || github.event_name == 'push'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+        run: |
+          xcrun altool --upload-app \
+            --type ios \
+            --file build/ios/ipa/*.ipa \
+            --username "$APPLE_ID" \
+            --password "$APP_SPECIFIC_PASSWORD" \
+            --asc-provider "$TEAM_ID"
+
+      - name: キーチェーンのクリーンアップ
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
+
+      - name: ビルド成果物のアップロード
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: build/ios/ipa/*.ipa
+          retention-days: 30
+
+      - name: デプロイ完了通知
+        if: success()
+        run: |
+          echo "## 🎉 iOSデプロイ成功" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **環境**: TestFlight" >> $GITHUB_STEP_SUMMARY
+          echo "- **ビルド番号**: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **タグ**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+
