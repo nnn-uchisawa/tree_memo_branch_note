@@ -261,21 +261,20 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
                                     : _confirmRemoveImage,
                                 child: _imageBytes == null
                                     ? const Icon(Icons.broken_image)
-                                    : Image.memory(
-                                        _imageBytes!,
-                                        width: (thumbnailHeight * 4 / 3)
-                                            .clamp(
-                                              1.0,
-                                              textFieldWidth > 1
-                                                  ? textFieldWidth
-                                                  : 1.0,
-                                            )
-                                            .toDouble(),
-                                        height: thumbnailHeight,
-                                        fit: BoxFit.contain,
-                                        alignment: Alignment.centerLeft,
-                                        errorBuilder: (_, _, _) =>
-                                            const Icon(Icons.broken_image),
+                                    : ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: textFieldWidth > 1
+                                              ? textFieldWidth
+                                              : 1.0,
+                                          maxHeight: thumbnailHeight,
+                                        ),
+                                        child: Image.memory(
+                                          _imageBytes!,
+                                          fit: BoxFit.contain,
+                                          alignment: Alignment.centerLeft,
+                                          errorBuilder: (_, _, _) =>
+                                              const Icon(Icons.broken_image),
+                                        ),
                                       ),
                               ),
                             ),

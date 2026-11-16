@@ -71,7 +71,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(1200, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     final line = MemoLineState(
-      imageBase64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=',
+      imageBase64: 'iVBORw0KGgoAAAANSUhEUgAAACgAAACgCAIAAADxf7mPAAAAX0lEQVR4nO3NsQ0AAAjAoP7/tH7g6kLCTlMvflaxWCwWi8VisVgsFovFYrFYLBaLxWKxWCwWi8VisVgsFovFYrFYLBaLxWKxWCwWi8VisVgsFovFYrFYLBaLxWKxuCteE6HoaZzL/Q4AAAAASUVORK5CYII=',
     );
     final container = ProviderContainer(
       overrides: [
@@ -102,8 +102,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.runAsync(
+      () => precacheImage(
+        tester.widget<Image>(find.byType(Image)).image,
+        tester.element(find.byType(Image)),
+      ),
+    );
+    await tester.pumpAndSettle();
     final imageRect = tester.getRect(find.byType(Image));
-    await tester.tapAt(Offset(imageRect.right + 100, imageRect.center.dy));
+    expect(imageRect.width / imageRect.height, closeTo(0.25, 0.01));
+    await tester.tapAt(Offset(imageRect.right + 10, imageRect.center.dy));
     await tester.pumpAndSettle();
     expect(container.read(memoProvider).focusedIndex, 0);
     expect(focusNode.hasFocus, isTrue);
