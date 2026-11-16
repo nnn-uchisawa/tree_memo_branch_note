@@ -41,7 +41,7 @@ final class MemoNotifierProvider
   }
 }
 
-String _$memoNotifierHash() => r'fb2fa747e4b23621ae1feb18c2f5e0aeeb432c4e';
+String _$memoNotifierHash() => r'850bfca23c11bf65272db6bfd27dec8d9a9e1bc5';
 
 abstract class _$MemoNotifier extends $Notifier<MemoState> {
   MemoState build();

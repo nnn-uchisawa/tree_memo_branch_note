@@ -48,6 +48,7 @@ dependencies:
   # 🖼️ アセット・画像
   flutter_gen: ^5.12.0             # アセットコード生成
   flutter_svg: ^2.2.1              # SVG画像サポート
+  image_picker: ^1.2.4
 
   # 💾 データ永続化・ストレージ
   shared_preferences: ^2.5.3       # キー・バリューストレージ

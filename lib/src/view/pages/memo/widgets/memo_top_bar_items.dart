@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:tree/gen/assets.gen.dart';
 import 'package:tree/src/util/app_const.dart';
 import 'package:tree/src/util/app_utils.dart';
@@ -12,7 +13,11 @@ class MemoTopBarItem extends ConsumerWidget {
   final MemoLineState memoLineState;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var index = ref.read(memoProvider).focusedIndex;
+    final state = ref.watch(memoProvider);
+    final index = state.focusedIndex;
+    final selectedLine = index >= 0 && index < state.list.length
+        ? state.list[index]
+        : null;
     return Material(
       child: Container(
         width: AppUtils.sWidth,
@@ -32,11 +37,7 @@ class MemoTopBarItem extends ConsumerWidget {
                     ref.read(memoProvider.notifier).addLineToNext(index);
                   }
                 },
-                icon: const Icon(
-                  size: 25,
-                  Icons.add,
-                  color: Colors.white,
-                ),
+                icon: const Icon(size: 25, Icons.add, color: Colors.white),
               ),
               AnimatedContainer(
                 duration: AppConst.animateDuration,
@@ -68,6 +69,40 @@ class MemoTopBarItem extends ConsumerWidget {
                         ],
                       ),
               ),
+              if (selectedLine != null) ...[
+                IconButton(
+                  tooltip: 'カメラで撮影',
+                  onPressed: selectedLine.isReadOnly
+                      ? null
+                      : () => ref
+                            .read(memoProvider.notifier)
+                            .pickImage(ImageSource.camera),
+                  icon: const Icon(Icons.camera_alt, color: Colors.white),
+                ),
+                IconButton(
+                  tooltip: '画像ライブラリを開く',
+                  onPressed: selectedLine.isReadOnly
+                      ? null
+                      : () => ref
+                            .read(memoProvider.notifier)
+                            .pickImage(ImageSource.gallery),
+                  icon: const Icon(Icons.photo_library, color: Colors.white),
+                ),
+                if (selectedLine.imageBase64 != null) ...[
+                  IconButton(
+                    tooltip: 'サムネイルサイズを変更',
+                    onPressed: selectedLine.isReadOnly
+                        ? null
+                        : () => ref
+                              .read(memoProvider.notifier)
+                              .showSliderImageSizeChangeDialog(),
+                    icon: const Icon(
+                      Icons.photo_size_select_large,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ],
               AnimatedContainer(
                 duration: AppConst.animateDuration,
                 child: index == -1

@@ -15,6 +15,8 @@ _MemoLineState _$MemoLineStateFromJson(Map<String, dynamic> json) =>
       isEditing: json['isEditing'] as bool? ?? false,
       isFolding: json['isFolding'] as bool? ?? false,
       isReadOnly: json['isReadOnly'] as bool? ?? false,
+      imageBase64: json['imageBase64'] as String?,
+      imageScale: (json['imageScale'] as num?)?.toDouble() ?? 1.0,
     );
 
 Map<String, dynamic> _$MemoLineStateToJson(_MemoLineState instance) =>
@@ -26,4 +28,6 @@ Map<String, dynamic> _$MemoLineStateToJson(_MemoLineState instance) =>
       'isEditing': instance.isEditing,
       'isFolding': instance.isFolding,
       'isReadOnly': instance.isReadOnly,
+      'imageBase64': instance.imageBase64,
+      'imageScale': instance.imageScale,
     };

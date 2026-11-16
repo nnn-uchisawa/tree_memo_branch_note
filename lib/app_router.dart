@@ -38,6 +38,11 @@ class InitRoute extends GoRouteData with $InitRoute {
   Future<String?> redirect(BuildContext context, GoRouterState state) async {
     final isNI = await SharedPreference.isNotInitial();
     if (!isNI) {
+      // Existing memos take precedence even when the first-run flag is missing.
+      if (await FileService.hasExistingMemos()) {
+        await SharedPreference.setIsNotInitial();
+        return const HomeRoute().location;
+      }
       // アセットファイルを読み込み
       final jsonStringJp = await DefaultAssetBundle.of(
         // 特定のファイルの読み込みのみなので非同期処理を許可

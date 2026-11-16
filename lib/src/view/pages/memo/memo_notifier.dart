@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tree/app_router.dart';
 import 'package:tree/src/repositories/repository_providers.dart';
@@ -25,10 +27,81 @@ class MemoNotifier extends _$MemoNotifier {
 
   List<FocusNode> get focusNodes => _focusNodes;
 
+  bool _isPickingImage = false;
+
+  Future<void> pickImage(ImageSource source) async {
+    if (_isPickingImage) return;
+    final index = state.focusedIndex;
+    if (index >= 0 && state.list[index].isReadOnly) return;
+    // Keep the destination stable while the native picker is open.
+    final destination = index >= 0 ? state.list[index] : null;
+    _isPickingImage = true;
+    try {
+      final image = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 85,
+      );
+      if (image == null) return;
+      final bytes = await image.readAsBytes();
+      if (!ref.mounted || bytes.isEmpty) return;
+      if (destination != null &&
+          (index >= state.list.length || state.list[index] != destination)) {
+        AppUtils.showSnackBar('貼り付け先の行が変更されたため、もう一度画像を選択してください');
+        return;
+      }
+      attachImage(base64Encode(bytes), index: index);
+    } catch (e) {
+      if (ref.mounted) {
+        AppUtils.showSnackBar('画像を取得できませんでした。カメラ・写真へのアクセス許可を確認してください');
+      }
+    } finally {
+      _isPickingImage = false;
+    }
+  }
+
+  void attachImage(String imageBase64, {required int index}) {
+    if (imageBase64.isEmpty) return;
+    final list = List<MemoLineState>.from(state.list);
+    if (index < 0) {
+      index = list.length;
+      list.add(MemoLineState(index: index));
+    } else if (index >= list.length || list[index].isReadOnly) {
+      return;
+    }
+    list[index] = list[index].copyWith(
+      imageBase64: imageBase64,
+      imageScale: 1.0,
+    );
+    state = state.copyWith(
+      list: list,
+      visibleList: _getFoldingLineList(list, 0),
+      focusedIndex: index,
+      isEditing: false,
+      needFocusChange: false,
+    );
+    syncFocusNodesWithList();
+  }
+
+  void resizeImage(int index, double delta) {
+    if (index < 0 || index >= state.list.length) return;
+    final line = state.list[index];
+    if (line.imageBase64 == null || line.isReadOnly) return;
+    final list = List<MemoLineState>.from(state.list);
+    list[index] = line.copyWith(
+      imageScale: (line.imageScale + delta).clamp(0.25, 2.0).toDouble(),
+    );
+    state = state.copyWith(
+      list: list,
+      visibleList: _getFoldingLineList(list, 0),
+      isEditing: false,
+    );
+  }
+
   @override
   MemoState build() {
-    var home = ref.watch(homeProvider);
-    var memo = home.memoState;
+    var memo = ref.watch(homeProvider.select((home) => home.memoState));
     memo ??= MemoState(
       list: [MemoLineState(index: 0)],
       visibleList: [MemoLineState(index: 0)],
@@ -83,10 +156,7 @@ class MemoNotifier extends _$MemoNotifier {
   }
 
   /// メモの行の値が含まれたStateObjectの配列から閉じている行を再帰的に探して不可視な行を削除し返却する（プライベート）
-  List<MemoLineState> _getFoldingLineList(
-    List<MemoLineState> list,
-    int _,
-  ) {
+  List<MemoLineState> _getFoldingLineList(List<MemoLineState> list, int _) {
     final visibleList = <MemoLineState>[];
     final foldingParentIndents = <int>[];
 
@@ -584,6 +654,7 @@ class MemoNotifier extends _$MemoNotifier {
         // 同じファイル名での保存（上書き）
         final fileRepository = ref.read(fileRepositoryProvider);
         await fileRepository.saveMemoStateWithDisplayName(state, newFileName);
+        state = state.copyWith(fileName: newFileName);
         await ref.read(homeProvider.notifier).updateFileNames();
       }
 
@@ -618,7 +689,7 @@ class MemoNotifier extends _$MemoNotifier {
     }
   }
 
-  void saveYes(
+  Future<void> saveYes(
     TextEditingController tec,
     String fileName,
     Function handler,
@@ -772,8 +843,24 @@ class MemoNotifier extends _$MemoNotifier {
   }
 
   void showSliderFontSizeChangeDialog() {
+    _showLineSizeChangeDialog();
+  }
+
+  void showSliderImageSizeChangeDialog() {
+    _showLineSizeChangeDialog(isImage: true);
+  }
+
+  void _showLineSizeChangeDialog({bool isImage = false}) {
     resetStateWithoutFIndex();
-    if (state.focusedIndex == -1) return;
+    final index = state.focusedIndex;
+    if (index < 0 || index >= state.list.length) return;
+    if (isImage &&
+        (state.list[index].imageBase64 == null ||
+            state.list[index].isReadOnly)) {
+      return;
+    }
+    final min = isImage ? 0.25 : AppConst.minFontSize;
+    final max = isImage ? 2.0 : AppConst.maxFontSize;
     var context = AppRouter.navigatorKey.currentContext;
     if (context == null) return;
     showDialog(
@@ -788,18 +875,24 @@ class MemoNotifier extends _$MemoNotifier {
                 height: AppUtils.sHeight / 4,
                 child: Consumer(
                   builder: (c, r, w) {
-                    var index = state.focusedIndex;
+                    final lines = r.watch(memoProvider).list;
+                    if (index >= lines.length) return const SizedBox.shrink();
+                    final line = lines[index];
                     return Slider(
                       activeColor: Colors.blue,
                       thumbColor: Colors.blueAccent,
-                      divisions:
-                          AppConst.maxFontSize.toInt() -
-                          AppConst.minFontSize.toInt(),
-                      max: AppConst.maxFontSize,
-                      min: AppConst.minFontSize,
-                      value: r.watch(memoProvider).list[index].fontSize,
+                      divisions: isImage ? 35 : (max - min).toInt(),
+                      max: max,
+                      min: min,
+                      value: (isImage ? line.imageScale : line.fontSize)
+                          .clamp(min, max)
+                          .toDouble(),
                       onChanged: (v) {
-                        onChangeFontSize(index, v);
+                        if (isImage) {
+                          resizeImage(index, v - state.list[index].imageScale);
+                        } else {
+                          onChangeFontSize(index, v);
+                        }
                       },
                     );
                   },
@@ -812,13 +905,14 @@ class MemoNotifier extends _$MemoNotifier {
                 right: 0,
                 child: Consumer(
                   builder: (c, r, w) {
-                    var index = state.focusedIndex;
-                    final currentValue = r
-                        .watch(memoProvider)
-                        .list[index]
-                        .fontSize;
-                    final stepCount = (currentValue - AppConst.minFontSize + 1)
-                        .toInt();
+                    final lines = r.watch(memoProvider).list;
+                    if (index >= lines.length) return const SizedBox.shrink();
+                    final line = lines[index];
+                    final label = isImage
+                        ? '${(line.imageScale * 100).round()}%'
+                        : (line.fontSize - AppConst.minFontSize + 1)
+                              .toInt()
+                              .toString();
                     return Center(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -833,7 +927,7 @@ class MemoNotifier extends _$MemoNotifier {
                           ),
                         ),
                         child: Text(
-                          stepCount.toString(),
+                          label,
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -850,7 +944,17 @@ class MemoNotifier extends _$MemoNotifier {
                 child: Consumer(
                   builder: (c, r, w) {
                     return TextButton(
-                      onPressed: r.read(memoProvider.notifier).resetFontSize,
+                      onPressed: () {
+                        if (index >= state.list.length) return;
+                        if (isImage) {
+                          resizeImage(
+                            index,
+                            1.0 - state.list[index].imageScale,
+                          );
+                        } else {
+                          onChangeFontSize(index, 14);
+                        }
+                      },
                       child: Text(
                         "reset",
                         style: TextStyle(color: Colors.white),
@@ -909,6 +1013,7 @@ class MemoNotifier extends _$MemoNotifier {
 
       final fileRepository = ref.read(fileRepositoryProvider);
       await fileRepository.saveMemoStateWithDisplayName(state, fileName);
+      state = state.copyWith(fileName: fileName);
       await ref.read(homeProvider.notifier).updateFileNames();
       log('ファイル保存成功: $fileName');
     } catch (e) {
@@ -937,6 +1042,7 @@ class MemoNotifier extends _$MemoNotifier {
     try {
       final fileRepository = ref.read(fileRepositoryProvider);
       await fileRepository.saveMemoStateWithDisplayName(state, displayName);
+      state = state.copyWith(fileName: displayName);
     } catch (e) {
       log('_saveJsonToFileWithName エラー: $e');
       throw Exception("ファイル保存エラー: $e");

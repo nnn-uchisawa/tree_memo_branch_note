@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tree/src/util/app_const.dart';
@@ -27,10 +30,64 @@ class MemoLineView extends ConsumerStatefulWidget {
 class _MemoLineViewState extends ConsumerState<MemoLineView> {
   double textFieldHeight = 0.0;
   late TextEditingController controller;
+  Uint8List? _imageBytes;
+
+  void _decodeImage() {
+    try {
+      final data = widget.memoLineState.imageBase64;
+      _imageBytes = data == null ? null : base64Decode(data);
+    } on FormatException {
+      _imageBytes = null;
+    }
+  }
+
+  void _showImage() {
+    final bytes = _imageBytes;
+    if (bytes == null) return;
+    final notifier = ref.read(memoProvider.notifier);
+    notifier.onTextChangeEnd();
+    notifier.changeFocusNodeIndex(widget.memoLineState.index);
+    showDialog<void>(
+      context: context,
+      useSafeArea: false,
+      builder: (context) => Dialog.fullscreen(
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 5,
+                child: Center(
+                  child: Image.memory(
+                    bytes,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) =>
+                        const Icon(Icons.broken_image, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.topRight,
+                child: IconButton(
+                  tooltip: '閉じる',
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
+    _decodeImage();
     controller = ref
         .read(memoProvider.notifier)
         .getTextController(widget.memoLineState.index);
@@ -41,6 +98,10 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
   @override
   void didUpdateWidget(covariant MemoLineView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.memoLineState.imageBase64 !=
+        widget.memoLineState.imageBase64) {
+      _decodeImage();
+    }
 
     // テキスト変更によって高さが変わる可能性があるので先にテキストを更新しておく
     if (controller.text != widget.memoLineState.text) {
@@ -81,6 +142,12 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
     const leftIconSize = 48.0;
     const dividerWidth = 1.0;
     const leadingMarginEditText = 10.0;
+    // Use roughly three text lines as the default thumbnail height.
+    final thumbnailHeight =
+        MediaQuery.textScalerOf(context).scale(widget.memoLineState.fontSize) *
+        1.5 *
+        3 *
+        widget.memoLineState.imageScale;
     final textFieldWidth =
         AppUtils.sWidth -
         widget.memoLineState.indent * widget.oneIndent -
@@ -135,6 +202,45 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
                   width: AppUtils.sWidth - leftIconSize,
                   child: Column(
                     children: [
+                      if (widget.memoLineState.imageBase64 != null)
+                        Padding(
+                          padding: EdgeInsets.only(
+                            left:
+                                widget.memoLineState.indent * widget.oneIndent +
+                                leadingMarginEditText +
+                                dividerWidth,
+                            top: 8,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Semantics(
+                              label: '画像を全画面表示',
+                              button: true,
+                              child: InkWell(
+                                onTap: _showImage,
+                                child: _imageBytes == null
+                                    ? const Icon(Icons.broken_image)
+                                    : Image.memory(
+                                        _imageBytes!,
+                                        width:
+                                            (thumbnailHeight * 4 / 3)
+                                                .clamp(
+                                                  1.0,
+                                                  textFieldWidth > 1
+                                                      ? textFieldWidth
+                                                      : 1.0,
+                                                )
+                                                .toDouble(),
+                                        height: thumbnailHeight,
+                                        fit: BoxFit.contain,
+                                        alignment: Alignment.centerLeft,
+                                        errorBuilder: (_, _, _) =>
+                                            const Icon(Icons.broken_image),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
                       Row(
                         children: [
                           AnimatedContainer(

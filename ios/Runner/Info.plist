@@ -40,7 +40,9 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>$(PRODUCT_NAME) は写真を含むディレクトリをファイルのインポート先として使用します</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>$(PRODUCT_NAME) は写真を含むディレクトリをファイルのインポート先として使用します</string>
+	<string>メモに貼り付ける画像を写真ライブラリから選択します</string>
+	<key>NSCameraUsageDescription</key>
+	<string>メモに貼り付ける写真を撮影します</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
