@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'memo_line_state.dart';
@@ -9,6 +9,7 @@ part of 'memo_line_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $MemoLineStateCopyWith<MemoLineState> get copyWith => _$MemoLineStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MemoLineState&&(identical(other.indent, indent) || other.indent == indent)&&(identical(other.text, text) || other.text == text)&&(identical(other.index, index) || other.index == index)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.isFolding, isFolding) || other.isFolding == isFolding)&&(identical(other.isReadOnly, isReadOnly) || other.isReadOnly == isReadOnly));
+  final _this = this as MemoLineState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MemoLineState&&(identical(other.indent, _this.indent) || other.indent == _this.indent)&&(identical(other.text, _this.text) || other.text == _this.text)&&(identical(other.index, _this.index) || other.index == _this.index)&&(identical(other.fontSize, _this.fontSize) || other.fontSize == _this.fontSize)&&(identical(other.isEditing, _this.isEditing) || other.isEditing == _this.isEditing)&&(identical(other.isFolding, _this.isFolding) || other.isFolding == _this.isFolding)&&(identical(other.isReadOnly, _this.isReadOnly) || other.isReadOnly == _this.isReadOnly));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,indent,text,index,fontSize,isEditing,isFolding,isReadOnly);
+int get hashCode {
+  final _this = this as MemoLineState;
+  return Object.hash(runtimeType,_this.indent,_this.text,_this.index,_this.fontSize,_this.isEditing,_this.isFolding,_this.isReadOnly);
+}
 
 @override
 String toString() {
-  return 'MemoLineState(indent: $indent, text: $text, index: $index, fontSize: $fontSize, isEditing: $isEditing, isFolding: $isFolding, isReadOnly: $isReadOnly)';
+  final _this = this as MemoLineState;
+  return 'MemoLineState(indent: ${_this.indent}, text: ${_this.text}, index: ${_this.index}, fontSize: ${_this.fontSize}, isEditing: ${_this.isEditing}, isFolding: ${_this.isFolding}, isReadOnly: ${_this.isReadOnly})';
 }
 
 
@@ -66,7 +72,7 @@ class _$MemoLineStateCopyWithImpl<$Res>
 /// Create a copy of MemoLineState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? indent = null,Object? text = null,Object? index = null,Object? fontSize = null,Object? isEditing = null,Object? isFolding = null,Object? isReadOnly = null,}) {
-  return _then(_self.copyWith(
+  return _then(MemoLineState(
 indent: null == indent ? _self.indent : indent // ignore: cast_nullable_to_non_nullable
 as int,text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
@@ -239,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MemoLineState&&(identical(other.indent, indent) || other.indent == indent)&&(identical(other.text, text) || other.text == text)&&(identical(other.index, index) || other.index == index)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.isFolding, isFolding) || other.isFolding == isFolding)&&(identical(other.isReadOnly, isReadOnly) || other.isReadOnly == isReadOnly));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MemoLineState&&(identical(other.indent, indent) || other.indent == indent)&&(identical(other.text, text) || other.text == text)&&(identical(other.index, index) || other.index == index)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.isFolding, isFolding) || other.isFolding == isFolding)&&(identical(other.isReadOnly, isReadOnly) || other.isReadOnly == isReadOnly));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,indent,text,index,fontSize,isEditing,isFolding,isReadOnly);
+int get hashCode {
+    return Object.hash(runtimeType,indent,text,index,fontSize,isEditing,isFolding,isReadOnly);
+}
 
 @override
 String toString() {
-  return 'MemoLineState(indent: $indent, text: $text, index: $index, fontSize: $fontSize, isEditing: $isEditing, isFolding: $isFolding, isReadOnly: $isReadOnly)';
+    return 'MemoLineState(indent: $indent, text: $text, index: $index, fontSize: $fontSize, isEditing: $isEditing, isFolding: $isFolding, isReadOnly: $isReadOnly)';
 }
 
 

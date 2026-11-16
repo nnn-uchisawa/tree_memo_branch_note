@@ -6,7 +6,9 @@ import 'package:tree/src/view/pages/home/home_view.dart';
 import 'package:tree/src/view/pages/memo/memo_view.dart';
 import 'package:tree/src/view/pages/walk_through/walk_through_view.dart';
 import 'package:tree/src/view/widgets/on_boarding_page.dart';
+
 import 'dart:developer';
+
 import 'helpers/test_helpers.dart';
 
 void main() {
@@ -215,7 +217,12 @@ void main() {
         ),
       );
 
-      final coloredBox = tester.widget<ColoredBox>(find.byType(ColoredBox));
+      final coloredBox = tester.widget<ColoredBox>(
+        find.descendant(
+          of: find.byType(OnBoardingPage),
+          matching: find.byType(ColoredBox),
+        ),
+      );
       expect(coloredBox.color, Colors.blue);
     });
   });

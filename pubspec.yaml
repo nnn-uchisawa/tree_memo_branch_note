@@ -19,7 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.3
 
 environment:
-  sdk: '>=3.8.0 <4.0.0'
+  sdk: '>=3.14.0 <4.0.0'
+  flutter: '>=3.50.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -32,21 +33,17 @@ dependencies:
     sdk: flutter
 
   # 🏗️ 状態管理・アーキテクチャ
-  flutter_riverpod: ^3.0.3         # 主要状態管理ライブラリ
+  flutter_riverpod: ^3.5.0         # 主要状態管理ライブラリ
   provider: ^6.1.5+1               # 補助的な状態管理
 
   # 🛣️ ナビゲーション・ルーティング
-  go_router: ^16.2.2               # 宣言的ルーティング
+  go_router: ^18.1.4               # 宣言的ルーティング
 
   # 🎨 UI・デザイン
   adaptive_dialog: ^2.5.0          # プラットフォーム適応ダイアログ
   cupertino_icons: ^1.0.8          # iOSスタイルアイコン
   icons_plus: ^5.0.0               # 追加アイコンセット
-  flutter_onboarding_slider:
-    git:
-      url: https://github.com/nnn-uchisawa/flutter_onboarding_slider_fix/
-      ref: refactor/riverpod-migration
-      path: packages/flutter_onboarding_slider
+  flutter_onboarding_slider: ^1.0.11
 
   # 🖼️ アセット・画像
   flutter_gen: ^5.12.0             # アセットコード生成
@@ -62,8 +59,8 @@ dependencies:
 
   # 🔧 コード生成・シリアライゼーション
   freezed_annotation: ^3.1.0       # Freezedアノテーション
-  json_annotation: ^4.9.0          # JSONアノテーション
-  riverpod_annotation: ^3.0.3      # Riverpodアノテーション
+  json_annotation: ^4.12.0         # JSONアノテーション
+  riverpod_annotation: ^4.0.8      # Riverpodアノテーション
   
   # 🚀 アプリ配布・ビルド（実行時不要なので dev に移動）
   app_version_update: ^6.1.3       # アプリバージョン更新
@@ -81,20 +78,20 @@ dev_dependencies:
   flutter_lints: ^6.0.0            # コード品質チェック
   
   # 🏗️ 状態管理・アーキテクチャ（開発用）
-  riverpod_generator: ^3.0.3       # Riverpodコード生成
+  riverpod_generator: ^4.0.10      # Riverpodコード生成
 
   # 🛣️ ナビゲーション・ルーティング（開発用）
-  go_router_builder: ^4.1.0        # GoRouterコード生成
+  go_router_builder: ^4.5.3        # GoRouterコード生成
 
   # 🖼️ アセット・画像（開発用）
   flutter_gen_runner: ^5.12.0      # アセット生成ランナー
 
   # 🔧 コード生成・シリアライゼーション（開発用）
-  build_runner: ^2.7.1             # ビルドランナー（go_router_builder互換）
+  build_runner: '>=2.16.2 <2.17.1' # flutter_gen_runner の build 4 に合わせる
   
   # Freezed/JSON シリアライザ（ビルド時のみ使用）
-  freezed: ^3.2.3                  # イミュータブルクラス生成
-  json_serializable: ^6.11.1       # JSONシリアライゼーション
+  freezed: ^4.0.3                  # イミュータブルクラス生成
+  json_serializable: ^6.15.2       # JSONシリアライゼーション
   
   # アプリ配布・ビルド（実行時不要）
   flutter_flavorizr: ^2.4.1        # フレーバー管理

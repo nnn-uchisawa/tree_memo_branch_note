@@ -4,6 +4,27 @@ A treememo mobile app satisfiable for me
 
 ## ビルド手順
 
+開発環境は Flutter 3.50.0（Dart 3.14.0）以降、Android ビルドは Java 17 以降を使用します。
+Android のビルドツールも Flutter 3.50 の構成（Gradle 9.5.0 / AGP 9.3.1 / Kotlin 2.4.20）に合わせています。
+
+```sh
+flutter --version
+flutter pub get
+dart run build_runner build
+flutter test
+flutter run --flavor local
+```
+
+`build_runner` は `flutter_gen_runner` の `build` 4 系との互換性のため、2.16.2 系に制限しています。
+
+Windows では Java 17 を指定して起動できます。`.tooling/java17/` に JDK を展開済みなら `-JavaHome` は省略できます。
+
+```powershell
+./scripts/run_android.ps1 -JavaHome 'C:/path/to/jdk-17'
+# APK の作成のみ
+./scripts/run_android.ps1 -JavaHome 'C:/path/to/jdk-17' -BuildOnly
+```
+
 - [flutterの環境セットアップ手順](mds/flutter_setup/index.md)<br>
 - [ソースのDL・セットアップ手順](mds/source_operation/index.md)<br>
 - [ビルド手順](mds/build_operation/index.md)

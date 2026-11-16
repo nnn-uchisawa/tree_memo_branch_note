@@ -10,10 +10,11 @@ import 'package:tree/src/util/shared_preference.dart';
 void main() async {
   F.appFlavor = Flavor.values.firstWhere(
     (element) => element.name == appFlavor,
+    orElse: () => Flavor.local,
   );
   DartPluginRegistrant.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   // SharedPreferences を初期化
   await SharedPreference.init();

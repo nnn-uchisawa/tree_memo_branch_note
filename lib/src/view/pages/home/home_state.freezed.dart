@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'home_state.dart';
@@ -9,6 +9,7 @@ part of 'home_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $HomeStateCopyWith<HomeState> get copyWith => _$HomeStateCopyWithImpl<HomeState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeState&&const DeepCollectionEquality().equals(other.list, list)&&(identical(other.memoState, memoState) || other.memoState == memoState)&&const DeepCollectionEquality().equals(other.fileNames, fileNames));
+  final _this = this as HomeState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeState&&const DeepCollectionEquality().equals(other.list, _this.list)&&(identical(other.memoState, _this.memoState) || other.memoState == _this.memoState)&&const DeepCollectionEquality().equals(other.fileNames, _this.fileNames));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(list),memoState,const DeepCollectionEquality().hash(fileNames));
+int get hashCode {
+  final _this = this as HomeState;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.list),_this.memoState,const DeepCollectionEquality().hash(_this.fileNames));
+}
 
 @override
 String toString() {
-  return 'HomeState(list: $list, memoState: $memoState, fileNames: $fileNames)';
+  final _this = this as HomeState;
+  return 'HomeState(list: ${_this.list}, memoState: ${_this.memoState}, fileNames: ${_this.fileNames})';
 }
 
 
@@ -63,7 +69,7 @@ class _$HomeStateCopyWithImpl<$Res>
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? list = null,Object? memoState = freezed,Object? fileNames = null,}) {
-  return _then(_self.copyWith(
+  return _then(HomeState(
 list: null == list ? _self.list : list // ignore: cast_nullable_to_non_nullable
 as List<File>,memoState: freezed == memoState ? _self.memoState : memoState // ignore: cast_nullable_to_non_nullable
 as MemoState?,fileNames: null == fileNames ? _self.fileNames : fileNames // ignore: cast_nullable_to_non_nullable
@@ -220,7 +226,7 @@ return $default(_that.list,_that.memoState,_that.fileNames);case _:
 
 
 class _HomeState extends HomeState {
-   _HomeState({final  List<File> list = const [], this.memoState, final  List<String> fileNames = const []}): _list = list,_fileNames = fileNames,super._();
+   _HomeState({ List<File> list = const [], this.memoState,  List<String> fileNames = const []}): _list = list,_fileNames = fileNames,super._();
   
 
  final  List<File> _list;
@@ -249,16 +255,18 @@ _$HomeStateCopyWith<_HomeState> get copyWith => __$HomeStateCopyWithImpl<_HomeSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeState&&const DeepCollectionEquality().equals(other._list, _list)&&(identical(other.memoState, memoState) || other.memoState == memoState)&&const DeepCollectionEquality().equals(other._fileNames, _fileNames));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeState&&const DeepCollectionEquality().equals(other.list, _list)&&(identical(other.memoState, memoState) || other.memoState == memoState)&&const DeepCollectionEquality().equals(other.fileNames, _fileNames));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_list),memoState,const DeepCollectionEquality().hash(_fileNames));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_list),memoState,const DeepCollectionEquality().hash(_fileNames));
+}
 
 @override
 String toString() {
-  return 'HomeState(list: $list, memoState: $memoState, fileNames: $fileNames)';
+    return 'HomeState(list: $list, memoState: $memoState, fileNames: $fileNames)';
 }
 
 

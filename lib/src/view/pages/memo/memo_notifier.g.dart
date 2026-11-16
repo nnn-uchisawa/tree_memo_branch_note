@@ -10,11 +10,11 @@ part of 'memo_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(MemoNotifier)
-const memoProvider = MemoNotifierProvider._();
+final memoProvider = MemoNotifierProvider._();
 
 final class MemoNotifierProvider
     extends $NotifierProvider<MemoNotifier, MemoState> {
-  const MemoNotifierProvider._()
+  MemoNotifierProvider._()
     : super(
         from: null,
         argument: null,
@@ -41,14 +41,13 @@ final class MemoNotifierProvider
   }
 }
 
-String _$memoNotifierHash() => r'21a30abd18866f08dab9bbfebb7e6b9ef103078d';
+String _$memoNotifierHash() => r'fb2fa747e4b23621ae1feb18c2f5e0aeeb432c4e';
 
 abstract class _$MemoNotifier extends $Notifier<MemoState> {
   MemoState build();
   @$mustCallSuper
   @override
-  void runBuild() {
-    final created = build();
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<MemoState, MemoState>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$MemoNotifier extends $Notifier<MemoState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    return element.handleCreate(ref, build);
   }
 }
