@@ -57,8 +57,12 @@ class MemoView extends ConsumerWidget {
         }
       },
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () {
-          ref.read(memoProvider.notifier).resetState();
+          FocusScope.of(context).unfocus();
+          final notifier = ref.read(memoProvider.notifier);
+          notifier.resetFocusIfFocus();
+          notifier.resetState();
         },
         child: SafeAppBarView(
           appBar: AppBar(

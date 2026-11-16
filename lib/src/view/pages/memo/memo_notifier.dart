@@ -99,6 +99,19 @@ class MemoNotifier extends _$MemoNotifier {
     );
   }
 
+  void removeImage(int index) {
+    if (index < 0 || index >= state.list.length) return;
+    final line = state.list[index];
+    if (line.isReadOnly || line.imageBase64 == null) return;
+    final list = List<MemoLineState>.from(state.list);
+    list[index] = line.copyWith(imageBase64: null, imageScale: 1.0);
+    state = state.copyWith(
+      list: list,
+      visibleList: _getFoldingLineList(list, 0),
+      isEditing: false,
+    );
+  }
+
   @override
   MemoState build() {
     var memo = ref.watch(homeProvider.select((home) => home.memoState));

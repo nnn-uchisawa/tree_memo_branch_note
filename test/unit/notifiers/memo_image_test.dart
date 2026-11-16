@@ -84,6 +84,8 @@ void main() {
     );
     addTearDown(container.dispose);
     final focusNode = FocusNode();
+    final subscription = container.listen(memoProvider, (_, _) {});
+    addTearDown(subscription.close);
     addTearDown(focusNode.dispose);
     await tester.pumpWidget(
       UncontrolledProviderScope(
@@ -100,6 +102,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    final imageRect = tester.getRect(find.byType(Image));
+    await tester.tapAt(Offset(imageRect.right + 100, imageRect.center.dy));
+    await tester.pumpAndSettle();
+    expect(container.read(memoProvider).focusedIndex, 0);
+    expect(focusNode.hasFocus, isTrue);
+    expect(find.byType(InteractiveViewer), findsNothing);
     await tester.tap(find.byType(Image));
     await tester.pumpAndSettle();
     expect(find.byType(InteractiveViewer), findsOneWidget);
@@ -132,6 +140,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(InteractiveViewer), findsNothing);
     expect(find.byType(TextField), findsOneWidget);
+    await tester.longPress(find.byType(Image));
+    await tester.pumpAndSettle();
+    expect(find.text('この画像を削除しますか？'), findsOneWidget);
+    await tester.tap(find.text('キャンセル'));
+    await tester.pumpAndSettle();
+    expect(container.read(memoProvider).list.single.imageBase64, isNotNull);
+    await tester.longPress(find.byType(Image));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('削除'));
+    await tester.pumpAndSettle();
+    expect(container.read(memoProvider).list.single.imageBase64, isNull);
+    expect(container.read(memoProvider).list.single.imageScale, 1);
+    expect(container.read(memoProvider).visibleList.single.imageBase64, isNull);
   });
 
   test('image and thumbnail size survive saving and old memos still load', () {
@@ -167,8 +188,13 @@ void main() {
       notifier.toggleReadOnlyStatus(0)();
       notifier.resizeImage(0, 1);
       notifier.attachImage('replacement', index: 0);
+      notifier.removeImage(0);
       expect(container.read(memoProvider).list.single.imageScale, 0.25);
       expect(container.read(memoProvider).list.single.imageBase64, 'aW1hZ2U=');
+      notifier.toggleReadOnlyStatus(0)();
+      notifier.removeImage(0);
+      expect(container.read(memoProvider).list.single.imageBase64, isNull);
+      expect(container.read(memoProvider).list.single.text, 'caption');
       notifier.attachImage('new image', index: -1);
       expect(container.read(memoProvider).list.length, 2);
       expect(container.read(memoProvider).focusedIndex, 1);

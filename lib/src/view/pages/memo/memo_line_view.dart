@@ -84,6 +84,36 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
     );
   }
 
+  Future<void> _confirmRemoveImage() async {
+    if (widget.memoLineState.isReadOnly) return;
+    final index = widget.memoLineState.index;
+    final image = widget.memoLineState.imageBase64;
+    final notifier = ref.read(memoProvider.notifier);
+    notifier.onTextChangeEnd();
+    final remove = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('画像を削除'),
+        content: const Text('この画像を削除しますか？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('削除', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || remove != true) return;
+    final lines = ref.read(memoProvider).list;
+    if (index < lines.length && lines[index].imageBase64 == image) {
+      ref.read(memoProvider.notifier).removeImage(index);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -193,6 +223,14 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
                 ),
               ),
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  final notifier = ref.read(memoProvider.notifier);
+                  notifier.onTextChangeEnd();
+                  notifier.resetFocusIfFocus();
+                  notifier.changeFocusNodeIndex(widget.memoLineState.index);
+                  widget.focusNode.requestFocus();
+                },
                 onHorizontalDragEnd: (ded) async {
                   ref
                       .read(memoProvider.notifier)
@@ -218,19 +256,21 @@ class _MemoLineViewState extends ConsumerState<MemoLineView> {
                               button: true,
                               child: InkWell(
                                 onTap: _showImage,
+                                onLongPress: widget.memoLineState.isReadOnly
+                                    ? null
+                                    : _confirmRemoveImage,
                                 child: _imageBytes == null
                                     ? const Icon(Icons.broken_image)
                                     : Image.memory(
                                         _imageBytes!,
-                                        width:
-                                            (thumbnailHeight * 4 / 3)
-                                                .clamp(
-                                                  1.0,
-                                                  textFieldWidth > 1
-                                                      ? textFieldWidth
-                                                      : 1.0,
-                                                )
-                                                .toDouble(),
+                                        width: (thumbnailHeight * 4 / 3)
+                                            .clamp(
+                                              1.0,
+                                              textFieldWidth > 1
+                                                  ? textFieldWidth
+                                                  : 1.0,
+                                            )
+                                            .toDouble(),
                                         height: thumbnailHeight,
                                         fit: BoxFit.contain,
                                         alignment: Alignment.centerLeft,
